@@ -218,10 +218,14 @@ exports.connection.onHover(async (params, token) => {
     if (definition === null) {
         return null;
     }
-    const lines = definition.text.split('\n').slice(definition.range.start.line, definition.range.end.line + 1);
+    let lines = definition.text.split('\n').slice(definition.range.start.line, definition.range.end.line + 1);
     if (definition.range.start.line === definition.range.end.line) {
         if (!(definition.range.parent instanceof objects_1.OState)){
             lines[0] = lines[0].substring(definition.range.start.character, definition.range.end.character);
+        } else {
+            const s = definition.range.parent.parent.range.start.i
+            const e = definition.range.parent.parent.range.end.i
+            lines = definition.text.substring(s, e).split('\n')
         }
     }
     else {
