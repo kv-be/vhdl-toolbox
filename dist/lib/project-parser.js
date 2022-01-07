@@ -9,11 +9,12 @@ const path_1 = require("path");
 const utils = require("./utils")
 const { throws } = require("assert");
 class ProjectParser {
-    constructor(workspaces) {
+    constructor(workspaces, settings) {
         this.workspaces = workspaces;
         this.cachedFiles = [];
         this.events = new events_1.EventEmitter();
-        this.options= {"coding_rules" : true, "missing_resets_detected" : true, "std_logic_arith_forbidden" : true};
+        if (settings) this.options = settings
+        else this.options= {"CheckCodingRules" : true, "CheckProcessReset" : true, "CheckStdLogicArith" : true, "ShowProcessesInOutline" : false, "PathsToPartiallyCheck":"", "IgnorePattern":"", "ToplevelSelectPattern":""};
     }
 
     get_options(){
@@ -21,19 +22,10 @@ class ProjectParser {
     }
 
     async read_options(){
-        const cfgfile= this.workspaces[0] + '/' + "vhdl-linter.json"
-        if(fs_1.existsSync(cfgfile)){
-            utils.message("global config file found")
-            let text = fs_1.readFileSync(cfgfile).toString().toLowerCase();
-            text = text.replace(/"\s*true\s*"|'\s*true\s*'/g, "true")
-            text = text.replace(/"\s*false\s*"|'\s*false\s*'/g, "false")
-            this.options = JSON.parse(text)
-
-        }
         utils.message("starting workspace with the following global options")
-        utils.message("   coding_rules               : "+ this.options.coding_rules)
-        utils.message("   missing_resets_detected    : "+ this.options.missing_resets_detected)
-        utils.message("   std_logic_arith_forbidden  : "+ this.options.std_logic_arith_forbidden)
+        utils.message("   CheckCodingRules     : "+ this.options.CheckCodingRules)
+        utils.message("   CheckProcessReset    : "+ this.options.CheckProcessReset)
+        utils.message("   CheckStdLogicArith   : "+ this.options.CheckStdLogicArith)
     }
 
     async init() {
@@ -97,6 +89,12 @@ class ProjectParser {
             });
         }
     }
+
+    updateSettings(settings){
+        this.options = settings
+    }
+
+    
     async parseDirectory(directory) {
         const files = [];
         const entries = await fs_1.promises.readdir(directory);

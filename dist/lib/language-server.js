@@ -25,6 +25,7 @@ exports.documents = new vscode_languageserver_1.TextDocuments();
 let hasWorkspaceFolderCapability = false;
 let hasConfigurationCapability = false;
 let rootUri;
+
 exports.connection.onInitialize((params) => {
     let capabilities = params.capabilities;
     hasConfigurationCapability = !!(
@@ -63,12 +64,13 @@ exports.connection.onInitialize((params) => {
 });
 exports.initialization = new Promise(resolve => {
     exports.connection.onInitialized(async () => {
-          
+        exports.projectParser = null  
+        const configSettings = await getCondigurationSettings()
         if (hasWorkspaceFolderCapability) {
             const parseWorkspaces = async () => {
                 const workspaceFolders = await exports.connection.workspace.getWorkspaceFolders();
                 const folders = (workspaceFolders !== null && workspaceFolders !== void 0 ? workspaceFolders : []).map(workspaceFolder => vscode_uri_1.URI.parse(workspaceFolder.uri).fsPath);
-                exports.projectParser = new project_parser_1.ProjectParser(folders);
+                exports.projectParser = new project_parser_1.ProjectParser(folders, configSettings);
                 await exports.projectParser.init();
             };
             await parseWorkspaces();
@@ -82,7 +84,7 @@ exports.initialization = new Promise(resolve => {
             if (rootUri) {
                 folders.push(vscode_uri_1.URI.parse(rootUri).fsPath);
             }
-            exports.projectParser = new project_parser_1.ProjectParser(folders);
+            exports.projectParser = new project_parser_1.ProjectParser(folders, configSettings);
             await exports.projectParser.init();
         }
         exports.documents.all().forEach(validateTextDocument);
@@ -101,21 +103,25 @@ exports.initialization = new Promise(resolve => {
 
 exports.connection.onDidChangeConfiguration(change => {
     if (hasConfigurationCapability) {
-        console.log(change)
+        if (exports.projectParser !== null){
+            exports.projectParser.updateSettings(change.settings.VHDLToolbox)
+        }
     } 
     exports.connection.sendNotification("custom/test", [change]);
     // Revalidate all open text documents
-    //documents.all().forEach(validateTextDocument);
+    exports.documents.all().forEach(validateTextDocument);
   });
 
-  function getDocumentSettings(resource) {
+async function getCondigurationSettings() {
 
     //let result = documentSettings.get(resource);
     //if (!result) {
-      result = exports.connection.workspace.getConfiguration({
-        scopeUri: resource,
-        section: 'VHDL-Toolbox'
+    let result = await exports.connection.workspace.getConfiguration({
+        section: 'VHDLToolbox'
       });
+      if (!result){
+
+      }
       //documentSettings.set(resource, result);
    // }
     return result;

@@ -15,9 +15,9 @@ class Parser extends parser_base_1.ParserBase {
     }
     parse() {
         const file = new objects_1.OFile(this.text, this.file, this.originalText);
-        file.options.coding_rules = null
-        file.options.missing_resets_detected = null
-        file.options.std_logic_arith_forbidden = null
+        file.options.CheckCodingRules = null
+        file.options.CheckProcessReset = null
+        file.options.CheckStdLogicArith = null
         let disabledRangeStart = undefined;
         let ignoreRegex = [];
         for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
@@ -28,14 +28,14 @@ class Parser extends parser_base_1.ParserBase {
                 if ((innerMatch = match[2].match('-disable-this-line')) !== null) {
                     file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, new objects_1.OIRange(file, new objects_1.OI(file, lineNumber, 0), new objects_1.OI(file, lineNumber, line.length - 1))));
                 }
-                else if (match[2].includes("coding_rules") ) {
-                    file.options.coding_rules = match[2].toLowerCase().includes("true")
+                else if (match[2].includes("CheckCodingRules") ) {
+                    file.options.CheckCodingRules = match[2].toLowerCase().includes("true")
                 }
-                else if (match[2].includes("missing_resets_detected") ) {
-                    file.options.missing_resets_detected = match[2].toLowerCase().includes("true")
+                else if (match[2].includes("CheckProcessReset") ) {
+                    file.options.CheckProcessReset = match[2].toLowerCase().includes("true")
                 }
-                else if (match[2].includes("std_logic_arith_forbidden") ) {
-                    file.options.std_logic_arith_forbidden = match[2].toLowerCase().includes("true")
+                else if (match[2].includes("CheckStdLogicArith") ) {
+                    file.options.CheckStdLogicArith = match[2].toLowerCase().includes("true")
                 }
                 
                 else if ((innerMatch = match[2].match('-disable-next-line')) !== null) { // TODO: next nonempty line

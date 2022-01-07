@@ -139,17 +139,40 @@
 			"type": "object",
 			"title": "VHDL-Toolbox",
 			"properties": {
-				"languageServerExample.maxNumberOfProblems": {
-					"scope": "resource",
-					"type": "number",
-					"default": 500,
-					"description": "Controls the maximum number of problems produced by the server."
+				"VHDLToolbox.CheckCodingRules": {
+					"type": "boolean",
+					"default": true,
+					"description": ""
 				},
-		
-				"VHDLToolbox.test": {
+				"VHDLToolbox.CheckProcessReset": {
+					"type": "boolean",
+					"default": true,
+					"description": ""
+				},
+				"VHDLToolbox.CheckStdLogicArith": {
+					"type": "boolean",
+					"default": true,
+					"description": ""
+				},
+				"VHDLToolbox.ShowProcessesInOutline": {
 					"type": "boolean",
 					"default": false,
 					"description": ""
+				},
+				"VHDLToolbox.PathsToPartiallyCheck": {
+					"type": "string",
+					"default": "",
+					"description": "Pattern to select paths/files which are only parsed on the interface. This is typically used for external IP or libraries."
+				},
+				"VHDLToolbox.IgnorePattern": {
+					"type": "string",
+					"default": "",
+					"description": "Pattern selecting files which are not parsed."
+				},
+				"VHDLToolbox.ToplevelSelectPattern": {
+					"type": "string",
+					"default": "",
+					"description": "Pattern selecting files which are considered as toplevels."
 				},
 				"VHDLToolbox.trace.server": {
 					"scope": "window",

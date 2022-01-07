@@ -26,19 +26,19 @@ class VhdlLinter {
         this.global_options = projectParser.get_options();
         //("finally parsing "+this.editorPath)
         this.onlyDeclarations = false
-        const skippers = ["ipconfig", "uvvm", "unisim", "bitvis"]
-        for (const sk of skippers){
-            if (editorPath.includes(sk)) this.onlyDeclarations = true
-        }
-
+        if (this.global_options.PathsToPartiallyCheck.length > 0){
+            for (const sk of this.global_options.PathsToPartiallyCheck.split(',')){
+                if (editorPath.includes(sk.trim())) this.onlyDeclarations = true
+            }
+        }  
         this.parser = new parser_1.Parser(this.text, this.editorPath, this.onlyDeclarations);
-        this.file_options = {"coding_rules" : null, "missing_resets_detected" : null, "std_logic_arith_forbidden" : null};
+        this.file_options = {"CheckCodingRules" : null, "CheckProcessReset" : null, "CheckStdLogicArith" : null};
         
         if (this.global_options){
             const a = this.global_options
             this.options = Object.assign({}, this.global_options);
         }else{
-            this.options = {"coding_rules" : true, "missing_resets_detected" : true, "std_logic_arith_forbidden" : true};
+            this.options = {"CheckCodingRules" : true, "CheckProcessReset" : true, "CheckStdLogicArith" : true};
         }
 
 
@@ -46,19 +46,17 @@ class VhdlLinter {
         try {
             this.tree = this.parser.parse(); 
             this.file_options = this.tree.options
-            //console.log("file options"+this.file_options.coding_rules)
-            if (this.file_options.missing_resets_detected !== null){
-                this.options.missing_resets_detected = this.file_options.missing_resets_detected    
+            if (this.file_options.CheckProcessReset !== null){
+                this.options.CheckProcessReset = this.file_options.CheckProcessReset    
             }
-            if (this.file_options.coding_rules !== null){
-                this.options.coding_rules = this.file_options.coding_rules                
+            if (this.file_options.CheckCodingRules !== null){
+                this.options.CheckCodingRules = this.file_options.CheckCodingRules                
             }
-            if (this.file_options.std_logic_arith_forbidden !== null){
-                this.options.std_logic_arith_forbidden = this.file_options.std_logic_arith_forbidden 
+            if (this.file_options.CheckStdLogicArith !== null){
+                this.options.CheckStdLogicArith = this.file_options.CheckStdLogicArith 
             }
-            //utils.debuglog("check2 "+typeof this.options.std_logic_arith_forbidden)
 
-            }
+        }
         catch (e) {
             if (e instanceof objects_1.ParserError) {
                 let code;
@@ -405,7 +403,7 @@ class VhdlLinter {
         // check if the file name and the entity name are the same
         //utils.debuglog("Checking entity")
         if ((this.tree instanceof objects_1.OFileWithEntity) && (this.tree.entity) ){
-            if (this.options.coding_rules) {
+            if (this.options.CheckCodingRules) {
                 let name
                 if (this.tree.file.includes('/')) {
                     name = this.tree.file.split('/')
@@ -431,7 +429,7 @@ class VhdlLinter {
             }    
         }
         if (this.tree instanceof objects_1.OFileWithPackages){
-            if (this.options.coding_rules) {
+            if (this.options.CheckCodingRules) {
                 let name = this.tree.file.split('/')
                 name = name[name.length-1].split('.')[0]
                 //utils.debuglog("file name "+ name+ ", "+this.tree.packages[0].name)
@@ -463,8 +461,8 @@ class VhdlLinter {
         }
         
         for (const useStatement of this.tree.useStatements) {
-            //utils.debuglog("check libs " + typeof this.options.std_logic_arith_forbidden)
-            if (this.options.std_logic_arith_forbidden){
+            //utils.debuglog("check libs " + typeof this.options.CheckStdLogicArith)
+            if (this.options.CheckStdLogicArith){
                 //utils.debuglog("Checking libs")
                 if (useStatement.text.match(/^ieee.std_logic_arith.all/gi) !== null) {
                     this.addMessage({
@@ -495,12 +493,12 @@ class VhdlLinter {
     checkAll() {
         if (this.tree) {
             utils.message("checking file "+ this.tree.file)
-            utils.debuglog("with std_logic_arith_forbidden "+this.options.std_logic_arith_forbidden)
-            utils.debuglog("with missing_resets_detected   "+this.options.missing_resets_detected)
-            utils.debuglog("with coding_rules              "+this.options.coding_rules)
+            utils.debuglog("with CheckStdLogicArith "+this.options.CheckStdLogicArith)
+            utils.debuglog("with CheckProcessReset   "+this.options.CheckProcessReset)
+            utils.debuglog("with CheckCodingRules              "+this.options.CheckCodingRules)
             this.parseProtected();
             this.parsePackages();
-            this.checkHeader()
+            if (this.options.CheckCodingRules) this.checkHeader()
             this.checkEntity()
             this.checkCases()
             this.checkNotDeclared();
@@ -734,7 +732,7 @@ class VhdlLinter {
             const range = vscode_languageserver_1.Range.create(vscode_languageserver_1.Position.create(process.range.start.line, 0), vscode_languageserver_1.Position.create(process.range.start.line, endCharacter));
             const arr = process.text.split('\n')
 
-            if (this.options.coding_rules){
+            if (this.options.CheckCodingRules){
                 for (const variable of process.variables) {
                     let first = 0;
                     let used = 0;
@@ -758,7 +756,7 @@ class VhdlLinter {
             }
 
             if (process.isRegisterProcess()) {
-                if (this.options.coding_rules){
+                if (this.options.CheckCodingRules){
                     if (process.clock.match(/[A-Za-z_0-9]*clk/i) === null) {
                         this.addMessage({
                             range: range,
@@ -822,7 +820,7 @@ class VhdlLinter {
                         }
                     }
                 }
-                if ((!process.reset_signal) && (this.options.missing_resets_detected)) {
+                if ((!process.reset_signal) && (this.options.CheckProcessReset)) {
                     //onsole.log("resets = "+process.reset_signal)
                     this.addMessage({
                         range: range,
@@ -935,12 +933,14 @@ class VhdlLinter {
                     if (type.states){
                         for (const state of type.states){
                             let found = false
-                            if ((fsm) && (!state.name.text.startsWith("S_"))){
-                                this.addMessage({
-                                    range: state.range,
-                                    severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                                    message: `States of a FSM should start with S_`
-                                });        
+                            if (this.options.CheckCodingRules){
+                                if ((fsm) && (!state.name.text.startsWith("S_"))){
+                                    this.addMessage({
+                                        range: state.range,
+                                        severity: vscode_languageserver_1.DiagnosticSeverity.Error,
+                                        message: `States of a FSM should start with S_`
+                                    });        
+                                }    
                             }
                             for (const w of c.whenClauses){
                                 if (w.conditionName.toLowerCase() === state.name.text.toLowerCase()){
@@ -1110,7 +1110,7 @@ class VhdlLinter {
         return codeLenses;
     }
     checkResets() {
-        if (((this.tree instanceof objects_1.OFileWithEntityAndArchitecture)==false) || (!this.options.missing_resets_detected)){
+        if (((this.tree instanceof objects_1.OFileWithEntityAndArchitecture)==false) || (!this.options.CheckProcessReset)){
             return;
         }
         let signalLike = this.tree.architecture.signals;
@@ -1252,7 +1252,7 @@ class VhdlLinter {
             }
 
             if (signal.constant) {
-                if (this.options.coding_rules){
+                if (this.options.CheckCodingRules){
                     if ((signal.name.text.match(/^C_[0-9A-Z_]+/) === null)|| (signal.name.text.match(/[a-z]+/) !== null)) {
                         this.addMessage({
                             range: signal.range,
@@ -1270,7 +1270,7 @@ class VhdlLinter {
                 }*/
             }
             else {
-                if (this.options.coding_rules){
+                if (this.options.CheckCodingRules){
                     if (signal.name.text.search(/[A-Z]+/) >= 0) {
                         this.addMessage({
                             range: signal.range,
@@ -1287,7 +1287,7 @@ class VhdlLinter {
             return;
         }
 
-        if (this.options.coding_rules){
+        if (this.options.CheckCodingRules){
             const tree = this.tree;
             for (const port of tree.entity.ports.filter(p=> (p.name.text.match(/^[0-9A-Z_]+/) === null) || (p.name.text.match(/[a-z]+/) !== null))) {
                 //console.debug(port.name.text)
@@ -1308,7 +1308,7 @@ class VhdlLinter {
         }
 
         const tree = this.tree;
-        if (this.options.coding_rules){
+        if (this.options.CheckCodingRules){
             for (const port of tree.entity.generics) {
                 let newName = ""
                 if ((port.name.text.match(/^G_[A-Z]+/) === null) || (port.name.text.match(/[a-z]+/) !== null)) {
@@ -1484,7 +1484,7 @@ class VhdlLinter {
         if (!architecture) {
             return;
         }
-        if (this.options.coding_rules){
+        if (this.options.CheckCodingRules){
             for (const signal of architecture.getRoot().objectList.filter(object => object instanceof objects_1.OSignal)) {
                 let kind = "Constant"
                 let newName = ""
@@ -1523,7 +1523,7 @@ class VhdlLinter {
         if (!architecture) {
             return;
         }
-        if (this.options.coding_rules){
+        if (this.options.CheckCodingRules){
 
             for (const type of this.tree.architecture.types) {
                 if (type.name.text.match(/^t_[0-9a-z_]+/) === null) {
