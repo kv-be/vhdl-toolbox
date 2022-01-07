@@ -29,15 +29,10 @@ class ProjectParser {
     }
 
     async init() {
-        let files = new Set();
-        try{
-            this.read_options();
-        }
-        catch (e) {
-            throw e
-        }
+        let files = new Set
+        this.read_options();
+
         await Promise.all(this.workspaces.map(async (directory) => {
-            console.log('dir', directory);
             const directories = await this.parseDirectory(directory);
             return (await Promise.all(directories.map(file => fs_1.promises.realpath(file)))).forEach(file => files.add(file));
         }));
@@ -54,6 +49,15 @@ class ProjectParser {
             files.add(path_1.join(pkg, `${path_1.sep}..${path_1.sep}..${path_1.sep}std_logic_arith.vhd`));
             files.add(path_1.join(pkg, `${path_1.sep}..${path_1.sep}..${path_1.sep}standard.vhd`));
         }
+
+        if (this.options.IgnorePattern.length > 0){
+            let re = this.options.IgnorePattern.replace(" ", "").split(",").join("|")
+            re = new RegExp(re)
+            let f = Array.from(files)
+            f = f.filter(m=> m.search(re)===-1)
+            files = [... new Set(f)]
+        }
+
         for (const file of files) {
             //console.log("adding file " + file)
             let cachedFile = new OFileCache(file, this);
