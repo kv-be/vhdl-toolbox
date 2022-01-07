@@ -1,0 +1,163 @@
+{
+	"hdr":{
+		"prefix": "DT header",
+		"body": "-------------------------------------------------------------------------------\n--! \\file          ${1:${TM_FILENAME}}\n--!               \n--! \\section       General\n--!                \n--! \\copyright     Deltatec (www.deltatec.be) - 2017 \n--!                This file is provided without any express or implied warranties, including,\n--!                but not limited to, the implied warranties of merchantability and fitness\n--!                for a particular purpose. It is not intended for use in life support\n--!                appliances, devices, or systems. Use in such applications is expressly\n--!                prohibited.\n--!\n--! \\author        ${2:author} \n--!\n--! \\creation      ${3:$CURRENT_DATE/$CURRENT_MONTH/$CURRENT_YEAR}      \n--! \n--! \\brief\n--!     This section must describe the entity's functionality\\n\n--!     The description can contain multiple lines. If you want to force a carriage\\n \n--!     return, you need to use the \\\\n escape character.\n--! \n--! \n-----------------------------------------------------------------------------------------",
+		"description": "Deltatec header",
+		"scope": "source.vhdl"
+   },
+
+	"ent": {
+		"prefix": "entity",
+		"body": "-------------\n-- LIBRARY --\n-------------\n\nlibrary ieee;\nuse ieee.std_logic_1164.all;\nuse ieee.numeric_std.all;\n\n------------\n-- ENTITY --\n------------\n\n-- Entity definition\n\nentity ${1:entity} is                                                                        \n   generic(\n      $0\n   );\n   port(\n      \n   );\nend ${1:entity};\n\n",
+		"description": "entity",
+		"scope": "source.vhdl"
+	},
+	
+	"arch": {
+		"prefix": "architecture",
+		"body": "------------------\n-- ARCHITECTURE --\n------------------\n\narchitecture Behavioral of ${1:entity} is\n\n\n--------------\n-- CONSTANT --\n--------------\n\n\n----------\n-- TYPE --\n----------\n\n\n------------\n-- SIGNAL --\n------------\n\n\n---------------\n-- ATTRIBUTE --\n---------------\n\n\n-----------\n-- BEGIN --\n-----------\n\nbegin\n   $0\n\nend Behavioral;",
+		"description": "architecture",
+		"scope": "source.vhdl"
+	},
+
+	"enta": {
+		"prefix": "entity and architecture definition",
+		"body": "-------------\n-- LIBRARY --\n-------------\n\nlibrary ieee;\nuse ieee.std_logic_1164.all;\nuse ieee.numeric_std.all;\n\n------------\n-- ENTITY --\n------------\n\n-- Entity definition\n\nentity ${1:entity} is                                                                        \n   generic(\n     $0\n   );\n   port(\n      \n   );\nend ${1:entity};\n\n------------------\n-- ARCHITECTURE --\n------------------\n\narchitecture Behavioral of ${1:entity} is\n\n\n--------------\n-- CONSTANT --\n--------------\n\n\n----------\n-- TYPE --\n----------\n\n\n------------\n-- SIGNAL --\n------------\n\n\n---------------\n-- ATTRIBUTE --\n---------------\n\n\n-----------\n-- BEGIN --\n-----------\n\nbegin\n\n\nend Behavioral;",
+		"description": "entity and architecture",
+		"scope": "source.vhdl"
+	},
+	
+	"nf": {
+		"prefix": "new VHDL file template",
+		"body": "-------------------------------------------------------------------------------\n--! \\file          ${1:${TM_FILENAME}}\n--!               \n--! \\section       General\n--!                \n--! \\copyright     Deltatec (www.deltatec.be) - 2017 \n--!                This file is provided without any express or implied warranties, including,\n--!                but not limited to, the implied warranties of merchantability and fitness\n--!                for a particular purpose. It is not intended for use in life support\n--!                appliances, devices, or systems. Use in such applications is expressly\n--!                prohibited.\n--!\n--! \\author        ${2:author} \n--!\n--! \\creation      ${3:$CURRENT_DATE/$CURRENT_MONTH/$CURRENT_YEAR}      \n--! \n--! \\brief\n--!     \n--! \n--! \n-----------------------------------------------------------------------------------------\n\n-------------\n-- LIBRARY --\n-------------\n\nlibrary ieee;\nuse ieee.std_logic_1164.all;\nuse ieee.numeric_std.all;\n\n------------\n-- ENTITY --\n------------\n\n-- Entity definition\n\nentity ${4:entity} is                                                                        \n   generic(\n      $0\n   );\n   port(\n      \n   );\nend ${4:entity};\n\n------------------\n-- ARCHITECTURE --\n------------------\n\narchitecture Behavioral of ${4:entity} is\n\n\n--------------\n-- CONSTANT --\n--------------\n\n\n----------\n-- TYPE --\n----------\n\n\n------------\n-- SIGNAL --\n------------\n\n\n---------------\n-- ATTRIBUTE --\n---------------\n\n\n-----------\n-- BEGIN --\n-----------\n\nbegin\n\n\nend Behavioral;",
+		"description": "complete template for a new file",
+		"scope": "source.vhdl"
+	},
+
+	"cas": {
+		"prefix": "case",
+		"body": "\ncase ${1:signalname} is\n   when $0 =>\n\n   when =>\n\n   when =>\n\n   when others =>\nend case;\n",
+		"description": "case",
+		"scope": "source.vhdl"
+	},
+	"rec": {
+		"prefix": "record template",
+		"body": "type $(1:recordname} is record\n   $0\nend record;",
+		"description": "recprd",
+		"scope": "source.vhdl"
+	},
+	"forl": {
+		"prefix": "for loop",
+		"body": "for ${1:i} in ${2:range} loop\n   $0\nend loop; \n",
+		"description": "for loop",
+		"scope": "source.vhdl"
+	},
+	"forg": {
+		"prefix": "for generate",
+		"body": "${1:identifier} : for ${2:i} in ${3:range} generate\n   $0\nend generate; -- ${1:identifier}\n",
+		"description": "for generate",
+		"scope": "source.vhdl"
+	},
+	"if": {
+		"prefix": "if",
+		"body": "if ${1:expression} then\n   $0\nend if;\n",
+		"description": "if",
+		"scope": "source.vhdl"
+	},
+	"func": {
+		"prefix": "function",
+		"body": "function ${1:expression}(${2:arguments}) return ${3:return type} is\nbegin\n   $0\nend function;\n",
+		"description": "if",
+		"scope": "source.vhdl"
+	},
+	"proc": {
+		"prefix": "procedure",
+		"body": "procedure ${1:expression}(${2:arguments}) is\nbegin\n   $0\nend procedure;\n",
+		"description": "if",
+		"scope": "source.vhdl"
+	},
+	"slv": {
+		"prefix": "std_logic_vector",
+		"body": "std_logic_vector",
+		"description": "std_logic_vector",
+		"scope": "source.vhdl"
+	},
+
+	"uns": {
+		"prefix": "unsigned",
+		"body": "unsigned",
+		"description": "unsigned",
+		"scope": "source.vhdl"
+	},
+	"var": {
+		"prefix": "variable",
+		"body": "variable",
+		"description": "variable",
+		"scope": "source.vhdl"
+	},
+	"int": {
+		"prefix": "integer",
+		"body": "integer",
+		"description": "integer",
+		"scope": "source.vhdl"
+	},
+	"o0": {
+		"prefix": "(others => '0')",
+		"body": "(others => '0')",
+		"description": "(others <= 0)",
+		"scope": "source.vhdl"
+	},
+	"o1": {
+		"prefix": "(others => '1')",
+		"body": "(others => '1')",
+		"description": "(others <= 0)",
+		"scope": "source.vhdl"
+	},
+
+	"dt0": {
+		"prefix": "downto 0",
+		"body": "downto 0",
+		"description": "downto 0",
+		"scope": "source.vhdl"
+	},
+
+	"dt": {
+		"prefix": "downto ",
+		"body": "downto ",
+		"description": "downto ",
+		"scope": "source.vhdl"
+	},
+
+	"sig": {
+		"prefix": "signal ",
+		"body": "signal ",
+		"description": "signal ",
+		"scope": "source.vhdl"
+	},
+
+	"pack": {
+		"prefix": "package template",
+		"body": "-------------------------------------------------------------------------------\n--! \\file          ${1:${TM_FILENAME}}\n--!               \n--! \\section       General\n--!                \n--! \\copyright     Deltatec (www.deltatec.be) - 2017 \n--!                This file is provided without any express or implied warranties, including,\n--!                but not limited to, the implied warranties of merchantability and fitness\n--!                for a particular purpose. It is not intended for use in life support\n--!                appliances, devices, or systems. Use in such applications is expressly\n--!                prohibited.\n--!\n--! \\author        ${2:author} \n--!\n--! \\creation      ${3:$CURRENT_DATE/$CURRENT_MONTH/$CURRENT_YEAR}      \n--! \n--! \\brief\n--!     This section must describe the entity's functionality\\n\n--!     The description can contain multiple lines. If you want to force a carriage\\n \n--!     return, you need to use the \\\\n escape character.\n--! \n--! \n-----------------------------------------------------------------------------------------\n-------------\n-- LIBRARY --\n-------------\n\nlibrary ieee;\nuse ieee.std_logic_1164.all;\nuse ieee.numeric_std.all;\n\npackage ${4:pkg} is\n   $0\nend package ;\n\npackage body ${4:pkg} is\n\n\nend package body;\n",
+		"description": "package",
+		"scope": "source.vhdl"
+	},
+
+	"while": {
+		"prefix": "while",
+		"body": "while ${1:expression} loop\n   \nend loop;",
+		"description": "while",
+		"scope": "source.vhdl"
+	},
+	"pro": {
+		"prefix": "pro",
+		"body": "process( ${1:sensitivity_list} )\nbegin\n   $0\nend process;",
+		"description": "process",
+		"scope": "source.vhdl"
+	},
+	"spro": {
+		"prefix": "spro",
+		"body": "process(${1:clock})\nbegin\n   if rising_edge(${1:clock}) then\n      $0\n   end if;\nend process;",
+		"description": "synchronous process",
+		"scope": "source.vhdl"
+	}
+}

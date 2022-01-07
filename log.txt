@@ -1,0 +1,16 @@
+
+notifications:
+https://stackoverflow.com/questions/51041337/vscode-language-client-extension-how-to-send-a-message-from-the-server-to-the
+
+
+configuration:
+https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
+
+
+treeview:
+/home/pioe/.vscode/tree-view-sample/out
+
+
+add notifications on parser errors to the extension
+
+
