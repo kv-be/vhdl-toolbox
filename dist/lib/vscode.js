@@ -6,6 +6,7 @@ const vhdl_entity_converter_1 = require("./vhdl-entity-converter");
 const vhdl_linter_1 = require("./vhdl-linter");
 const project_parser_1 = require("./project-parser");
 const vhdl_utils_1 = require("./vhdl-utils")
+const hierarchyTree_1 = require("./hierarchy-tree")
 var config_1 = require("./config");
 const { match } = require("assert");
 let client;
@@ -13,12 +14,13 @@ let client;
 
 
 const basicInput_1 = require("./basicInput");
+const { readSync } = require("fs");
 
 
 function activate(context) {
     // The server is implemented in node
     let serverModule = require.resolve('./language-server');
-
+    let HierarchyList = [{"name" : "Initializing", "file":"", "instance":""}]
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
     let debugOptions = { execArgv: ['--nolazy', '--inspect=6011', '--enable-source-maps'] };
@@ -57,8 +59,38 @@ function activate(context) {
         client.onNotification("custom/test", (files) => {
             console.log("loading files " + files);
         });
+        client.onNotification("custom/hierarchyUpdate", (files) => {
+            hierarchyView.update(files)
+        });
     });
     client.start();
+
+    context.subscriptions.push(vscode_1.commands.registerCommand('HierarchyView.open', async (args) => {
+        let uri = vscode_1.Uri.parse(args.file);
+        let doc = vscode_1.workspace.openTextDocument(uri); // calls back into the provider
+        vscode_1.window.showTextDocument(doc);
+    }));
+
+    context.subscriptions.push(vscode_1.commands.registerCommand('HierarchyView.getPath', async (args) => {
+        vscode_1.env.clipboard.writeText(args.path);
+        vscode_1.window.showInformationMessage(`Path copied to clipboard`);
+    }));
+    //context.subscriptions.push(vscode_1.commands.registerCommand('HierarchyView.whereUsedLocal', async (args) => {
+    //    const used = hierarchyView.whereUsed(args, args.root)
+    //    if (used.length > 0){
+    //        const res = new vscode_1.MarkdownString(`${used.join("\n- ")}`, true);
+    //        vscode_1.window.showInformationMessage(`${args.label} is used in`, {detail : "- "+used.join("\n- "), modal: true});    
+    //    }
+    //    else vscode_1.window.showInformationMessage(`${args.label} is not used in any component`);
+    //}));
+    //context.subscriptions.push(vscode_1.commands.registerCommand('HierarchyView.whereUsedGlobal', async (args) => {
+    //    const used = hierarchyView.whereUsed(args, -1)
+    //    if (used.length > 0){
+    //        const res = new vscode_1.MarkdownString(`${used.join("\n- ")}`, true);
+    //        vscode_1.window.showInformationMessage(`${args.label} is used in`, {detail : "- "+used.join("\n- "), modal: true});    
+    //    }
+    //    else vscode_1.window.showInformationMessage(`${args.label} is not used in any component`);
+    //}));
 
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:add-attribute', async (args) => {
         const text = basicInput_1.addDebug(args)
@@ -66,43 +98,7 @@ function activate(context) {
 
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:add-signal', async (args) => {
         const text = basicInput_1.addsignal(args)
-        /*const editor = vscode_1.window.activeTextEditor;
-        if (!editor) {
-            return;
-        }
-        let signal = editor.document.getText(editor.selection);
-        if (!signal){
-            signal = args.signalName;
-        } 
-        let objType
-        let pos = editor.selection.active
-        pos = editor.document.offsetAt(pos)
-        if (!signal){
-            signal = args.signalName;
-            pos = 0
-        }        
 
-        objType = vhdl_utils_1.getObjType(signal)
-        
-        let type = await vscode_1.window.showInputBox({
-            prompt: 'Give type for ' + args.signalName,
-        });
-        if (!type) {
-            return;
-        }
-        const edit = new vscode_1.WorkspaceEdit();
-        const document = editor.document;
-        let old_text = document.getText()
-        let new_text = vhdl_utils_1.getDeclaration(old_text, type, signal, "", objType, pos)
-
-        let fullRange = new vscode_1.Range(
-            document.positionAt(0),
-            document.positionAt(old_text.length)
-        )
-
-        edit.replace( editor.document.uri.path, fullRange, new_text);
-        let success = await vscode_1.workspace.applyEdit(edit);*/
-        
     }));
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:declare-enum-type', async (args) => {
 
@@ -134,6 +130,9 @@ function activate(context) {
         let success = await vscode_1.workspace.applyEdit(edit);    
         
     }));
+
+    const hierarchyView = new hierarchyTree_1.HierarchyDataProvider(HierarchyList)
+    vscode_1.window.registerTreeDataProvider('HierarchyView', hierarchyView);
 
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-instance', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Instance)));
     //context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-sysverilog', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Sysverilog)));

@@ -8,11 +8,15 @@ const events_1 = require("events");
 const path_1 = require("path");
 const utils = require("./utils")
 const { throws } = require("assert");
+const { getFips } = require("crypto");
+const { runInThisContext } = require("vm");
+const vscode_uri_1 = require("vscode-uri");
 class ProjectParser {
     constructor(workspaces, settings) {
         this.workspaces = workspaces;
         this.cachedFiles = [];
         this.events = new events_1.EventEmitter();
+        this.messages = []
         if (settings) this.options = settings
         else this.options= {"CheckCodingRules" : true, "CheckProcessReset" : true, "CheckStdLogicArith" : true, "ShowProcessesInOutline" : false, "PathsToPartiallyCheck":"", "IgnorePattern":"", "ToplevelSelectPattern":""};
     }
@@ -61,8 +65,10 @@ class ProjectParser {
         for (const file of files) {
             //console.log("adding file " + file)
             let cachedFile = new OFileCache(file, this);
+            this.messages.push(cachedFile.get_messages())
             this.cachedFiles.push(cachedFile);
         }
+
         this.fetchEntitesAndPackages();
         for (const workspace of this.workspaces) {
             const watcher = chokidar_1.watch(workspace.replace(path_1.sep, '/') + '/**/*.vhd[l]', { ignoreInitial: true });
@@ -121,10 +127,14 @@ class ProjectParser {
         }));
         return files;
     }
+
+    
+
     fetchEntitesAndPackages() {
         //     console.log(this.cachedFiles);
         this.packages = [];
         this.entities = [];
+        this.messages = []
         for (const cachedFile of this.cachedFiles) {
             if (cachedFile.entity) {
                 //console.log("adding entiry " + cachedFile.entity.name)
@@ -134,12 +144,82 @@ class ProjectParser {
                 //console.log("adding package " + cachedFile.packages.name)
                 this.packages.push(...cachedFile.packages);
             }
+            this.messages.push(cachedFile.get_messages())
+            
         }
+      this.list = this.buildList(this.cachedFiles)
+      // now parse the list and make it a hierarchy: for each child, find the children, build the path and indicate the parent
+      for (const l of this.list){
+          l.children = this.getChildren(l, "",l.name, l.children)
+          if (!l.parent) l.parent = ""
+          if (!l.path) l.path = ""
+          if (!l.path) l.hierPath = l.name
+      }
+      this.toplevels = this.list.filter(m=> m.instance ==="")
+      if (this.options.ToplevelSelectPattern){
+          let re = this.options.ToplevelSelectPattern.split(',').join("|").replace(" ", "")
+          re = new RegExp(re)
+          this.toplevels = this.toplevels.filter(m=> m.name.search(re)>-1)
+      }
     }
+
+    getMessages(){
+        return this.messages
+    }
+
+    getHierarchy(){
+        return this.toplevels
+    }
+
+    getChildren(parent, instance, hierPath,  list){
+        if (list.length > 0){
+            for (const c of list){
+                // for each child, find the definition in the base list (to get the childs of the child)
+                const def = this.list.filter(m => m.name === c.name)
+                c.children = []
+                if (!c.path) c.path = instance
+                c.path += ("/"+c.instance)
+                c.hierPath = hierPath+("/"+c.name)
+                                
+                if (def.length > 0){
+                    c.file = def[0].file
+                    def[0].parent = parent.name
+                    def[0].instance = c.instance
+                    def[0].hierPath = c.hierPath
+                    if (def[0].children.length > 0){
+                        c.children = this.getChildren(def[0], c.path, c.hierPath, def[0].children)
+                    }
+                }
+                else{
+                    c.file = ""
+                }
+                c.parent = parent.name
+            }
+            return list
+        }
+        else return []
+    }
+
     addFolders(folders) {
         this.watcher.add(folders.map(folder => folder.replace(path_1.sep, '/') + '/**/*.vhd[l]'));
     }
 
+    buildList(list){
+        let ret = []
+//        let childs = f.linter.tree.objectList.filter(m=>m instanceof objects_1.OInstantiation)
+//        if (f.linter.tree.objectList){
+
+        for (const f of list){
+            if (f.entity){
+                let childs = []
+                if (f.linter.tree.objectList){
+                    for (const c of f.instances) childs.push({"name": c.componentName, "instance" : c.label , "line" : c.range.start.line})
+                }
+                ret.push({"name" : f.entity.name, "instance": "", "file": f.path, "children": childs})
+            }
+        }   
+        return ret     
+    }
     
     deleteFile(file){
         let index = -1
@@ -211,6 +291,11 @@ class OFileCache {
         }
         this.parsePackages();
         this.parseEntity();
+        this.messages = {"file" : vscode_uri_1.URI.file(this.path), "diagnostic":this.linter.get_messages()}
+    }
+
+    get_messages(){
+        return this.messages
     }
     reparse() {
         this.text = fs_1.readFileSync(this.path, { encoding: 'utf8' });
@@ -226,9 +311,12 @@ class OFileCache {
     parseEntity() {
         if ((this.linter.tree instanceof objects_1.OFileWithEntity)) {
             this.entity = this.linter.tree.entity;
+            this.instances = this.linter.tree.objectList.filter(m=> m instanceof objects_1.OInstantiation)
         }
     }
 }
 exports.OFileCache = OFileCache;
+
+
 // type t_packet is (p_NONE, p_CM_REQ, p_CM_REJ, p_CM_REP, p_CM_RTU, p_CM_DREQ, p_CM_DREP, p_RC_MR, p_RC_SIZE, p_RC_DECLINE, p_RDMA_F, p_RDMA_M, p_RDMA_L, p_RDMA_O, p_ACK);
 //# sourceMappingURL=project-parser.js.map

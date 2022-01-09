@@ -84,6 +84,11 @@ class VhdlLinter {
         }
         //     console.log(`done parsing: ${editorPath}`);
     }
+
+    get_messages(){
+        return this.messages
+    }
+
     getWordAtPosition(pos){
         let left = pos
         let right = pos

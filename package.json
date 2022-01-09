@@ -9,6 +9,18 @@
 		"vscode": "^1.39.0"
 	},
 	"contributes": {
+
+		"views": {
+			"explorer": 
+		     	[
+				{
+					"id": "HierarchyView",
+					"name": "HierarchyView"
+				}
+
+			]
+		},
+
 		"languages": [
 			{
 				"id": "vhdl",
@@ -82,6 +94,16 @@
 					"group": "vhdl_toolbox@1"
 				}
 			],
+			"view/item/context": [
+				{
+					"command": "HierarchyView.open",
+					"when": "view == HierarchyView"
+				},
+				{
+					"command": "HierarchyView.getPath",
+					"when": "view == HierarchyView"
+				}
+			],
 			"commandPalette": [
 				{
 					"command": "VHDL-Toolbox:copy-as-instance",
@@ -110,6 +132,14 @@
 			]
 		},
 		"commands": [
+			{
+				"command": "HierarchyView.open",
+				"title": "Open"
+			},
+			{
+				"command": "HierarchyView.getPath",
+				"title": "Get Path"
+			},
 			{
 				"command": "VHDL-Toolbox:copy-as-instance",
 				"title": "Copy as Instance"
@@ -188,8 +218,9 @@
 			}
 		}
 	},
+
 	"activationEvents": [
-		"onLanguage:vhdl"
+		"onLanguage:vhdl", "onView:HierarchyView"
 	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

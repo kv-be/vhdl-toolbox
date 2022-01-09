@@ -15,6 +15,7 @@ const codeLens_1 = require("./languageFeatures/codeLens");
 const documentFormatting_1 = require("./languageFeatures/documentFormatting");
 const executeCommand_1 = require("./languageFeatures/executeCommand");
 const vscode_uri_1 = require("vscode-uri");
+//const vscode_1 = require("vscode");
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -140,6 +141,11 @@ async function validateTextDocument(textDocument) {
         exports.linters.set(textDocument.uri, vhdlLinter);
         exports.lintersValid.set(textDocument.uri, true);
         exports.projectParser.updateFile(vscode_uri_1.URI.parse(textDocument.uri).fsPath, textDocument.getText(), vhdlLinter)        
+        exports.connection.sendNotification("custom/hierarchyUpdate", [exports.projectParser.getHierarchy()]);
+        const errors = exports.projectParser.getMessages()
+        for (const e of errors.filter(m => m)){
+            exports.connection.sendDiagnostics({ uri:e.file.toString(), diagnostics : e.diagnostic});        
+        }    
     }
     else {
         exports.lintersValid.set(textDocument.uri, false);

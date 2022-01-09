@@ -78,17 +78,60 @@ function getTypes(architecture){
     return symbols    
 }
 
+function parseArchitecture1(architecture, linter) {
+    const symbols = [];
+    symbols.push(...architecture.instantiations.map(instantiation => ({
+        name: instantiation.label + ': ' + instantiation.componentName,
+        detail: instantiation.label,
+        kind: vscode_languageserver_1.SymbolKind.Class,
+        range: instantiation.range,
+        selectionRange: instantiation.range
+    })));
+    symbols.push(...architecture.blocks.map(block => ({
+        name: block.label + 'block',
+        detail: block.label,
+        kind: vscode_languageserver_1.SymbolKind.Object,
+        range: block.range,
+        selectionRange: block.range
+    })));
+    if (linter.global_options.ShowProcessesInOutline)
+    {
+        symbols.push(...architecture.processes.map(process => ({
+            name: process.label || 'no label',
+            detail: process.label,
+            kind: vscode_languageserver_1.SymbolKind.Method,
+            range: process.range,
+            selectionRange: process.range,
+            children: process.statements.map(statement => parseStatements(statement)).flat()
+        })));
+    
+    }
+    for (const generate of architecture.generates) {
+        symbols.push({
+            name: linter.text.split('\n')[generate.range.start.line],
+            kind: vscode_languageserver_1.SymbolKind.Enum,
+            range: generate.range,
+            selectionRange: generate.range,
+            children: parseArchitecture(generate, linter)
+        });
+    }
+    return symbols;
+}
+
+
 
 function parseArchitecture(architecture, linter) {
     const symbols = [];
     if (getComponents(architecture).length>0){
-        symbols.push({
+        symbols.push(getComponents(architecture))
+        /*symbols.push({
+            symbols.push({
             name: "Components",
             kind: vscode_languageserver_1.SymbolKind.Object,
             range: architecture.range,
             selectionRange: architecture.range,
             children: getComponents(architecture)
-        });      
+        });  */    
     }
     /*if (getConstants(architecture).length>0){
         symbols.push({
@@ -124,17 +167,19 @@ function parseArchitecture(architecture, linter) {
         kind: vscode_languageserver_1.SymbolKind.Object,
         range: block.range,
         selectionRange: block.range
-    })));
+    })));*/
 
     if (getProcesses(architecture).length>0){
-        symbols.push({
+        
+        symbols.push(getProcesses(architecture))
+        /*symbols.push({
             name: "Processes",
             kind: vscode_languageserver_1.SymbolKind.Object,
             range: architecture.range,
             selectionRange: architecture.range,
             children: getProcesses(architecture)
-        });      
-    }*/
+        });      */
+    }
 
 
     for (const generate of architecture.generates) {
@@ -182,7 +227,7 @@ function parseFile(file, linter) {
         selectionRange: architecture.range,
         children: parseArchitecture(architecture, linter)
     })));
-    if (file.entity){
+    /*if (file.entity){
         symbols.push(...[file.entity].map(entity =>({
             name: entity.name,
             detail: "Entity",
@@ -191,7 +236,7 @@ function parseFile(file, linter) {
             selectionRange: entity.range,
             //children: parseEntity(entity, linter)
         })));    
-    }
+    }*/
 
     return symbols;
 }
@@ -248,7 +293,8 @@ async function handleOnDocumentSymbol(params) {
         returnValue.push(...linter.tree.packages.map(pkg => pkg.constants).flat().map(constants => vscode_languageserver_1.DocumentSymbol.create(constants.name.text, undefined, vscode_languageserver_1.SymbolKind.Constant, constants.range, constants.range)));
     }
     if (linter.tree instanceof objects_1.OFileWithEntityAndArchitecture) {
-        returnValue.push(...parseFile(linter.tree, linter));
+        //returnValue.push(...parseFile(linter.tree, linter));
+        returnValue.push(...parseArchitecture1(linter.tree.architecture, linter));
     }
     return returnValue;
 }
