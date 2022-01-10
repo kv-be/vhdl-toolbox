@@ -150,6 +150,10 @@ class Parser extends parser_base_1.ParserBase {
     }
 
     removeComments() {
+        this.text = "\n"+this.text
+        // remove all start of line comments
+        this.text = this.text.replace(/(?<=\n\s*)--.*/g, match => ' '.repeat(match.length));
+        this.text = this.text.substring(1)
         // the line below removes everything between a -- and a \n IF there is no ; or " in it
         this.text = this.text.replace(/--(?<!;)[^"]+?(?=\n)/g, match => ' '.repeat(match.length));
         // in 99% of the cases, all the comments are removed. This is checked by the following line
