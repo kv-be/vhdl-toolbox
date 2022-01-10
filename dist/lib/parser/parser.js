@@ -5,7 +5,7 @@ const architecture_parser_1 = require("./architecture-parser");
 const parser_base_1 = require("./parser-base");
 const objects_1 = require("./objects");
 const package_parser_1 = require("./package-parser");
-const utils = require("../utils")
+
 class Parser extends parser_base_1.ParserBase {
     constructor(text, file, onlyDeclarations = false) {
         super(text, {}, file);
@@ -148,8 +148,21 @@ class Parser extends parser_base_1.ParserBase {
         //console.log("returning file "+ file + " with options "+ file.options)
         return file;
     }
+
     removeComments() {
-        this.text = this.text.replace(/--.*/g, match => ' '.repeat(match.length));
+        // the line below removes everything between a -- and a \n IF there is no ; or " in it
+        this.text = this.text.replace(/--(?<!;)[^"]+?(?=\n)/g, match => ' '.repeat(match.length));
+        // in 99% of the cases, all the comments are removed. This is checked by the following line
+        if (!this.text.includes("--")) return
+        // if there is still a -- sequence detected, it can be something like if a = "0--111" or a string with -- in it
+        // to get these out, we first replace all string content by S, replace --.* 
+        let tmp_text = this.text
+        tmp_text = tmp_text.replace(/"(.*?)"/g, match => "S".repeat(match.length))
+        const matches = tmp_text.matchAll(/--.*/g)
+        for (const match of matches){
+            this.text = this.text.substr(0, match.index)+" ".repeat(match[0].length)+ this.text.substring(match.index+match[0].length)
+        }
+
     }
     getUseStatement(file) {
         let useStatement = new objects_1.OUseStatement(file, this.pos.i, this.getEndOfLineI());
