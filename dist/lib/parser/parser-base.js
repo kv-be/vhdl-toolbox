@@ -14,35 +14,10 @@ class ParserBase {
         this.onlyDeclarations = onlyDeclarations;
     }
     debug(_message) {
-        // let pos = this.getPosition();
-        //if (config_1.config.debug) {
-            //      console.log(`${this.constructor.name}: ${message} at ${pos.line}:${pos.col}, (${this.file})`);
-        //}
     }
     debugObject(_object) {
-        // let target: any = {};
-        // const filter = (object: any) => {
-        //   const target: any = {};
-        //   if (!object) {
-        //     return;
-        //   }
-        //   for (const key of Object.keys(object)) {
-        //     if (key === 'parent') {
-        //       continue;
-        //     } else if (Array.isArray(object[key])) {
-        //       target[key] = object[key].map(filter);
-        //
-        //     } else if (typeof object[key] === 'object') {
-        //       target[key] = filter(object[key]);
-        //     } else {
-        //       target[key] = object[key];
-        //     }
-        //   }
-        //   return target;
-        // };
-        // target = filter(object);
-        //     console.log(`${this.constructor.name}: ${JSON.stringify(target, null, 2)} in line: ${this.getLine()}, (${this.file})`);
     }
+    
     parsePortsAndGenerics(generics, entity) {
         this.debug('start ports');
         this.expectDirectly('(');
