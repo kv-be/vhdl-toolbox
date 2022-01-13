@@ -48,62 +48,7 @@ class ProcedureParser extends process_like_parse_1.ProcessLikeParser {
             // debugger;
             nextWord = this.getNextWord({ consume: false }).toLowerCase();
             new declarative_part_parser_1.DeclarativePartParser(this.text, this.pos, this.file, procedure).parse();
-            /*while (nextWord !== 'begin') {
-                if (['variable', 'constant', 'file', 'alias'].includes(nextWord)){
-                    this.expect(['variable', 'constant', 'file', 'alias']);
-                    const variable = new objects_1.OVariable(procedure, this.pos.i, this.getEndOfLineI());
-                    variable.constant = nextWord.toLowerCase() === 'constant';
-                    const alias = this.getNextWord({ consume: false }).toLowerCase() === 'alias';
-                    const startI = this.pos.i;
-                    const name = this.getNextWord();
-                    variable.name = new objects_1.OName(variable, startI, startI + name.length);
-                    variable.name.text = name;
-                    let multiSignals = []; // TODO: Fix this!!
-                    if (this.text[this.pos.i] === ',') {
-                        // multiSignals.push(name);
-                        this.expect(',');
-                        continue;
-                    }
-                    if (alias) {
-                        //ALIAS std_bit IS STD.STANDARD.BIT ;
-                        //alias std_bit : bit is STD.STANDARD.BIT ;
-                        let next = this.text[this.pos.i]
-                        if (next === ":"){ // VHDL2008 allows indicating a subtype 
-                            let subtype = this.advancePast("is")
-                        }
-                        else this.expect("is");
-                        const type = this.getNextWord()
-                        this.advanceSemicolon(true);
-                        variable.type = type;
-                        variable.definition = this.parent 
-                        variable.range.end.i = this.getEndOfLineI()
-                    }
-                    else {
-                        this.expect(':');
-                        const startType = this.pos.i;
-                        const { typeReads, defaultValueReads, typename } = this.getType(variable);
-                        variable.type = typeReads;
-                        variable.typename = typename
-                        variable.definition = this.parent 
-                        variable.defaultValue = defaultValueReads;
-                    }
-                    procedure.variables.push(variable);
-                }
-                else if (nextWord === 'procedure') {
-                    this.getNextWord();
-                    const procedureParser = new ProcedureParser(this.text, this.pos, this.file, this.parent);
-                    procedure.procedures.push(procedureParser.parse(this.pos.i));
-                }
-                else if (nextWord === 'impure' || nextWord === 'function') {
-                    if (nextWord === 'impure') {
-                        this.getNextWord();
-                    }
-                    this.getNextWord();
-                    const procedureParser = new ProcedureParser(this.text, this.pos, this.file, this.parent, true);
-                    procedure.functions.push(procedureParser.parse(this.pos.i));
-                }
-                nextWord = this.getNextWord({ consume: false }).toLowerCase();
-            }*/
+
             this.expect('begin');
             procedure.statements = this.parseStatements(procedure, ['end']);
             this.expect('end');

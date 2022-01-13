@@ -80,7 +80,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             else if ((this.text[this.pos.i]===lastWord[0])&& (lastWord.length === 1)) break;
 
             if (nextWord === 'signal' || nextWord === 'constant' || nextWord === 'shared' || nextWord === 'variable') {
-                const signals = this.parse_signals(nextWord)
+                const signals = this.parse_signals(nextWord, this.parent)
                 if (this.parent instanceof objects_1.OPackage || this.parent instanceof objects_1.OPackageBody) {
                     this.parent.constants.push(...signals);
                 }
@@ -96,7 +96,9 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 this.advanceSemicolon(true);
             }
             else if (nextWord === 'type') {
-                this.parse_type()
+                const type = this.parse_type()
+                if (type) this.parent.types.push(type);
+
             }
             else if (nextWord === 'subtype') {
                 const subtypeParser = new subtype_parser_1.SubtypeParser(this.text, this.pos, this.file, this.parent);
@@ -201,7 +203,6 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         }
         //console.log('** Ending declarative parser')
     }
-
     parse_type(){
         const type = new objects_1.OType(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
@@ -230,8 +231,9 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 return state;
             });
             type.range.end.i = this.pos.i;
-            this.parent.types.push(type);
             this.expect(';');
+            return type;
+            //this.parent.types.push(type);
         }
         else if (this.test(/^[^;]*units/i)) {
             this.advancePast('units');
@@ -245,8 +247,9 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             this.expect('end');
             this.expect('units');
             type.range.end.i = this.pos.i;
-            this.parent.types.push(type);
             this.expect(';');
+            return type 
+            //this.parent.types.push(type);
         }
         else {
             const nextWord = this.getNextWord().toLowerCase();
@@ -273,6 +276,9 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 }
                 this.maybeWord('record');
                 this.maybeWord(type.name.text);
+                this.advanceSemicolon(true);
+                return type
+
             }else if (nextWord === 'protected') {
                 Object.setPrototypeOf(type, objects_1.OProtected.prototype);
                 type.functions = []
@@ -310,58 +316,17 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             
 
             type.range.end.i = this.pos.i;
-            
-            if (!isBody) this.parent.types.push(type);
-            isBody = false
             this.advancePast(';', {"allowKeywords": false});
+
+            if (!isBody) return type //this.parent.types.push(type);
+            else return 
+            isBody = false
         }
         
     }
 
-    parse_signals(nextWord){
-        const startI = this.pos.i
-        let isVariable = false
-        if (nextWord === 'shared') {
-            this.getNextWord();  // consume the shared
-            nextWord = this.getNextWord({ consume: false }).toLowerCase()
-        }
-        if (nextWord === "variable"){
-            isVariable = true
-        } else if ((nextWord === "signal") && (!this.allowSignals)){
-            let scope = this.parent.constructor.name.substring(1)
-            throw new objects_1.ParserError(`No signal declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(this.pos.i).search(/\n/)));                                            
-        }
-        const signals = [];
-        const constant = this.getNextWord() === 'constant'; 
-        let signal
-        do {
-            this.maybeWord(',');
-            if (!isVariable){
-                signal = new objects_1.OSignal(this.parent, startI, this.getEndOfLineI()); // startI makes that the signal, variable, constant is part of the declaration
-                signal.constant = constant;
-            }
-            else{
-                signal = new objects_1.OVariable(this.parent, startI, this.getEndOfLineI());
-            }
-            signal.name = new objects_1.OName(signal, this.pos.i, this.pos.i);
-            signal.name.text = this.getNextWord();
-            signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
-            signals.push(signal);
-        } while (this.text[this.pos.i] === ',');
-        this.expect(':');
 
-        signal.declaration = this.text.substring(this.pos.i, this.getEndOfLineI())
-        const iBeforeType = this.pos.i;
-        for (const signal of signals) {
-            const { typeReads, defaultValueReads, typename} = this.getType(signal, false);
-            signal.type = typeReads;
-            signal.typename = typename;
-            signal.defaultValue = defaultValueReads;
-            signal.range.end.i = this.pos.i;
-        }
-        this.advanceFinalSemicolon();
-        return signals
-    }
+
 }
 exports.DeclarativePartParser = DeclarativePartParser;
 //# sourceMappingURL=declarative-part-parser.js.map

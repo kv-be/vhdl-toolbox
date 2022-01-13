@@ -220,6 +220,7 @@ const findDefinition = async (params) => {
 };
 
 exports.connection.onHover(async (params, token) => {
+    // TODO : check if not possible to treat in client => Markdown!
     await exports.initialization;
 
     if (token.isCancellationRequested) {
@@ -247,7 +248,7 @@ exports.connection.onHover(async (params, token) => {
     return {
         contents: {
             language: 'vhdl',
-            value: lines.join('\n')
+            value: `${lines.join('\n')}`
         }
     };
 });

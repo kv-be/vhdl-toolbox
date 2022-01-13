@@ -133,6 +133,7 @@ class Parser extends parser_base_1.ParserBase {
                 if (pack) packages.push(pack);
             }
             else {
+                throw new objects_1.ParserError(`Did not find any valid keyword at the beginning of this file (expecting : library, use, entity, architecture or package)`, this.pos.getRangeToEndLine())
                 this.pos.i++;
             }
         }

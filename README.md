@@ -95,6 +95,7 @@ Where each option can be set to true/false. A template of this file can be found
 - when a lot of VHDL files are detected, the colorization of the files (yellow for warnings, red for errors, blue for information only) is not working correctly
 - external libs (e.g. unisim.vcomponents) are not (yet) supported
 - when a custom type is added (typed) and afterwards a signal of this type is defined, the tool doesn't know about the freshly defined type (and it can't be fixed otherwize than restarting VS Code)
+- a file is only taken into account in other design files when saved to disk. Changes in one file are instantaneously taken into account within that file.
 
 # Debug support
 The extension is tested on CSIMBA code, the UVVM code base and 2 .TV projects and seems to be more or less stable. 

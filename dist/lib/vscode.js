@@ -38,9 +38,11 @@ function activate(context) {
         }
     };
     // Options to control the language client
+    
     let clientOptions = {
         // Register the server for plain text documents
         documentSelector: [{ scheme: 'file', language: 'vhdl' }],
+        markdown: { isTrusted: true  },
         synchronize: {
             // Notify the server about file changes to '.clientrc files contained in the workspace
             //fileEvents: vscode_1.workspace.createFileSystemWatcher('**/.clientrc')

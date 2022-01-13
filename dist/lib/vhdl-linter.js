@@ -209,7 +209,7 @@ class VhdlLinter {
         if (standard) {
             this.packages.push(standard);
         }
-        //     console.log(packages);
+        //     make a list of packages used (and include the standard ones)
         for (const useStatement of this.tree.useStatements) {
             let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
             let found = false;
@@ -236,6 +236,10 @@ class VhdlLinter {
                 });
             }
         }
+        // if the file contains packages, add them too!
+        if (this.packages.packages) this.packages = this.packages.concat(this.tree.packages)
+
+        // Start checking the undefined signals
         for (const read of this.tree.objectList.filter(object => object instanceof objects_1.ORead && typeof object.definition === 'undefined')) {
             for (const pkg of this.packages) {
                 read.definition = this.findDefInPackage(read, pkg)
