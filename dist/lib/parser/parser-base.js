@@ -5,6 +5,7 @@ const objects_1 = require("./objects");
 //const config_1 = require("./config");
 const tokenizer_1 = require("./tokenizer");
 const vscode_languageserver_1 = require("vscode-languageserver");
+
 const { lintSyntaxError } = require("tslint/lib/verify/lintError");
 class ParserBase {
     constructor(text, pos, file, onlyDeclarations = false) {
@@ -17,11 +18,85 @@ class ParserBase {
     }
     debugObject(_object) {
     }
-    
+
+    parse_signals(nextWord, parent, parsingInterface=false, parsingPort = false, ){
+        const startI = this.pos.i
+        let isVariable = false
+        if (nextWord === 'shared') {
+            this.getNextWord();  // consume the shared
+            nextWord = this.getNextWord({ consume: false }).toLowerCase()
+        }
+        if (nextWord === "variable"){
+            isVariable = true
+        } else if ((nextWord === "signal") && (!this.allowSignals)){
+            let scope = this.parent.constructor.name.substring(1)
+            throw new objects_1.ParserError(`No signal declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(this.pos.i).search(/\n/)));                                            
+        }
+        const signals = [];
+        let constant
+        let signal
+        if (!parsingInterface)  constant = this.getNextWord() === 'constant'; 
+        else constant = false
+        do {
+            this.maybeWord(',');
+            if (!isVariable){
+                if (parsingInterface){
+                    if (parsingPort) signal = new objects_1.OPort(parent, this.pos.i, this.getEndOfLineI())
+                    else signal = new objects_1.OGenericActual(parent, this.pos.i, this.getEndOfLineI())
+                } 
+                else
+                signal = new objects_1.OSignal(parent, startI, this.getEndOfLineI()); // startI makes that the signal, variable, constant is part of the declaration
+                signal.constant = constant;
+            }
+            else{
+                signal = new objects_1.OVariable(parent, startI, this.getEndOfLineI());
+            }
+            signal.name = new objects_1.OName(signal, this.pos.i, this.pos.i);
+            signal.name.text = this.getNextWord();
+            signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
+            signals.push(signal);
+        } while (this.text[this.pos.i] === ',');
+        this.expect(':');
+
+        if (parsingPort){
+            let directionString = this.getNextWord({ consume: false }).toLowerCase();
+            if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
+                signal.direction = 'in';
+                signal.directionRange = new objects_1.OIRange(signal, this.pos.i, this.pos.i);
+            }
+            else {
+                signal.direction = directionString;
+                signal.directionRange = new objects_1.OIRange(signal, this.pos.i, this.pos.i + directionString.length);
+                this.getNextWord(); // consume direction
+            }
+        }
+
+        signal.declaration = this.text.substring(this.pos.i, this.getEndOfLineI())
+
+        const iBeforeType = this.pos.i;
+        for (const s of signals) {
+            if (s){
+                const { typeReads, defaultValueReads, typename} = this.getType(s, false);
+                s.type = typeReads;
+                s.typename = typename;
+                s.defaultValue = defaultValueReads;
+                s.range.end.i = this.pos.i;
+                s.declaration = signal.declaration
+                if (parsingPort){
+                    s.direction = signal.direction
+                    s.directionRange =  signal.directionRange
+                } 
+            }
+        }
+        if (!parsingInterface) this.advanceFinalSemicolon();
+        return signals
+    }
+
+
     parsePortsAndGenerics(generics, entity) {
         this.debug('start ports');
         this.expectDirectly('(');
-        const ports = [];
+        let ports = [];
         if (generics) {
             if ((entity instanceof objects_1.OProcedure) || (entity instanceof objects_1.OFunction)) {
                 throw new Error('Blub');
@@ -37,31 +112,26 @@ class ParserBase {
             let port = generics ?
                 new objects_1.OGenericActual(entity, this.pos.i, this.getEndOfLineI()) :
                 new objects_1.OPort(entity, this.pos.i, this.getEndOfLineI());
+
             if (this.text[this.pos.i] === ')') {
                 this.pos.i++;
                 this.advanceWhitespace();
                 break;
             }
+
             if (this.getNextWord({ consume: false }).toLowerCase() === 'type') {
+                // generic type in case of generic packages
                 this.getNextWord();
                 port = Object.setPrototypeOf(port, objects_1.OGenericType.prototype);
                 port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
                 port.name.text = this.getNextWord();
                 port.name.range.end.i = port.name.range.start.i + port.name.text.length;
-                if (generics) {
-                    ports.push(port);
-                }
-                else {
-                    ports.push(port);
-                }
+                ports.push(port);
                 this.expectDirectly(";")
-                /*if (this.text[this.pos.i] === ';') {
-                    this.pos.i++;
-                    this.advanceWhitespace();
-                }*/
             }
             else {
                 const next = this.getNextWord({ consume: false }).toLowerCase();
+
                 if (next === 'signal' || next === 'variable' || next === 'constant' || next === 'file') {
                     this.getNextWord();
                 }
@@ -79,7 +149,7 @@ class ParserBase {
                 if (port instanceof objects_1.OPort) {
                     directionString = this.getNextWord({ consume: false }).toLowerCase();
                     if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
-                        port.direction = 'inout';
+                        port.direction = 'in';
                         port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i);
                     }
                     else {
@@ -97,19 +167,9 @@ class ParserBase {
                 port.type = this.extractReads(port, type, iBeforeType);
                 //port.declaration = type;
                 port.defaultValue = defaultValue;
-                if (generics) {
-                    ports.push(port);
-                }
-                else {
-                    ports.push(port);
-                }
-                // for (const multiPortName of multiPorts) {
-                //   const multiPort = new OPort(this.parent, -1);
-                //   Object.assign(port, multiPort);
-                //   multiPort.name = multiPortName;
-                //   ports.push(multiPort);
-                // }
-                // multiPorts = [];
+
+                ports.push(port)
+                
             }
         }
     }
@@ -382,7 +442,7 @@ class ParserBase {
                     }
                 }
                 else {
-                    if (match[0] === ';'){
+                    if ((match[0] === ';') && (!quote)){
                         if (!quote  && braceLevel === 0) {
                             text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index);
         
@@ -442,6 +502,7 @@ class ParserBase {
             }
             re = this.searchpatToString(re)
             throw new objects_1.ParserError(`did not find "${re}" at the end of the line: ${this.getLine()}`, this.pos.getRangeToEndLine());
+            
         }
         let word = '';
         let j = 0;
@@ -511,7 +572,9 @@ class ParserBase {
             if (lines.length>0){
                 startline -= lines.length
             }*/
-            throw new objects_1.ParserError(`expected '${expected.join(' or ')}' found '${this.getNextWord({ re: /^\S+/ })}' line: ${this.getLine()}`, this.pos.getRangeToEndLine());
+            const line = this.getLine()
+            const range = this.pos.getRangeToEndLine()
+            throw new objects_1.ParserError(`expected '${expected.join(' or ')}' found '${this.getNextWord({ re: /^\S+/ })}' line: ${line}`, range);
         }
         return savedI;
     }
