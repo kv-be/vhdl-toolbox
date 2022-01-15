@@ -196,7 +196,7 @@ const findDefinition = async (params) => {
         return null;
     }
     let startI = linter.getIFromPosition(params.position);
-    const word = linter.getWordAtPosition(startI).match(/\w+/)[0]
+    const word = linter.getWordAtPosition(startI).match(/\w+/)
     const candidates = (_b = (_a = linter.tree) === null || _a === void 0 ? void 0 : _a.objectList.filter(object => object.range.start.i <= startI && startI <= object.range.end.i)) !== null && _b !== void 0 ? _b : [];
     candidates.sort((a, b) => (a.range.end.i - a.range.start.i) - (b.range.end.i - b.range.start.i));
     let candidate = candidates.find(m=> m.definition);

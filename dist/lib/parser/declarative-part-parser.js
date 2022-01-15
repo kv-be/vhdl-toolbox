@@ -144,17 +144,19 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 this.expect(';');
             }
             else if (nextWord === 'procedure') {
+                const startI = this.pos.i
                 this.getNextWord();
                 const procedureParser = new procedure_parser_1.ProcedureParser(this.text, this.pos, this.file, this.parent);
-                this.parent.procedures.push(procedureParser.parse(this.pos.i));
+                this.parent.procedures.push(procedureParser.parse(startI));
             }
             else if (nextWord === 'impure' || nextWord === 'function') {
                 if (nextWord === 'impure') {
                     this.getNextWord();
                 }
+                const startI = this.pos.i
                 this.getNextWord();
                 const procedureParser = new procedure_parser_1.ProcedureParser(this.text, this.pos, this.file, this.parent, true);
-                const func = procedureParser.parse(this.pos.i)
+                const func = procedureParser.parse(startI)
                 this.parent.functions.push(func);
 
             }
@@ -180,15 +182,19 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                     let scope = this.parent.constructor.name.substring(1)
                     throw new objects_1.ParserError(`No file declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(start).search(/\n/)));                                            
                 }
+                const startI = this.pos.i
                 this.getNextWord() // consume the file
-                let signal = new objects_1.OSignal(this.parent, this.pos.i, this.getEndOfLineI()); // startI makes that the signal, variable, constant is part of the declaration
+                let signal = new objects_1.OSignal(this.parent, startI, this.getEndOfLineI()); // startI makes that the signal, variable, constant is part of the declaration
                 signal.constant = true;
-                signal.name = new objects_1.OName(signal, this.pos.i, this.pos.i);
+                signal.name = new objects_1.OName(signal, startI, this.pos.i);
                 signal.name.text = this.getNextWord();
                 signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
                 signal.definition = this.parent
-                if (!this.parent.constants) this.parent.constants = []
-                this.parent.constants.push(signal);
+                if (this.parent.variables) this.parent.variables.push(signal)
+                else if (this.parent.signals) this.parent.signals.push(signal)
+                else if (this.parent.constants) this.parent.constants.push(signal)
+                else throw new objects_1.ParserError(`No place found for file `, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(start).search(/\n/)));                                            
+                //this.parent.constants.push(signal);
                 this.advanceSemicolon();
             }
             else if (nextWord === 'generic') {
@@ -332,8 +338,8 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             }
             
 
-            type.range.end.i = this.pos.i;
             this.advancePast(';', {"allowKeywords": false});
+            type.range.end.i = this.pos.i-1;
 
             if (!isBody) return type //this.parent.types.push(type);
             else return 

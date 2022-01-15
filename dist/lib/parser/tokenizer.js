@@ -5,7 +5,7 @@ class Tokenizer {
     constructor() {
         this.operators = [
             ['abs', 'not'],
-            ['mod', "&", "null", "ns", "ms", "us", "fs", "ps", "s", "all"],
+            ['mod', "&", "null", "ns", "ms", "us", "fs", "ps", "s", "all", "transport", "after"],
             ['sll', 'srl', 'sla', 'sra', 'rol', 'ror'],
             ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
             ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif']
@@ -63,7 +63,7 @@ class Tokenizer {
                 let match = text.match(tokenType.regex);
                 if (match) {
                     const token = { type: tokenType.tokenType, value: match[2] ? match[2] : match[0], offset: match[2] ? offset + match[1].length : offset };
-                    tokens.push(token);
+                    if (token.value !== "all") tokens.push(token);
                     text = text.substring(match[0].length);
                     offset += match[0].length;
                     foundToken = true;

@@ -21,6 +21,7 @@ class AssignmentParser extends parser_base_1.ParserBase {
         leftHandSide += this.text.substring(this.pos.i, this.pos.i + match.index);
         this.pos.i += match.index;
         [assignment.reads, assignment.writes] = this.extractReadsOrWrite(assignment, leftHandSide, leftHandSideI);
+        
         this.pos.i += 2;
         let rightHandSideI = this.pos.i;
         const rightHandSide = this.advanceSemicolon(); // removed final semicolon to support the when - else constructs

@@ -136,19 +136,53 @@ class ParserBase {
                 if (next === 'signal' || next === 'variable' || next === 'constant' || next === 'file') {
                     this.getNextWord();
                 }
-                let nextWord = this.getNextWord();
+                let nextWord = this.getNextWord({consume:false});
+                let multiports = []
                 if ((nextWord !== "package") && (nextWord !== "type")){
-                    port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
-                    port.name.text = nextWord
-                    port.name.range.end.i = port.name.range.start.i + port.name.text.length;
-                    if (this.text[this.pos.i] === ',') {
-                        this.expect(',');
-                        // multiPorts.push(port.name);
-                        continue;
+                    do {
+                        this.maybeWord(',');
+                        port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
+                        port.name.text = this.getNextWord();
+                        port.name.range.end.i = port.name.range.start.i + port.name.text.length;
+                        multiports.push(port);
+                    } while (this.text[this.pos.i] === ',');
+                    this.expect(':');
+            
+                    if (port instanceof objects_1.OPort) {
+                        let directionString = this.getNextWord({ consume: false }).toLowerCase();
+                        if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
+                            port.direction = 'in';
+                            port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i);
+                        }
+                        else {
+                            port.direction = directionString;
+                            port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i + directionString.length);
+                            this.getNextWord(); // consume direction
+                        }
                     }
-                    this.expectDirectly(':');
-                    const start = this.pos.i
-                    let directionString;
+
+                    port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI())
+            
+                    const iBeforeType = this.pos.i;
+                    for (const s of multiports) {
+                        if (s){
+                            const { typeReads, defaultValueReads, typename} = this.getTypeDefintion(s, false);
+                            s.type = typeReads;
+                            s.typename = typename;
+                            s.defaultValue = defaultValueReads;
+                            s.range.end.i = this.pos.i;
+                            s.declaration = port.declaration
+                            if (port instanceof objects_1.OPort) {
+                                s.direction = port.direction
+                                s.directionRange =  port.directionRange
+                            }
+                        }
+                    }
+            
+                    ports = ports.concat(multiports)
+                    this.maybeWord(";")
+/*
+
                     if (port instanceof objects_1.OPort) {
                         directionString = this.getNextWord({ consume: false }).toLowerCase();
                         if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
@@ -171,10 +205,11 @@ class ParserBase {
                     //port.declaration = type;
                     port.defaultValue = defaultValue;
     
-                    ports.push(port)
+                    ports.push(port)*/
     
                 }
                 else if (nextWord === "package") {
+                    this.getNextWord(); // consume the package
                     // generic package in the generics of a package
                     port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
                     port.name.text = this.getNextWord()
