@@ -46,11 +46,11 @@ class HierarchyDataProvider {
     else element.iconPath = new vscode.ThemeIcon("symbol-method")
     if (element.file === "") element.iconPath = new vscode.ThemeIcon("symbol-module")
     if (element.label){
-      const uri = vscode.Uri.parse(element.file);
+      const uri = vscode.Uri.file(element.file);
       const used= this.find(element.label, this.data)
       let res = ""
       for (const u of used){
-        if (!res.includes(u[0])) res +=`* [${u[0]}](${vscode.Uri.parse(u[1])})\n`
+        if (!res.includes(u[0])) res +=`* [${u[0]}](${vscode.Uri.file(u[1])})\n`
       }
       if ((res !== "") && (element.file !== "")) element.tooltip = new vscode.MarkdownString(`Open [${element.label}](${uri})\n\nUsed in :\n\n${res}`, true);  
       else if (element.file !== "") element.tooltip = new vscode.MarkdownString(`Open [${element.label}](${uri})\n\n`, true);  

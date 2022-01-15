@@ -36,13 +36,6 @@ class ProjectParser {
         let files = new Set
         this.read_options();
 
-        await Promise.all(this.workspaces.map(async (directory) => {
-            const directories = await this.parseDirectory(directory);
-            return (await Promise.all(directories.map(file => fs_1.promises.realpath(file)))).forEach(file => files.add(file));
-        }));
-        // for (const directory of this.workspaces) {
-        //   this.parseDirectory(directory).forEach(file => files.add(realpathSync(file)));
-        // }
         const pkg = __dirname;
         if (pkg) {
             //       console.log(pkg, new Directory(pkg + '/ieee2008'));
@@ -53,6 +46,14 @@ class ProjectParser {
             files.add(path_1.join(pkg, `${path_1.sep}..${path_1.sep}..${path_1.sep}std_logic_arith.vhd`));
             files.add(path_1.join(pkg, `${path_1.sep}..${path_1.sep}..${path_1.sep}standard.vhd`));
         }
+
+        await Promise.all(this.workspaces.map(async (directory) => {
+            const directories = await this.parseDirectory(directory);
+            return (await Promise.all(directories.map(file => fs_1.promises.realpath(file)))).forEach(file => files.add(file));
+        }));
+        // for (const directory of this.workspaces) {
+        //   this.parseDirectory(directory).forEach(file => files.add(realpathSync(file)));
+        // }
 
         if (this.options.IgnorePattern.length > 0){
             let re = this.options.IgnorePattern.replace(" ", "").split(",").join("|")

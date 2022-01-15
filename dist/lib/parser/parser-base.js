@@ -7,6 +7,7 @@ const tokenizer_1 = require("./tokenizer");
 const vscode_languageserver_1 = require("vscode-languageserver");
 
 const { lintSyntaxError } = require("tslint/lib/verify/lintError");
+const { throws } = require("assert");
 class ParserBase {
     constructor(text, pos, file, onlyDeclarations = false) {
         this.text = text;
@@ -135,40 +136,66 @@ class ParserBase {
                 if (next === 'signal' || next === 'variable' || next === 'constant' || next === 'file') {
                     this.getNextWord();
                 }
-                port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
-                port.name.text = this.getNextWord();
-                port.name.range.end.i = port.name.range.start.i + port.name.text.length;
-                if (this.text[this.pos.i] === ',') {
-                    this.expect(',');
-                    // multiPorts.push(port.name);
-                    continue;
-                }
-                this.expectDirectly(':');
-                const start = this.pos.i
-                let directionString;
-                if (port instanceof objects_1.OPort) {
-                    directionString = this.getNextWord({ consume: false }).toLowerCase();
-                    if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
-                        port.direction = 'in';
-                        port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i);
+                let nextWord = this.getNextWord();
+                if ((nextWord !== "package") && (nextWord !== "type")){
+                    port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
+                    port.name.text = nextWord
+                    port.name.range.end.i = port.name.range.start.i + port.name.text.length;
+                    if (this.text[this.pos.i] === ',') {
+                        this.expect(',');
+                        // multiPorts.push(port.name);
+                        continue;
                     }
-                    else {
-                        port.direction = directionString;
-                        port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i + directionString.length);
-                        this.getNextWord(); // consume direction
+                    this.expectDirectly(':');
+                    const start = this.pos.i
+                    let directionString;
+                    if (port instanceof objects_1.OPort) {
+                        directionString = this.getNextWord({ consume: false }).toLowerCase();
+                        if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
+                            port.direction = 'in';
+                            port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i);
+                        }
+                        else {
+                            port.direction = directionString;
+                            port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i + directionString.length);
+                            this.getNextWord(); // consume direction
+                        }
                     }
+                    const iBeforeType = this.pos.i;
+                    port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI())
+                    port.typename    = this.text.substring(this.pos.i, this.getEndOfLineI())
+                    const { type, defaultValue, endI } = this.getTypeDefintion(port);
+                    port.range.end.i = endI;
+                    // port.type = type;
+                    port.type = this.extractReads(port, type, iBeforeType);
+                    //port.declaration = type;
+                    port.defaultValue = defaultValue;
+    
+                    ports.push(port)
+    
                 }
-                const iBeforeType = this.pos.i;
-                port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI())
-                port.typename    = this.text.substring(this.pos.i, this.getEndOfLineI())
-                const { type, defaultValue, endI } = this.getTypeDefintion(port);
-                port.range.end.i = endI;
-                // port.type = type;
-                port.type = this.extractReads(port, type, iBeforeType);
-                //port.declaration = type;
-                port.defaultValue = defaultValue;
-
-                ports.push(port)
+                else if (nextWord === "package") {
+                    // generic package in the generics of a package
+                    port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
+                    port.name.text = this.getNextWord()
+                    port.name.range.end.i = port.name.range.start.i + port.name.text.length;
+                    this.expect("is")
+                    this.expect("new")
+                    port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI()+1)
+                    nextWord = this.getNextWord() // library
+                    this.expect('.')
+                    port.typename    = this.getNextWord()
+                    
+                    // port.type = type;
+                    port.type = this.extractReads(port, port.typename, this.pos.i);
+                    //port.declaration = type;
+                    this.expect("generic")
+                    this.expect("map")
+                    this.expect("(")
+                    this.advanceBrace()
+                    port.range.end.i = this.pos.i
+                    ports.push(port)
+                }
                 
             }
         }

@@ -152,6 +152,14 @@ class VhdlLinter {
                 return constant;
             }
         }
+        if (pkg.generics){
+            for (const gen of pkg.generics) {
+                if (gen.name.text.toLowerCase() === criteria) {
+                    return gen;
+                }
+            }
+    
+        }
         for (const func of pkg.functions) {
             if (func.name.text.toLowerCase() === criteria) {
                 return func;
@@ -203,31 +211,51 @@ class VhdlLinter {
         return null
     }
 
-    async parsePackages() {
+    solve_uses(useStatements){
+        let found_packages = []
         const packages = this.projectParser.getPackages();
-        const standard = packages.find(pkg => pkg.name.toLowerCase() === 'standard');
-        if (standard) {
-            this.packages.push(standard);
-        }
-        //     make a list of packages used (and include the standard ones)
-        for (const useStatement of this.tree.useStatements) {
-            let match = useStatement.text.match(/([^.]+)\.([^.]+)\.all/i);
-            let found = false;
-            if (match) {
-                const library = match[1];
-                const pkg = match[2];
+        let found = false;
+        let library 
+        let pkg
+        let specifics
+        for (const useStatement of useStatements) {
+            const parts = useStatement.text.split(".")
+            if (parts.length === 3){ // lib.package.all
+                library = parts[0].trim()
+                pkg = parts[1].trim()
+                specifics = parts[2].trim()
+            } else if (parts.length ===2){ // package.all
+                // use of a package in a generic package
+                library = "work"
+                pkg = parts[0].trim()
+                specifics = parts[1].trim()
+            }
+            //let match = useStatement.text.match(/([^.])\.([^.]+)\..*/i);
+            //if (match) {
+                //const library = match[1];
+                //const pkg = match[2];
                 if (library.toLowerCase() === 'altera_mf') {
                     found = true;
                 }
                 else {
-                    for (const foundPkg of packages) {
-                        if (foundPkg.name.toLowerCase() === pkg.toLowerCase()) {
-                            this.packages.push(foundPkg);
-                            found = true;
-                        }
+                    const pkgs = packages.filter(m=> m.name.toLowerCase() === pkg.toLowerCase())
+                    found = (pkgs.length > 0)
+                    for (const p of pkgs){
+                        if (p.useStatements) found_packages = found_packages.concat(this.solve_uses(p.useStatements))
                     }
+                    found_packages = found_packages.concat(pkgs)
+                    const ps = found_packages.filter(m=> m.instance)
+                    /*for (const foundPkg of packages) {
+                        if (foundPkg.name.toLowerCase() === pkg.toLowerCase()) {
+                            found_packages.push(foundPkg);
+                            found = true;
+                            if (foundPkg.useStatements) {
+                                found_packages = found_packages.concat(this.solve_uses(foundPkg.useStatements))
+                            }
+                        }
+                    }*/
                 }
-            }
+            //}
             if (!found) {
                 this.addMessage({
                     range: useStatement.range,
@@ -236,9 +264,41 @@ class VhdlLinter {
                 });
             }
         }
-        // if the file contains packages, add them too!
-        if (this.packages.packages) this.packages = this.packages.concat(this.tree.packages)
+        return found_packages
+    }
 
+    async parsePackages() {        
+        //     make a list of packages used (and include the standard ones)
+        this.packages = this.solve_uses(this.tree.useStatements)
+
+        const standard = this.projectParser.getPackages().find(pkg => pkg.name.toLowerCase() === 'standard');
+        if (standard) {
+            this.packages.push(standard);
+        }
+
+        // if the file contains packages, add them too!
+        if (this.tree.packages) {
+            this.packages = this.packages.concat(this.tree.packages)
+            for (const p of this.tree.packages){
+                if (p.useStatements) this.packages = this.packages.concat(this.solve_uses(p.useStatements))
+            }
+        }
+
+        let generic_pkgs = []
+        for (let p of this.packages.filter(m=> m.instance)){
+            // all packages which are instances of generic packages
+            // get all the definitions of the generic package
+            for (const q of p.instance){
+                const hits = this.projectParser.getPackages().find(pkg => pkg.name.toLowerCase() === q.componentName.toLowerCase())
+                p.types = hits.types
+                p.constants = hits.constants
+                p.functions = hits.functions
+                p.procedures = hits.procedures
+                p.generics  = hits.generics
+                //generic_pkgs = generic_pkgs.concat(hits)
+            }
+
+        }
         // Start checking the undefined signals
         for (const read of this.tree.objectList.filter(object => object instanceof objects_1.ORead && typeof object.definition === 'undefined')) {
             for (const pkg of this.packages) {
@@ -247,6 +307,7 @@ class VhdlLinter {
             }
         }
         for (const instantiation of this.tree.objectList.filter(object => object instanceof objects_1.OInstantiation && typeof object.definition === 'undefined')) {
+            // check if the componentName can be linked to a known entity/package
             instantiation.definition = this.getProjectEntity(instantiation);
         }
         for (const obj of this.tree.objectList.filter(o=> o instanceof objects_1.OMapping)) {
@@ -885,6 +946,7 @@ class VhdlLinter {
             if (a != null) {
                 //console.log("pdeb solved "+obj.text+", "+obj.type)
                 obj.definition = a;
+                continue
             }
 
             if (obj instanceof objects_1.ORead) {
@@ -1351,7 +1413,9 @@ class VhdlLinter {
 
 
     getProjectEntity(instantiation) {
-        const projectEntities = this.projectParser.getEntities();
+        let projectEntities = this.projectParser.getEntities();
+        // in case of parsing only packages, make sure projectEntities is  not empty
+        if (!projectEntities) projectEntities = this.projectParser.getPackages();
         if (instantiation.library) {
             const entityWithLibrary = projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase() && typeof entity.library !== 'undefined' && typeof instantiation.library !== 'undefined' && entity.library.toLowerCase() === instantiation.library.toLowerCase());
             if (entityWithLibrary) {
@@ -1359,7 +1423,14 @@ class VhdlLinter {
                 return entityWithLibrary;
             }
         }
-        return projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase());
+        if (!instantiation.componentName) return null
+        const entity = projectEntities.find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase());
+        if (entity ) return entity
+        else{ // in case of a project with  packages
+            const entity = this.projectParser.getPackages().find(entity => entity.name.toLowerCase() === instantiation.componentName.toLowerCase());
+            if (entity) return entity
+        }
+        return null
     }
 
     checkClkCrossing(){
@@ -1592,6 +1663,9 @@ class VhdlLinter {
                 for (const proc of pack.types) {
                     //console.log("pdeb checking type " + proc.name.text)
                     if (proc instanceof objects_1.OEnum) {
+                        if (proc.name.text.toLowerCase() === obj.text.toLowerCase()) {
+                            return proc;
+                        }
                         for (const state of proc.states) {
                             if (state.name.text.toLowerCase() === obj.text.toLowerCase()) {
                                 return state;
@@ -1612,10 +1686,16 @@ class VhdlLinter {
                             //obj.definition = proc;                                                   
                             return proc;
                         }
+                    } else if (obj.text){
+                        if (obj.text.toLowerCase() === proc.name.text.toLowerCase()) {
+                            //obj.definition = proc;                                                   
+                            return proc;
+                        }
                     }
                 }
             }
         }
+        if (obj.text) return this.projectParser.packages.find(m=> m.name === obj.text)
         return null
     }
 

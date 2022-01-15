@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const parser_base_1 = require("./parser-base");
 const objects_1 = require("./objects");
 const declarative_part_parser_1 = require("./declarative-part-parser");
+const instantiation_parser_1 = require("./instantiation-parser");
+const { throws } = require("assert");
 class PackageParser extends parser_base_1.ParserBase {
     parse(parent) {
         const nextWord = this.getNextWord();
@@ -33,11 +35,24 @@ class PackageParser extends parser_base_1.ParserBase {
             pkg.library = match ? match[1] : undefined;
             pkg.name = nextWord;
             this.expect('is');
+            const startI = this.pos.i
             if (this.getNextWord({consume:false}).toLowerCase()==="new" ){
                 this.expectDirectly("new")
-                pkg.instanceLib = this.getNextWord()
+                let pkg_instance = new objects_1.OInstantiation(parent, startI, this.getEndOfLineI())
+                let instanceLib = this.getNextWord()
                 this.expectDirectly('.')
-                pkg.instancePkg = this.getNextWord()
+                // name of the base package is the component name
+                // like that we can reuse everything from entity instances
+                pkg_instance.componentName = this.getNextWord() 
+                const savedI = this.pos.i
+                this.expect("generic")
+                this.expect("map")
+                this.expect("(")
+                const instantiationParser = new instantiation_parser_1.InstantiationParser(this.text, this.pos, this.file, parent);
+                pkg_instance.genericMappings= instantiationParser.parseMapping(savedI, pkg_instance, true)
+                if (!pkg.instance)  pkg.instance = []
+                pkg.instance.push(pkg_instance);  
+                this.expect(';')  
                 return pkg;
             }
             const declarativePartParser = new declarative_part_parser_1.DeclarativePartParser(this.text, this.pos, this.file, pkg);

@@ -1,6 +1,6 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE. All rights reserved.
+-- Copyright ï¿½ 2008 by IEEE. All rights reserved.
 --
 -- This source file is an essential part of IEEE Std 1076-2008,
 -- IEEE Standard VHDL Language Reference Manual. This source file may not be
@@ -64,7 +64,7 @@ package float_generic_pkg is
     no_warning           : BOOLEAN    := false;
     package fixed_pkg is new IEEE.fixed_generic_pkg
                            generic map (<>) );
-
+  
   -- Author David Bishop (dbishop@vhdl.org)
   constant CopyRightNotice : STRING :=
     "Copyright 2008 by IEEE. All rights reserved.";

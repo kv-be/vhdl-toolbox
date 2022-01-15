@@ -204,6 +204,7 @@ class OPackage extends ObjectBase {
         this.procedures = [];
         this.constants = [];
         this.types = [];
+        this.generics = [];
         this.name=null;
         this.instance=null;
     }
