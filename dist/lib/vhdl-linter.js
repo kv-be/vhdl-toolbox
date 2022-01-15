@@ -301,6 +301,17 @@ class VhdlLinter {
         }
         // Start checking the undefined signals
         for (const read of this.tree.objectList.filter(object => object instanceof objects_1.ORead && typeof object.definition === 'undefined')) {
+            /*if ((read.parent instanceof objects_1.OProcedure) || (read.parent instanceof objects_1.OFunction)){
+                read.definition = read.parent.variables.find(v=> v.name.text === read.text)
+                if (read.definition) continue
+                else{
+                    if (read.parent.types) read.definition = read.parent.types.find(v=> v.name.text === read.text)
+                    if (read.definition) continue
+                    else{
+                        if (read.parent.functions) read.definition = read.parent.functions.find(v=> v.name.text === read.text)
+                    }
+                } 
+            }*/
             for (const pkg of this.packages) {
                 read.definition = this.findDefInPackage(read, pkg)
                 if (read.definition) break;

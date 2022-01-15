@@ -1374,6 +1374,14 @@ class OToken extends ODefitionable {
                 }
             }
             else if (object instanceof OProcedure) {
+                for (const variable of object.types) {
+                    if (variable.name.text.toLowerCase() === text.toLowerCase()) {
+                        this.definition = variable;
+                        this.scope = object;
+                        variable.mentions.push(this);
+                        break yank;
+                    }
+                }
                 for (const variable of object.variables) {
                     if (variable.name.text.toLowerCase() === text.toLowerCase()) {
                         this.definition = variable;
@@ -1400,6 +1408,16 @@ class OToken extends ODefitionable {
                         break yank;
                     }
                 }
+                
+                for (const variable of object.types) {
+                    if (variable.name.text.toLowerCase() === text.toLowerCase()) {
+                        this.definition = variable;
+                        this.scope = object;
+                        variable.mentions.push(this);
+                        break yank;
+                    }
+                }
+
                 for (const port of object.ports) {
                     if (port.name.text.toLowerCase() === text.toLowerCase()) {
                         this.definition = port;
