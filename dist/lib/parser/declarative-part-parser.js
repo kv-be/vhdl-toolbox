@@ -175,16 +175,33 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 }
                 this.advanceSemicolon();
             }
-            else if (nextWord === 'file'|| nextWord === 'generic') {
+            else if (nextWord === 'file') {
                 if (!this.allowFile){
                     let scope = this.parent.constructor.name.substring(1)
-                    throw new objects_1.ParserError(`No file declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, start, start+this.text.substring(start).search(/\n/)));                                            
+                    throw new objects_1.ParserError(`No file declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(start).search(/\n/)));                                            
                 }
+                this.getNextWord() // consume the file
+                let signal = new objects_1.OSignal(this.parent, this.pos.i, this.getEndOfLineI()); // startI makes that the signal, variable, constant is part of the declaration
+                signal.constant = true;
+                signal.name = new objects_1.OName(signal, this.pos.i, this.pos.i);
+                signal.name.text = this.getNextWord();
+                signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
+                signal.definition = this.parent
+                if (!this.parent.constants) this.parent.constants = []
+                this.parent.constants.push(signal);
+                this.advanceSemicolon();
+            }
+            else if (nextWord === 'generic') {
                 if ((!this.allowGeneric) && (nextWord === 'generic')) {
                     let scope = this.parent.constructor.name.substring(1)
-                    throw new objects_1.ParserError(`Word package is not expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(this.pos.i).search(/\n/)));                                            
+                    throw new objects_1.ParserError(`Word generic is not expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(this.pos.i).search(/\n/)));                                            
                 }
-                this.advanceSemicolon();
+                const savedI = this.pos.i
+                this.getNextWord()
+                if (!this.generics) this.generics=[]
+                this.parsePortsAndGenerics( true, this.parent);
+                this.parent.genericRange = new objects_1.OIRange(this.parent, savedI, this.pos.i);
+                this.expectDirectly(';');
             }
             else if (nextWord === 'use') {
                 this.getNextWord()
@@ -192,7 +209,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 if (!this.parent.useStatements){
                     this.parent.useStatements = []
                 }
-                this.parent.useStatements = usestat
+                this.parent.useStatements.push(usestat)
                 this.expect(';');
             }
            else {
