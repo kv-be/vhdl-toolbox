@@ -56,7 +56,7 @@ class ProcessLikeParser extends parser_base_1.ParserBase {
             else if (nextWord.toLowerCase() === 'next') {
                 this.advancePast(';');
             }
-            else if (statementText.match(/:=|<=/)) {
+            else if (statementText.replace(/\([^\)]*?\)/, "\(stuff\)").match(/:=|<=/)){
                 const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, parent);
                 let stats = assignmentParser.parse()
                 statements.push(stats);
@@ -127,7 +127,7 @@ class ProcessLikeParser extends parser_base_1.ParserBase {
             this.expect('while');
             const startI = this.pos.i;
             const position = this.pos.i;    
-            const condition = this.advancePast('loop');
+            const condition = this.advancePast(/\bloop\b/, {returnMatch :false});
             whileLoop.conditionReads = this.extractReads(whileLoop, condition, position);
         }else{
             whileLoop.conditionReads = []

@@ -46,9 +46,9 @@ class InstantiationParser extends parser_base_1.ParserBase {
             lastI = this.pos.i;
         }
         instantiation.range.end.i = this.expect(';');
-        if (!hasPortMap) {
+        /*if (!hasPortMap) {
             throw new objects_1.ParserError(`Instantiation has no Port Map`, this.pos.getRangeToEndLine());
-        }
+        }*/
         return instantiation;
     }
     parseMapping(startI, instantiation, genericMapping = false) {
@@ -58,6 +58,7 @@ class InstantiationParser extends parser_base_1.ParserBase {
             const mapping = new objects_1.OMapping(map, this.pos.i, this.getEndOfLineI());
             const mappingNameI = this.pos.i;
             let line = mapping.text.substring(0, mapping.text.search(/\n/))
+            if (!line) line = mapping.text.substring(0)
             if (line.search(/[\w\s*\(\)']+\s*=>/)===-1){
                 throw new objects_1.ParserError(`Expected '=>' in this port map`, new objects_1.OIRange(this.parent, mappingNameI, this.getEndOfLineI(mappingNameI)));
             }

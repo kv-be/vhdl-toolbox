@@ -1,6 +1,6 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE. All rights reserved.
+-- Copyright ï¿½ 2008 by IEEE. All rights reserved.
 --
 -- This source file is an essential part of IEEE Std 1076-2008,
 -- IEEE Standard VHDL Language Reference Manual. This source file may not be
@@ -65,7 +65,7 @@ use IEEE.STD_LOGIC_1164.all;
 
 package NUMERIC_STD is
   constant CopyRightNotice : STRING
-    := "Copyright © 2008 IEEE. All rights reserved.";
+    := "Copyright ï¿½ 2008 IEEE. All rights reserved.";
 
 
   --============================================================================
@@ -81,6 +81,10 @@ package NUMERIC_STD is
 
   subtype UNSIGNED is (resolved) UNRESOLVED_UNSIGNED;
   subtype SIGNED is (resolved) UNRESOLVED_SIGNED;
+  -- Addition
+  -- ufixed(a downto b) + ufixed(c downto d)
+  --   = ufixed(maximum(a,c)+1 downto minimum(b,d))
+  function "+" (l, r : UNRESOLVED_ufixed) return UNRESOLVED_ufixed;
 
   --============================================================================
   -- Arithmetic Operators:
@@ -100,7 +104,6 @@ package NUMERIC_STD is
   --============================================================================
 
   -- Id: A.3
-  function "+" (L, R : UNRESOLVED_UNSIGNED) return UNRESOLVED_UNSIGNED;
   -- Result subtype: UNRESOLVED_UNSIGNED(MAXIMUM(L'LENGTH, R'LENGTH)-1 downto 0)
   -- Result: Adds two UNRESOLVED_UNSIGNED vectors that may be of different lengths.
 

@@ -151,6 +151,9 @@ class OMentionable extends ObjectBase {
     }
 }
 exports.OMentionable = OMentionable;
+class OContext extends ObjectBase {
+}
+exports.OContext = OContext;
 class ODefitionable extends ObjectBase {
 }
 exports.ODefitionable = ODefitionable;
@@ -191,6 +194,9 @@ exports.OFile = OFile;
 class OFileWithEntity extends OFile {
 }
 exports.OFileWithEntity = OFileWithEntity;
+class OFileWithContext extends OFile {
+}
+exports.OFileWithContext = OFileWithContext;
 class OFileWithEntityAndArchitecture extends OFileWithEntity {
 }
 exports.OFileWithEntityAndArchitecture = OFileWithEntityAndArchitecture;
@@ -1398,6 +1404,14 @@ class OToken extends ODefitionable {
                         break yank;
                     }
                 }
+                for (const port of object.functions) {
+                    if (port.name.text.toLowerCase() === text.toLowerCase()) {
+                        this.definition = port;
+                        this.scope = object;
+                        port.mentions.push(this);
+                        break yank;
+                    }
+                }
             }
             else if (object instanceof OFunction) {
                 for (const variable of object.variables) {
@@ -1419,6 +1433,14 @@ class OToken extends ODefitionable {
                 }
 
                 for (const port of object.ports) {
+                    if (port.name.text.toLowerCase() === text.toLowerCase()) {
+                        this.definition = port;
+                        this.scope = object;
+                        port.mentions.push(this);
+                        break yank;
+                    }
+                }
+                for (const port of object.functions) {
                     if (port.name.text.toLowerCase() === text.toLowerCase()) {
                         this.definition = port;
                         this.scope = object;

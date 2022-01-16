@@ -1,6 +1,6 @@
 -- --------------------------------------------------------------------
 --
--- Copyright © 2008 by IEEE. All rights reserved.
+-- Copyright ï¿½ 2008 by IEEE. All rights reserved.
 --
 -- This source file is an essential part of IEEE Std 1076-2008,
 -- IEEE Standard VHDL Language Reference Manual. This source file may not be
@@ -46,15 +46,19 @@ use IEEE.fixed_float_types.all;
 package fixed_generic_pkg is
   generic (
     -- Rounding routine to use in fixed point, fixed_round or fixed_truncate
-    fixed_round_style    : fixed_round_style_type    := fixed_round;
+    fixed_round_style    : fixed_round_style_type    := fixed_round;  
     -- Overflow routine to use in fixed point, fixed_saturate or fixed_wrap
     fixed_overflow_style : fixed_overflow_style_type := fixed_saturate;
     -- Extra bits used in divide routines
     fixed_guard_bits     : NATURAL                   := 3;
     -- If TRUE, then turn off warnings on "X" propagation
     no_warning           : BOOLEAN                   := false
-    );
-
+    ); 
+  function divide (
+    l, r                 : UNRESOLVED_ufixed;
+    constant round_style : fixed_round_style_type := fixed_round_style; 
+    constant guard_bits  : NATURAL                := fixed_guard_bits)
+    return UNRESOLVED_ufixed;
   -- Author David Bishop (dbishop@vhdl.org)
   constant CopyRightNotice : STRING :=
     "Copyright 2008 by IEEE. All rights reserved.";
@@ -287,11 +291,7 @@ package fixed_generic_pkg is
 
   -- This version of divide gives the user more control
   -- ufixed(a downto b) / ufixed(c downto d) = ufixed(a-d downto b-c-1)
-  function divide (
-    l, r                 : UNRESOLVED_ufixed;
-    constant round_style : fixed_round_style_type := fixed_round_style;
-    constant guard_bits  : NATURAL                := fixed_guard_bits)
-    return UNRESOLVED_ufixed;
+
 
   -- This version of divide gives the user more control
   -- sfixed(a downto b) / sfixed(c downto d) = sfixed(a-d+1 downto b-c)

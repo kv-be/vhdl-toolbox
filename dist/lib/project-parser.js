@@ -133,9 +133,10 @@ class ProjectParser {
 
     fetchEntitesAndPackages() {
         //     console.log(this.cachedFiles);
-        this.packages = [];
-        this.entities = [];
+        this.packages = []
+        this.entities = []
         this.messages = []
+        this.contexts = []
         for (const cachedFile of this.cachedFiles) {
             if (cachedFile.entity) {
                 //console.log("adding entiry " + cachedFile.entity.name)
@@ -144,6 +145,9 @@ class ProjectParser {
             if (cachedFile.packages) {
                 //console.log("adding package " + cachedFile.packages.name)
                 this.packages.push(...cachedFile.packages);
+            }
+            if (cachedFile.context){
+                this.contexts.push(cachedFile.context)
             }
             this.messages.push(cachedFile.get_messages())
             
@@ -172,6 +176,9 @@ class ProjectParser {
         return this.toplevels
     }
 
+    getContexts(){
+        return this.contexts
+    }
     getChildren(parent, instance, hierPath,  list){
         if (list.length > 0){
             for (const c of list){
@@ -291,6 +298,7 @@ class OFileCache {
             this.linter = linter;
         }
         this.parsePackages();
+        this.parseContexts();
         this.parseEntity();
         this.messages = {"file" : vscode_uri_1.URI.file(this.path), "diagnostic":this.linter.get_messages()}
     }
@@ -307,6 +315,11 @@ class OFileCache {
     parsePackages() {
         if ((this.linter.tree instanceof objects_1.OFileWithPackages)) {
             this.packages = this.linter.tree.packages;
+        }
+    }
+    parseContexts() {
+        if ((this.linter.tree instanceof objects_1.OFileWithContext)) {
+            this.context = this.linter.tree.context;
         }
     }
     parseEntity() {

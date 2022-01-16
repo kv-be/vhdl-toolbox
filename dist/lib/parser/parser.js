@@ -13,14 +13,16 @@ class Parser extends parser_base_1.ParserBase {
         this.originalText = text;
         this.removeComments();
     }
-    parse() {
-        const file = new objects_1.OFile(this.text, this.file, this.originalText);
+    parse(end = null, parent=null) {
+        let file 
+        if (parent === null)  file = new objects_1.OFile(this.text, this.file, this.originalText);
+        else file = parent
         file.options.CheckCodingRules = null
         file.options.CheckProcessReset = null
         file.options.CheckStdLogicArith = null
         let disabledRangeStart = undefined;
         let ignoreRegex = [];
-        for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
+        /*for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
             let match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
             if (match) {
                 let innerMatch;
@@ -77,7 +79,7 @@ class Parser extends parser_base_1.ParserBase {
                 const todoRange = new objects_1.OIRange(file, new objects_1.OI(file, lineNumber, line.length - match[2].length), new objects_1.OI(file, lineNumber, line.length));
                 file.magicComments.push(new objects_1.OMagicCommentTodo(file, objects_1.MagicCommentType.Todo, todoRange, match[2].toString()));
             }
-        }
+        }*/
         for (const regex of ignoreRegex) {
             const ignores = this.text.match(regex);
             if (ignores === null)
@@ -87,7 +89,7 @@ class Parser extends parser_base_1.ParserBase {
                 this.text = this.text.replace(ignore, replacement);
             }
         }
-        this.pos = new objects_1.OI(file, 0);
+        if (end === null) this.pos = new objects_1.OI(file, 0);
         if (this.text.length > 500 * 1024) {
             throw new objects_1.ParserError('file too large', this.pos.getRangeToEndLine());
         }
@@ -98,6 +100,11 @@ class Parser extends parser_base_1.ParserBase {
             this.advanceWhitespace();
             const start = this.pos.i
             let nextWord = this.getNextWord().toLowerCase();
+            if (end !== null){
+                if (nextWord === end){
+                    return
+                }
+            }
             if (nextWord === 'library') {
                 const name = this.getNextWord()
                 file.libraries.push(name);
@@ -132,6 +139,31 @@ class Parser extends parser_base_1.ParserBase {
                 const pack = packageParser.parse(file)
                 if (pack) packages.push(pack);
             }
+            else if (nextWord === 'context') {
+                let name = this.getNextWord();
+                if (this.text[this.pos.i] === "."){
+                    this.expect(".")
+                    const libname = name
+                    name = this.getNextWord() // previous name was lib name
+                    this.expect(";")
+                    if (!file.contextsUsed) file.contextsUsed=[]
+                    file.contextsUsed.push( `${libname}.${name}`)
+                }
+                else {
+                    const context = new objects_1.OContext(file, this.pos.i, this.pos.i)
+                    Object.setPrototypeOf(file, objects_1.OFileWithContext.prototype)
+                    const startI = this.pos.i
+                    context.name = new objects_1.OName(context, startI, this.pos.i);
+                    context.name.text = name
+                    context.name.range.end.i = context.name.range.start.i + context.name.text.length;
+                    this.expect("is")
+                    this.parse("end", file)
+                    this.expect("context")
+                    this.maybeWord(context.name.text)
+                    this.expect(";")
+                    file.context = context                        
+                }
+            }
             else {
                 throw new objects_1.ParserError(`Did not find any valid keyword at the beginning of this file (expecting : library, use, entity, architecture or package)`, this.pos.getRangeToEndLine())
                 this.pos.i++;
@@ -156,7 +188,7 @@ class Parser extends parser_base_1.ParserBase {
         this.text = this.text.replace(/(?<=\n\s*)--.*/g, match => ' '.repeat(match.length));
         this.text = this.text.substring(1)
         // the line below removes everything between a -- and a \n IF there is no ; or " in it
-        this.text = this.text.replace(/--(?<!;)[^"]+?(?=\n)/g, match => ' '.repeat(match.length));
+        this.text = this.text.replace(/--(?<!;)[^"]*?(?=\n)/g, match => ' '.repeat(match.length));
         // in 99% of the cases, all the comments are removed. This is checked by the following line
         if (!this.text.includes("--")) return
         // if there is still a -- sequence detected, it can be something like if a = "0--111" or a string with -- in it

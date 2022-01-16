@@ -6,6 +6,7 @@ const process_parser_1 = require("./process-parser");
 const assignment_parser_1 = require("./assignment-parser");
 const instantiation_parser_1 = require("./instantiation-parser");
 const architecture_parser_1 = require("./architecture-parser");
+const { throws } = require("assert");
 var StatementTypes;
 (function (StatementTypes) {
     StatementTypes[StatementTypes["Process"] = 0] = "Process";
@@ -178,7 +179,19 @@ class StatementParser extends parser_base_1.ParserBase {
             this.advancePast(';');
             //continue
         }
-        else if (this.test(/^\w+\s*\([^<]*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {
+//        else if (this.test(/^\w+\s*\([^<]*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {
+        else if (this.test(/^\w*\.*\w*\.*\w+\s*\([\s\S\n]+?\)\s*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {
+            
+            const first = nextWord
+            let tmp = false
+            do{
+                tmp = this.test(/^\w+\./)
+                if (tmp){
+                    this.getNextWord()
+                    this.expect(".")
+                }
+            }
+            while (tmp)
             const procedureInstantiation = new objects_1.OProcedureInstantiation(this.parent, this.pos.i, this.pos.i);
             procedureInstantiation.name = this.getNextWord();
             this.expect('(');
@@ -189,16 +202,22 @@ class StatementParser extends parser_base_1.ParserBase {
             this.expect(';');
         }
         else if (allowedStatements.includes(StatementTypes.Assignment)) { // TODO  others
-            if (label) {
-                //console.log("**   label found"+ label)
-                this.getNextWord();
-                /*if (this.text.substring(this.pos.i, this.pos.i + this.text.substring(this.pos.i).search(/\n/)).search(/\(.*\)/g)>-1 ){
-                    const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, this.parent);
-                    const assignment = assignmentParser.parse();
-                    this.parent.statements.push(assignment);    
-                }
-                else{*/
-                    const instantiationParser = new instantiation_parser_1.InstantiationParser(this.text, this.pos, this.file, this.parent);
+            const text = this.advanceSemicolon(true, false);
+            if (text.replace(/\([^\)]*?\)/, "\(stuff\)").match(/:=|<=/)){
+            // assignment found
+                const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, this.parent);
+                const assignment = assignmentParser.parse();
+                this.parent.statements.push(assignment);        
+            }
+            else{
+                // instantiation
+                this.getNextWord() // consume the current nextWord
+                const instantiationParser = new instantiation_parser_1.InstantiationParser(this.text, this.pos, this.file, this.parent);
+                this.parent.statements.push(instantiationParser.parse(nextWord, label, savedI));    
+            }
+
+/*            if (label) {
+                  const instantiationParser = new instantiation_parser_1.InstantiationParser(this.text, this.pos, this.file, this.parent);
                     this.parent.statements.push(instantiationParser.parse(nextWord, label, savedI));    
                 //}
             }
@@ -207,7 +226,7 @@ class StatementParser extends parser_base_1.ParserBase {
                 const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, this.parent);
                 const assignment = assignmentParser.parse();
                 this.parent.statements.push(assignment);
-            }
+            }*/
         }
         else {
             throw new objects_1.ParserError(`Unexpected Statement`, this.pos.getRangeToEndLine());

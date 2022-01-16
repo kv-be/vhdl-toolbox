@@ -226,9 +226,16 @@ class VhdlLinter {
                 specifics = parts[2].trim()
             } else if (parts.length ===2){ // package.all
                 // use of a package in a generic package
-                library = "work"
-                pkg = parts[0].trim()
-                specifics = parts[1].trim()
+                if (parts[1].trim() === "all"){
+                    library = "work"
+                    pkg = parts[0].trim()
+                    specifics = parts[1].trim()    
+                }
+                else{  // assume lib.package
+                    library = parts[0].trim();
+                    pkg = parts[1].trim()    
+                    specifics = "all"
+                }
             }
             //let match = useStatement.text.match(/([^.])\.([^.]+)\..*/i);
             //if (match) {
@@ -267,9 +274,20 @@ class VhdlLinter {
         return found_packages
     }
 
+    solve_context(contexts){
+        let pkgs = []
+        if (!contexts) return []
+        for (const c of contexts){
+            const f = this.projectParser.getContexts().find(ctx => ctx.name.text.toLowerCase() === c.split(".")[1].toLowerCase())
+            if (f) pkgs = pkgs.concat(this.solve_uses(f.parent.useStatements))
+        }
+        return pkgs
+    }
+
     async parsePackages() {        
         //     make a list of packages used (and include the standard ones)
         this.packages = this.solve_uses(this.tree.useStatements)
+        this.packages = this.packages.concat(this.solve_context(this.tree.contextsUsed))
 
         const standard = this.projectParser.getPackages().find(pkg => pkg.name.toLowerCase() === 'standard');
         if (standard) {
@@ -299,9 +317,11 @@ class VhdlLinter {
             }
 
         }
+        //this.packages = Array.from([...new Set(this.packages)])
         // Start checking the undefined signals
         for (const read of this.tree.objectList.filter(object => object instanceof objects_1.ORead && typeof object.definition === 'undefined')) {
-            /*if ((read.parent instanceof objects_1.OProcedure) || (read.parent instanceof objects_1.OFunction)){
+            // the following is to support generic package instances
+            if ((read.parent instanceof objects_1.OProcedure) || (read.parent instanceof objects_1.OFunction)){
                 read.definition = read.parent.variables.find(v=> v.name.text === read.text)
                 if (read.definition) continue
                 else{
@@ -311,7 +331,7 @@ class VhdlLinter {
                         if (read.parent.functions) read.definition = read.parent.functions.find(v=> v.name.text === read.text)
                     }
                 } 
-            }*/
+            }
             for (const pkg of this.packages) {
                 read.definition = this.findDefInPackage(read, pkg)
                 if (read.definition) break;
@@ -952,7 +972,7 @@ class VhdlLinter {
         const a = this.tree.objectList.filter(object => (!(object.parent instanceof objects_1.OFunction) && !(object.parent instanceof objects_1.OProcedure)))
         const b = a.filter(obj => (((obj.definition === null) || ((typeof obj.definition === "undefined"))) && ((obj instanceof objects_1.ORead) || (obj instanceof objects_1.OWrite) || (obj instanceof objects_1.OMappingName))))
         for (let obj of b) {
-            //console.log("pdeb check "+(obj instanceof objects_1.OMappingName))
+            //console.log("pdeb check "+(obj instanceof objects_1.OMappingName)
             let a = this.GetDefFromPackages(obj);
             if (a != null) {
                 //console.log("pdeb solved "+obj.text+", "+obj.type)
@@ -1642,6 +1662,9 @@ class VhdlLinter {
     }
 
     GetDefFromPackages(obj) {
+        const def = this.projectParser.packages.find(m=> m.name.toLowerCase() === obj.text.toLowerCase());
+        if (def) return def
+        if (obj.text.toLowerCase() === "std") return "OK" // patch to support lib.package.whatever
         for (const pack of this.projectParser.packages) {
             //console.log("checking package "+pack.name+" for "+obj.text)
             if (obj instanceof objects_1.OProcedureCall) {
@@ -1652,6 +1675,14 @@ class VhdlLinter {
                         //return obj
                     }
                 }
+                for (const tproc of pack.types.filter(m=> m instanceof objects_1.OProtected)){
+                    for (const proc of tproc.procedures) {
+                        if (obj.procedureName.text.toLowerCase() === proc.name.text.toLowerCase()) {
+                            return proc;
+                            //return obj
+                        }
+                    }    
+                }
             }
             if (obj instanceof objects_1.OFunction) {
                 //console.log("pdeb funct detected")
@@ -1660,6 +1691,14 @@ class VhdlLinter {
                         //obj.definition = proc;                                                   
                         return proc;
                     }
+                }
+                for (const tproc of pack.types.filter(m=> m instanceof objects_1.OProtected)){
+                    for (const proc of tproc.functions) {
+                        if (obj.procedureName.text.toLowerCase() === proc.name.text.toLowerCase()) {
+                            return proc;
+                            //return obj
+                        }
+                    }    
                 }
             }
             if ((obj instanceof objects_1.ORead) || (obj instanceof objects_1.OWrite) || (obj instanceof objects_1.OMappingName)) {
@@ -1682,9 +1721,15 @@ class VhdlLinter {
                                 return state;
                             }
                         }
-
                     }
-                    else{
+                    else if (proc instanceof objects_1.OProtected){
+                        let def =  proc.functions.find(m=> m.name.text.toLowerCase() === obj.text.toLowerCase())
+                        if (def) return def
+                        def =  proc.procedures.find(m=> m.name.text.toLowerCase() === obj.text.toLowerCase())
+                        if (def) return def
+                        
+                    }
+                    else {
                         if (proc.name.text.toLowerCase() === obj.text.toLowerCase()) {
                             return proc;
                         }
@@ -1714,7 +1759,7 @@ class VhdlLinter {
         if (!architecture) {
             return;
         }
-        for (let obj of architecture.getRoot().objectList) {
+        for (let obj of architecture.getRoot().objectList.filter(m=> ((m instanceof objects_1.OProcedureCall) && (!m.definition)))) {
             if (obj instanceof objects_1.OProcedureCall) {
                 let searchObj = obj.parent;
                 while (!(searchObj instanceof objects_1.OFile)) {

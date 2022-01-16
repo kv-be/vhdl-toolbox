@@ -108,6 +108,7 @@ class ParserBase {
             entity.ports = ports;
         }
         // let multiPorts: string[] = [];
+        const startI = this.pos.i
         while (this.pos.i < this.text.length) {
             this.advanceWhitespace();
             let port = generics ?
@@ -138,9 +139,10 @@ class ParserBase {
                 }
                 let nextWord = this.getNextWord({consume:false});
                 let multiports = []
-                if ((nextWord !== "package") && (nextWord !== "type")){
+                if ((nextWord !== "package") && (nextWord !== "type") && (nextWord !== "procedure") && (nextWord !== "function")){
                     do {
                         this.maybeWord(',');
+                        port = new objects_1.OPort(entity, this.pos.i, this.getEndOfLineI());
                         port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
                         port.name.text = this.getNextWord();
                         port.name.range.end.i = port.name.range.start.i + port.name.text.length;
@@ -166,11 +168,11 @@ class ParserBase {
                     const iBeforeType = this.pos.i;
                     for (const s of multiports) {
                         if (s){
-                            const { typeReads, defaultValueReads, typename} = this.getTypeDefintion(s, false);
+                            const { typeReads, defaultValueReads, typename} = this.getTypeDefintion(port, iBeforeType);
                             s.type = typeReads;
                             s.typename = typename;
                             s.defaultValue = defaultValueReads;
-                            s.range.end.i = this.pos.i;
+                            //s.range.end.i = this.pos.i;
                             s.declaration = port.declaration
                             if (port instanceof objects_1.OPort) {
                                 s.direction = port.direction
@@ -231,14 +233,42 @@ class ParserBase {
                     port.range.end.i = this.pos.i
                     ports.push(port)
                 }
-                
+                else if (nextWord === "function" || nextWord === "procedure"){
+                    const isFunc = (nextWord === "function")
+                    this.getNextWord(); // consume function
+                    const start = this.pos.i
+                    const name = this.getNextWord()
+                    const f = new objects_1.OFunction(this.parent, this.pos.i,this.getEndOfLineI());
+                    f.name = new objects_1.OName(f, start, this.pos.i)
+                    f.name.text = name
+                    this.parsePortsAndGenerics(false, f)
+                    if (isFunc){
+                        this.expect("return")
+                        const type = this.getNextWord()
+                        this.expect(";")
+                        if (!entity.functions) entity.functions = []
+                        entity.functions.push(f) 
+                    }   
+                    else{
+                        this.expect(";")
+                        if (!entity.procedures) entity.procedures = []
+                        entity.procedures.push(f) 
+                    }
+                }
             }
         }
+        if (generics) {
+            entity.generics = ports;
+        }
+        else {
+            entity.ports = ports;
+        }
     }
-    getTypeDefintion(parent) {
+    getTypeDefintion(parent, start = 0) {
         let type = '';
         let braceLevel = 0;
-        const start = this.pos.i
+        if (start > 0) this.pos.i = start
+        else start = this.pos.i
         while (this.text[this.pos.i].match(/[^);:]/) || braceLevel > 0) {
             type += this.text[this.pos.i];
             if (this.text[this.pos.i] === '(') {
@@ -525,7 +555,7 @@ class ParserBase {
                         }
                     }
                 }
-                text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index + match[0].length - 1);
+                text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index + match[0].length );
                 offset += match.index + match[0].length;
             }
             throw new objects_1.ParserError(`could not find ';'`, new objects_1.OI(this.pos.parent, start).getRangeToEndLine());
@@ -675,12 +705,13 @@ class ParserBase {
         // getType returns arrays of OReads
         let type = '';
         const startI = this.pos.i;
-        const match = /;/.exec(this.text.substr(this.pos.i));
+        const tmp_text = this.text.substr(this.pos.i).replace(/(?<=\").*(?=\")/, match => ' '.repeat(match.length))
+        const match = /;/.exec(tmp_text);
         if (!match) {
             throw new objects_1.ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
         }
         type = this.text.substr(this.pos.i, match.index);
-        this.checkTextForKeywords(type)
+        //this.checkTextForKeywords(type)
         let typename = type;
         this.pos.i += match.index;
         // while (this.text[this.pos.i].match(/[^;]/)) {
