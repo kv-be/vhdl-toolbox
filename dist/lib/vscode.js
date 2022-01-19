@@ -64,6 +64,17 @@ function activate(context) {
         client.onNotification("custom/hierarchyUpdate", (files) => {
             hierarchyView.update(files)
         });
+        //client.sendRequest("custom/data", "foo").then(data => console.log(data));
+
+        //https://stackoverflow.com/questions/51806347/visual-studio-language-extension-how-do-i-call-my-own-functions
+        // for custom function calls in the server from the client
+        // CLIENT
+        //client.onReady().then(() => {
+        //    client.sendRequest("custom/data", "foo").then(data => console.log(data));
+        //});
+        //(in the onInitialized callback of server/src/server.ts)
+        //  
+        //connection.onRequest("custom/data", param => "received parameter '" + param + "'");
     });
     client.start();
 
@@ -132,9 +143,29 @@ function activate(context) {
         let success = await vscode_1.workspace.applyEdit(edit);    
         
     }));
+	let hovering = vscode_1.languages.registerHoverProvider({ pattern: '**' }, {
+        provideHover(document, position, token) {
+
+			/*const range = document.getWordRangeAtPosition(position);
+            
+			let word = document.getText().substring(document.offsetAt(range.start), document.offsetAt(range.end))
+            client.sendRequest("custom/data", JSON.stringify({"position":position, "uri":document.uri._formatted})).then(data => console.log(data));
+            const popup = new vscode_1.MarkdownString(`${word}\n\n----------------------\n[een link](${document.uri})`, true)
+
+            return new vscode_1.Hover(popup, new vscode_1.Range(position, position));*/
+            
+            /*return new vscode_1.Hover({
+                language: "VHDL",
+                value: popup
+            });*/
+            //}
+        }
+    });	
+
 
     const hierarchyView = new hierarchyTree_1.HierarchyDataProvider(HierarchyList)
     vscode_1.window.registerTreeDataProvider('HierarchyView', hierarchyView);
+	context.subscriptions.push(hovering);
 
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-instance', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Instance)));
     //context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-sysverilog', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Sysverilog)));

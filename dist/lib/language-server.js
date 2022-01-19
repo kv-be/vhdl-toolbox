@@ -47,6 +47,7 @@ exports.connection.onInitialize((params) => {
             },
             documentSymbolProvider: true,
             definitionProvider: true,
+            //hoverProvider: false,
             hoverProvider: true,
             documentFormattingProvider: true,
             referencesProvider: true,
@@ -98,6 +99,11 @@ exports.initialization = new Promise(resolve => {
             validateTextDocument(change.document);
             //exports.documents.all().forEach(validateTextDocument);
         });
+        /*exports.connection.onRequest("custom/data",  async (params) => {
+            //console.log("received parameter '" + params + "'");
+            params = JSON.parse(params)
+            return findDefinitionExt(params)
+        })*/
         resolve();
     });
 });
@@ -218,6 +224,7 @@ const findDefinition = async (params) => {
     }
     return null;
 };
+
 
 exports.connection.onHover(async (params, token) => {
     // TODO : check if not possible to treat in client => Markdown!

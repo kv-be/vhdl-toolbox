@@ -181,25 +181,38 @@ class StatementParser extends parser_base_1.ParserBase {
         }
 //        else if (this.test(/^\w+\s*\([^<]*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {
         else if (this.test(/^\w*\.*\w*\.*\w+\s*\([\s\S\n]+?\)\s*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {
-            
-            const first = nextWord
-            let tmp = false
-            do{
-                tmp = this.test(/^\w+\./)
-                if (tmp){
-                    this.getNextWord()
-                    this.expect(".")
+            let text = this.text.substr(this.pos.i).match(/^\w*\.*\w*\.*\w+\s*\([\s\S\n]+?\)\s*;/)[0].replace(/".*?"/, '"string"')
+            text = text.replace(/\([^\)]*?\)/, "\(stuff\)")
+            if (text.search(/<=|:=/)>-1){
+                // assignment
+                const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, this.parent);
+                const assignment = assignmentParser.parse();
+                this.parent.statements.push(assignment);        
+                
+            } else{
+                const first = nextWord
+                let tmp = false
+                do{
+                    tmp = this.test(/^\w+\./)
+                    if (tmp){
+                        this.getNextWord()
+                        this.expect(".")
+                    }
                 }
+                while (tmp)
+                const procedureInstantiation = new objects_1.OProcedureInstantiation(this.parent, this.pos.i, this.pos.i);
+                procedureInstantiation.name = this.getNextWord();
+                this.expect('(');
+                const startI = this.pos.i;
+                const text = this.advanceBrace()
+                if (text.includes("=>")){
+                    this.text.replace(/^.*?=>/g, "")
+                }
+                procedureInstantiation.tokens = this.extractReads(procedureInstantiation, text, startI);
+                procedureInstantiation.range.end.i = this.pos.i;
+                this.parent.statements.push(procedureInstantiation);
+                this.expect(';');    
             }
-            while (tmp)
-            const procedureInstantiation = new objects_1.OProcedureInstantiation(this.parent, this.pos.i, this.pos.i);
-            procedureInstantiation.name = this.getNextWord();
-            this.expect('(');
-            const startI = this.pos.i;
-            procedureInstantiation.tokens = this.extractReads(procedureInstantiation, this.advanceBrace(), startI);
-            procedureInstantiation.range.end.i = this.pos.i;
-            this.parent.statements.push(procedureInstantiation);
-            this.expect(';');
         }
         else if (allowedStatements.includes(StatementTypes.Assignment)) { // TODO  others
             const text = this.advanceSemicolon(true, false);
