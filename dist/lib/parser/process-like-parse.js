@@ -85,7 +85,7 @@ class ProcessLikeParser extends parser_base_1.ParserBase {
             let startI = this.pos.i;
             let text = this.advanceBrace();
             procedureCall.portMap.range.end.i = this.pos.i;
-            text = text.replace(/".*"/g, "\"TEXT\"")
+            text = text.replace(/(?<!x|b)"[^"]+"\s*,/g, "\"TEXT\",")
             text = text.replace(/.*?=>\s*/g, "")
             const matches = text.matchAll(/([^,]*)(,|$)/g);
             for (const match of matches) {

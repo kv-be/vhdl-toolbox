@@ -25,6 +25,11 @@ class InstantiationParser extends parser_base_1.ParserBase {
         instantiation.componentName = nextWord.replace(/^.*\./, '');
         let hasPortMap = false;
         let lastI;
+        if (this.text.substring(this.pos.i, this.getEndOfLineI()).match(/\(\s*\w+\s*/)){
+            this.expect("(")
+            this.getNextWord() // architecture name
+            this.expect(")")
+        }
         while (this.text[this.pos.i] !== ';') {
             const savedI = this.pos.i;
             nextWord = this.getNextWord().toLowerCase();

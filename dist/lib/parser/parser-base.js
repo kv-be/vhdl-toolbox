@@ -720,9 +720,27 @@ class ParserBase {
         // }
         let defaultValueReads;
         let typeReads;
+        if (type.includes("=>")){
+            type = type.replace(/^.*?=>/g, "")
+        }
         if (type.indexOf(':=') > -1) {
             const split = type.split(':=');
-            defaultValueReads = this.extractReads(parent, split[1].trim(), startI + type.indexOf(':=') + 2);
+            if (split[1].includes("=>")){
+                // instantiation using =>, so delete the arguments with the assignment
+                const ssplit = split[1].split("(")
+                ssplit[1]=ssplit[1].replace(/\w+\s*=>/g, "")
+                defaultValueReads = this.extractReads(parent, ssplit[1], startI + type.indexOf(':=') + 2);
+                for (const r of defaultValueReads){
+                    const index = type.indexOf(r.text)
+                    r.range.start.i = startI+index
+                    r.range.end.i = r.range.start.i+ r.text.length
+                }
+                defaultValueReads.push(this.extractReads(parent, ssplit[0], startI + type.indexOf(':=') + 2))
+            }
+            else{
+                defaultValueReads = this.extractReads(parent, split[1].trim(), startI + type.indexOf(':=') + 2);
+                
+            }
             typeReads = this.extractReads(parent, split[0].trim(), startI);
         }
         else {

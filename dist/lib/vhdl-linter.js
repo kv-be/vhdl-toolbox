@@ -359,30 +359,40 @@ class VhdlLinter {
                     }
                     if (portOrGeneric instanceof objects_1.OPort) {
                         if (portOrGeneric.direction === 'in') {
-                            for (const mapping of obj.mappingIfOutput.flat()) {
-                                const index = this.tree.objectList.indexOf(mapping);
-                                this.tree.objectList.splice(index, 1);
-                                for (const mentionable of this.tree.objectList.filter(object => object instanceof objects_1.OMentionable)) {
-                                    for (const [index, mention] of mentionable.mentions.entries()) {
-                                        if (mention === mapping) {
-                                            mentionable.mentions.splice(index, 1);
+                            if (obj.mappingIfOutput){
+                                for (const mapping of obj.mappingIfOutput.flat()) {
+                                    const index = this.tree.objectList.indexOf(mapping);
+                                    this.tree.objectList.splice(index, 1);
+                                    for (const mentionable of this.tree.objectList.filter(object => object instanceof objects_1.OMentionable)) {
+                                        for (const [index, mention] of mentionable.mentions.entries()) {
+                                            if (mention === mapping) {
+                                                mentionable.mentions.splice(index, 1);
+                                            }
                                         }
                                     }
-                                }
+                                }    
+                            }
+                            else{
+                                console.log("gotch you")
                             }
                             obj.mappingIfOutput = [[], []];
                         }
                         else {
-                            for (const mapping of obj.mappingIfInput) {
-                                const index = this.tree.objectList.indexOf(mapping);
-                                this.tree.objectList.splice(index, 1);
-                                for (const mentionable of this.tree.objectList.filter(object => object instanceof objects_1.OMentionable)) {
-                                    for (const [index, mention] of mentionable.mentions.entries()) {
-                                        if (mention === mapping) {
-                                            mentionable.mentions.splice(index, 1);
+                            if (obj.mappingIfInput){
+                                for (const mapping of obj.mappingIfInput) {
+                                    const index = this.tree.objectList.indexOf(mapping);
+                                    this.tree.objectList.splice(index, 1);
+                                    for (const mentionable of this.tree.objectList.filter(object => object instanceof objects_1.OMentionable)) {
+                                        for (const [index, mention] of mentionable.mentions.entries()) {
+                                            if (mention === mapping) {
+                                                mentionable.mentions.splice(index, 1);
+                                            }
                                         }
                                     }
-                                }
+                                }    
+                            }
+                            else{
+                                console.log("gotch you")
                             }
                             obj.mappingIfInput = [];
                         }
