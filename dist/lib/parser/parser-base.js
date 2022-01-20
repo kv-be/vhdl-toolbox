@@ -80,7 +80,8 @@ class ParserBase {
                 const { typeReads, defaultValueReads, typename} = this.getType(s, false);
                 s.type = typeReads;
                 s.typename = typename;
-                s.defaultValue = defaultValueReads;
+                if (defaultValueReads) s.defaultValue = defaultValueReads;
+                else if (typename.includes(":=")) s.defaultValue = "constant"
                 s.range.end.i = this.pos.i;
                 s.declaration = signal.declaration
                 if (parsingPort){
@@ -317,14 +318,15 @@ class ParserBase {
             }
         }
         defaultValue = defaultValue.trim();
+        type = this.extractReads(parent, type, start)
         if (defaultValue === '') {
             return {
-                type: type.trim(),
+                type: type,
                 endI
             };
         }
         return {
-            type: type.trim(),
+            type: type,
             defaultValue: this.extractReads(parent, defaultValue, startI),
             endI
         };

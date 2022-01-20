@@ -188,6 +188,9 @@ class VhdlLinter {
                         return child;
                     }
                 }
+                if (type.name.text === criteria) {
+                    return child;
+                }
             }
             else if (type instanceof objects_1.OProtected) {
                 for (const proc of type.procedures) {
@@ -377,7 +380,7 @@ class VhdlLinter {
                             }
                             obj.mappingIfOutput = [[], []];
                         }
-                        else {
+                        else if (portOrGeneric.direction === 'out') {
                             if (obj.mappingIfInput){
                                 for (const mapping of obj.mappingIfInput) {
                                     const index = this.tree.objectList.indexOf(mapping);
@@ -979,6 +982,17 @@ class VhdlLinter {
 
 
     checkNotDeclared() {
+        const attDefs = this.tree.objectList.filter(object => object instanceof objects_1.OAttributeDef)
+        for (const a of this.tree.objectList.filter(object => object instanceof objects_1.OAttribute)){
+            a.definition = attDefs.find(d=> d.name.text.toLowerCase() === a.name.text.toLowerCase())
+            if (!a.definition){
+                this.addMessage({
+                    range: a.range,
+                    severity: vscode_languageserver_1.DiagnosticSeverity.Error,
+                    message: `attribute '${a.name.text}' is not declared`
+                });        
+            }
+        }
         const a = this.tree.objectList.filter(object => (!(object.parent instanceof objects_1.OFunction) && !(object.parent instanceof objects_1.OProcedure)))
         const b = a.filter(obj => (((obj.definition === null) || ((typeof obj.definition === "undefined"))) && ((obj instanceof objects_1.ORead) || (obj instanceof objects_1.OWrite) || (obj instanceof objects_1.OMappingName))))
         for (let obj of b) {
@@ -1325,20 +1339,42 @@ class VhdlLinter {
         for (const signal of architecture.getRoot().objectList.filter(object => object instanceof objects_1.OSignal)) {
             let msg = ""
             let kind = "Signal"
+            const attributes = architecture.getRoot().objectList.filter(object => object instanceof objects_1.OAttribute)
             if (signal.constant) {
                 kind = "Constant"
             }
 
-            if ((signal.mentions.filter(token => token instanceof objects_1.ORead).length !== 0) ) {
+            if ((signal.mentions.filter(token => token instanceof objects_1.ORead).length !== 0)) {
                 msg += "r"
             }
             const writes = signal.mentions.filter(token => token instanceof objects_1.OWrite);
             if ((!signal.constant && writes.length !== 0)) {
                 msg += "w"
             }
-            if (signal.constant) {
+            if (signal.constant || signal.defaultValue) {
                 msg += "w"
             }
+            
+            for (const mp of signal.mentions.filter(token => token instanceof objects_1.OMappingName)){
+                if (mp.parent.mappingIfOutput){
+                    if (mp.parent.mappingIfOutput.flat().filter(p=> p instanceof objects_1.OWrite&& p.text===mp.text)){
+                        msg+="w"
+                    }
+                    if (mp.parent.mappingIfOutput.flat().filter(p=> p instanceof objects_1.ORead&& p.text===mp.text)){
+                        msg+="r"
+                    }    
+                }
+                if (mp.parent.mappingIfInput){
+                    if (mp.parent.mappingIfInput.flat().filter(p=> p instanceof objects_1.OWrite&& p.text===mp.text)){
+                        msg+="w"
+                    }
+                    if (mp.parent.mappingIfInput.flat().filter(p=> p instanceof objects_1.ORead&& p.text===mp.text)){
+                        msg+="r"
+                    }    
+                }
+                //if (mp.parent.) ==> check here if the interface is input or output!!
+            }
+
             if (msg.includes('w')){
                 if (msg.includes('r')) {
                     msg = ""
@@ -1713,6 +1749,7 @@ class VhdlLinter {
             }
             if ((obj instanceof objects_1.ORead) || (obj instanceof objects_1.OWrite) || (obj instanceof objects_1.OMappingName)) {
                 //console.log("pdeb signal "+obj.text+", "+obj.constructor.name)
+                if (obj.text.toLowerCase() ===pack.name.toLowerCase()) return pack
                 for (const proc of pack.constants) {
                     //console.log("pdeb checking for " + proc.name.text)
                     if (obj.text.toLowerCase() === proc.name.text.toLowerCase()) {
@@ -1737,7 +1774,19 @@ class VhdlLinter {
                         if (def) return def
                         def =  proc.procedures.find(m=> m.name.text.toLowerCase() === obj.text.toLowerCase())
                         if (def) return def
-                        
+                        if (proc.name.text === obj.text.toLowerCase()) {
+                            return proc;
+                        }                       
+                    }
+                    else if (proc instanceof objects_1.ORecord) {
+                        for (const child of proc.children) {
+                            if (child.name.text.toLowerCase() === obj.text.toLowerCase()) {
+                                return child;
+                            }
+                        }
+                        if (proc.name.text === obj.text.toLowerCase()) {
+                            return proc;
+                        }
                     }
                     else {
                         if (proc.name.text.toLowerCase() === obj.text.toLowerCase()) {
@@ -1876,4 +1925,8 @@ exports.VhdlLinter = VhdlLinter;
 
 // TODO : batch autoformat
 // TODO : when a litteral constant is used => info : consider putting it in a constant
-// TODO : 
+
+
+// TODO : when signals are attributed, they are always fully OK with assigned and read
+
+

@@ -1,0 +1,16 @@
+architecture parser
+    (till begin)
+    -> statement parser
+       if .. generate => architecture parser (skipstart = true, 'generate', forShit == null, name)
+           -> architecture parser
+                entity instantiation -> statement parser
+                -> statement parser
+                   elsif ... generate => architecture parser(skipstart = true, 'generate', forShit == null, name)
+                    new generate clause
+                    entity instantiation -> statement parser
+                    -> statement parser
+                        else ... generate => architecture parser(skipstart = true, 'generate', forShit == null, name)
+                        alert
+                        end (generate) : expects end generate <this.name>
+                
+                

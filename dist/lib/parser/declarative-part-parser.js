@@ -92,8 +92,35 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         
             }
             else if (nextWord === 'attribute') { // also in entities!!
-                this.getNextWord();
-                this.advanceSemicolon(true);
+                // add an attribute object and store the different types
+                const start = this.pos.i
+                this.getNextWord(); // consume attribute
+                let startName = this.pos.i
+                const type = this.getNextWord() // consume the attribute name
+                if (this.text[this.pos.i] === ":"){
+                    const att = new objects_1.OAttributeDef(this.parent, start, this.getEndOfLineI())
+                    att.name = new objects_1.OName(this.parent, startName, this.pos.i)
+                    att.name.text = type;
+                    att.definition =  this.parent
+                    this.advanceSemicolon()
+                    if (!this.parent.attribute_defs) this.parent.attribute_defs=[]
+                    this.parent.attribute_defs.push(att)
+                }else{
+                    this.expect("of")
+                    const att = new objects_1.OAttribute(this.parent, startName, this.pos.i)
+                    att.name = new objects_1.OName(this.parent, startName, this.pos.i)
+                    att.name.text = type
+                    att.text = this.text.substring(start, this.getEndOfLineI())
+                    att.type = this.getNextWord()
+
+                    const reads = this.extractReads(this.parent, att.type, this.pos.i-att.type.length)
+                    if (reads){
+                        att.type = reads[0]
+                    }
+                    this.advanceSemicolon()
+                    if (!this.parent.attributes) this.parent.attributes = []
+                    this.parent.attributes.push(att)   
+                }
             }
             else if (nextWord === 'type') {
                 const type = this.parse_type()

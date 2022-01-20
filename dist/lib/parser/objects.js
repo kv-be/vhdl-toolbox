@@ -409,6 +409,12 @@ class OName extends ObjectBase {
     }
 }
 exports.OName = OName;
+class OAttribute extends ObjectBase {
+}
+exports.OAttribute = OAttribute;
+class OAttributeDef extends ObjectBase {
+}
+exports.OAttributeDef = OAttributeDef;
 class OVariableBase extends OMentionable {
     constructor(parent, startI, endI) {
         super(parent, startI, endI);

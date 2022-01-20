@@ -82,7 +82,7 @@ class StatementParser extends parser_base_1.ParserBase {
             let condition = this.advancePast(/\bgenerate\b/i);
             this.debug('parse if generate ' + label);
             const subarchitecture = new architecture_parser_1.ArchitectureParser(this.text, this.pos, this.file, ifGenerate, label);
-            const ifGenerateClause = subarchitecture.parse(true, 'generate');
+            const ifGenerateClause = subarchitecture.parse(true, 'generate', null,  label);
             ifGenerateClause.range.start.i = savedI;
             if (ifGenerateClause.conditions) {
                 ifGenerateClause.conditions = [condition].concat(ifGenerateClause.conditions);
@@ -112,8 +112,8 @@ class StatementParser extends parser_base_1.ParserBase {
             let conditionI = this.pos.i;
             let condition = this.advancePast(/\bgenerate\b/i);
             this.debug('parse elsif generate ' + label);
-            const subarchitecture = new architecture_parser_1.ArchitectureParser(this.text, this.pos, this.file, this.parent.parent, label);
-            const ifGenerateObject = subarchitecture.parse(true, 'generate');
+            const subarchitecture = new architecture_parser_1.ArchitectureParser(this.text, this.pos, this.file, this.parent.parent, previousArchitecture.name);
+            const ifGenerateObject = subarchitecture.parse(true, 'generate', null, previousArchitecture.name);
             ifGenerateObject.range.start.i = savedI;
             if (ifGenerateObject.conditions) {
                 ifGenerateObject.conditions = [condition].concat(ifGenerateObject.conditions);
@@ -138,8 +138,8 @@ class StatementParser extends parser_base_1.ParserBase {
             previousArchitecture.range.end.character = 999;
             this.advancePast(/\bgenerate\b/i);
             this.debug('parse else generate ' + label);
-            const subarchitecture = new architecture_parser_1.ArchitectureParser(this.text, this.pos, this.file, this.parent.parent, label);
-            const ifGenerateObject = subarchitecture.parse(true, 'generate');
+            const subarchitecture = new architecture_parser_1.ArchitectureParser(this.text, this.pos, this.file, this.parent.parent, previousArchitecture.name);
+            const ifGenerateObject = subarchitecture.parse(true, 'generate',null,  previousArchitecture.name);
             ifGenerateObject.range.start.i = savedI;
             this.reverseWhitespace();
             ifGenerateObject.range.end.i = this.pos.i;

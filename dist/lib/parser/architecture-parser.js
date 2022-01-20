@@ -13,7 +13,7 @@ class ArchitectureParser extends parser_base_1.ParserBase {
             this.name = name;
         }
     }
-    parse(skipStart = false, structureName = 'architecture', forShit) {
+    parse(skipStart = false, structureName = 'architecture', forGenerateDetails, generate_name) {
         this.debug(`parse`);
         if (structureName === 'architecture') {
             this.architecture = new objects_1.OArchitecture(this.parent, this.pos.i, this.getEndOfLineI());
@@ -22,20 +22,25 @@ class ArchitectureParser extends parser_base_1.ParserBase {
         else if (structureName === 'block') {
             this.architecture = new objects_1.OBlock(this.parent, this.pos.i, this.getEndOfLineI());
         }
-        else if (!forShit) {
-            this.architecture = new objects_1.OIfGenerateClause(this.parent, this.pos.i, this.getEndOfLineI());
-        }
-        else {
-            if (this.parent instanceof objects_1.OFile) {
-                throw new objects_1.ParserError(`For Generate can not be top level architecture!`, this.pos.getRangeToEndLine());
+        else if (structureName === "generate") {
+            if (!forGenerateDetails) { //start of a new if generate
+                this.architecture = new objects_1.OIfGenerateClause(this.parent, this.pos.i, this.getEndOfLineI());
             }
-            const { variable, start, end, startPosI } = forShit;
-            this.architecture = new objects_1.OForGenerate(this.parent, this.pos.i, this.getEndOfLineI(), start, end);
-            const variableObject = new objects_1.OVariable(this.architecture, startPosI, startPosI + variable.length);
-            variableObject.type = [];
-            variableObject.name = new objects_1.OName(variableObject, startPosI, startPosI + variable.length);
-            variableObject.name.text = variable;
-            this.architecture.variable = variableObject;
+            else{
+                if (this.parent instanceof objects_1.OFile) {
+                    throw new objects_1.ParserError(`For Generate can not be top level architecture!`, this.pos.getRangeToEndLine());
+                }
+                const { variable, start, end, startPosI } = forGenerateDetails;
+                this.architecture = new objects_1.OForGenerate(this.parent, this.pos.i, this.getEndOfLineI(), start, end);
+                const variableObject = new objects_1.OVariable(this.architecture, startPosI, startPosI + variable.length);
+                variableObject.type = [];
+                variableObject.name = new objects_1.OName(variableObject, startPosI, startPosI + variable.length);
+                variableObject.name.text = variable;
+                this.architecture.variable = variableObject;    
+            }
+        }
+        else{
+            throw new objects_1.ParserError(`Unexpected problem in architecture parser`, this.pos.getRangeToEndLine());
         }
         if (skipStart !== true) {
             this.type = this.getNextWord();
@@ -44,6 +49,10 @@ class ArchitectureParser extends parser_base_1.ParserBase {
             this.name = this.getNextWord();
             //console.log("Architecture found with name "+this.architecture.name)
             this.expect('is');
+        } 
+        else{
+            // case of generate statements
+            this.architecture.name = generate_name
         }
         new declarative_part_parser_1.DeclarativePartParser(this.text, this.pos, this.file, this.architecture).parse(structureName !== 'architecture');
         this.maybeWord('begin');

@@ -85,8 +85,12 @@ class ProcessLikeParser extends parser_base_1.ParserBase {
             let startI = this.pos.i;
             let text = this.advanceBrace();
             procedureCall.portMap.range.end.i = this.pos.i;
-            text = text.replace(/(?<!x|b)"[^"]+"\s*,/g, "\"TEXT\",")
-            text = text.replace(/.*?=>\s*/g, "")
+            text = text.replace(/[x|b]{1}"[0-9A-Fa-f_]+"/g, match=> "3".repeat(match.length)) // filter out the hex/bin numbers
+            
+            text = text.replace(/(?<=").*?(?=")/g, match => " ".repeat(match.length))
+            if (text.includes("=>")){ // replace the portnames with spaces
+                text = text.replace(/.*?=>/g, match => " ".repeat(match.length))
+            }
             const matches = text.matchAll(/([^,]*)(,|$)/g);
             for (const match of matches) {
                 if (match[0]){
