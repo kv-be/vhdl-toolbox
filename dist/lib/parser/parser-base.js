@@ -338,6 +338,37 @@ class ParserBase {
         else {
         }
     }
+
+    parse_wait(parent){
+        const assignment = new objects_1.OAssignment(parent, this.pos.i,this.getEndOfLineI())
+        this.getNextWord();//consume the wait
+        const assertStart = this.pos.i
+        this.getNextWord({re:/on|for|until/})
+        const condition = this.text.substring(this.pos.i, this.getEndOfLineI())
+        const read = this.extractReads(parent, condition, assertStart) 
+        this.advanceSemicolon()
+        assignment.reads.push(read)
+        assignment.writes=[]
+        this.reverseWhitespace()
+        assignment.range.end.i = this.pos.i
+        this.advanceWhitespace()
+        return assignment
+    }
+
+    parse_assert(parent){
+        const assignment = new objects_1.OAssignment(parent, this.pos.i,this.getEndOfLineI())
+        this.getNextWord();//consume the assert
+        const assertStart = this.pos.i
+        const condition = this.text.substring(this.pos.i).match(/^[\s\S\n]+?report|severity|;/)
+        const read = this.extractReads(parent, condition[0], assertStart) 
+        this.advanceSemicolon()
+        assignment.reads.push(read)
+        assignment.writes=[]
+        this.reverseWhitespace()
+        assignment.range.end.i = this.pos.i
+        this.advanceWhitespace()
+        return assignment
+    }
     advanceWhitespace() {
         const match = this.text.substring(this.pos.i).match(/^\s+/);
         if (match) {

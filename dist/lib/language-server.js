@@ -213,13 +213,20 @@ const findDefinition = async (params) => {
     if (candidate instanceof objects_1.OName) {
         candidate = candidate.parent;
     }
+    let id = ""
+    if (candidate.definition instanceof objects_1.OPort){
+        if (candidate.definition.parent.generics.filter(g=>g===candidate.definition).length > 0) id = "generic "
+        else if (candidate.definition.parent.ports.filter(g=>g===candidate.definition).length > 0) id = "port "    
+    }
+    //else if (candidate.definition.parent.ports.filter(g=>g===candidate.definition)) id = "port "
     if (candidate instanceof objects_1.ODefitionable && candidate.definition) {
         return {
             // originSelectionRange: linter.getPositionFromILine(startI, startI + text.length),
             range: candidate.definition.range,
-            text: candidate.definition.getRoot().originalText,
+            text: id+candidate.definition.getRoot().originalText,
             // targetSelectionRange:  Range.create(Position.create(0, 0), Position.create(0, 0)),
-            uri: vscode_uri_1.URI.file(candidate.definition.getRoot().file).toString()
+            uri: vscode_uri_1.URI.file(candidate.definition.getRoot().file).toString(),
+            id : id
         };
     }
     return null;
@@ -252,10 +259,13 @@ exports.connection.onHover(async (params, token) => {
         lines[0] = lines[0].substring(definition.range.start.character);
         lines[lines.length - 1] = lines[lines.length - 1].substring(0, definition.range.end.character);
     }
+
+
+    
     return {
         contents: {
             language: 'vhdl',
-            value: `${lines.join('\n')}`
+            value: `${definition.id}${lines.join('\n')}`
         }
     };
 });

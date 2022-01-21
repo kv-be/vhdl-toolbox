@@ -6,8 +6,8 @@ class Tokenizer {
         this.operators = [
             ['abs', 'not'],
             ['mod', "&", "null", "ns", "ms", "us", "fs", "ps", "s", "all", "transport", "after"],
-            ['sll', 'srl', 'sla', 'sra', 'rol', 'ror', "rem", "new"],
-            ['and', 'or', 'nand', 'nor', 'xor', 'xnor'],
+            ['sll', 'srl', 'sla', 'sra', 'rol', 'ror', "rem", "new", "report", "severity", "warning", "error", "failure", "fatal"],
+            ['and', 'or', 'nand', 'nor', 'xor', 'xnor', "for", "until", "on"],
             ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif']
         ];
         this.tokenTypes = [

@@ -7,10 +7,14 @@ const instantiation_parser_1 = require("./instantiation-parser");
 const { throws } = require("assert");
 class PackageParser extends parser_base_1.ParserBase {
     parse(parent) {
+        this.reverseWhitespace()
+        const startPackage = this.pos.i-"package".length
+        this.advanceWhitespace()
+
         const nextWord = this.getNextWord();
         if (nextWord.toLowerCase() == 'body'){
             if (!this.onlyDeclarations){ // assume only one package in a file!!
-                const pkg = new objects_1.OPackageBody(parent, this.pos.i, this.getEndOfLineI());
+                const pkg = new objects_1.OPackageBody(parent, startPackage, this.getEndOfLineI());
                 const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
                 pkg.library = match ? match[1] : undefined;
                 pkg.name = this.getNextWord();
@@ -30,7 +34,7 @@ class PackageParser extends parser_base_1.ParserBase {
         }
 
         else {
-            const pkg = new objects_1.OPackage(parent, this.pos.i, this.getEndOfLineI());
+            const pkg = new objects_1.OPackage(parent, startPackage, this.getEndOfLineI());
             const match = parent.originalText.match(/!\s*@library\s+(\S+)/i);
             pkg.library = match ? match[1] : undefined;
             pkg.name = nextWord;

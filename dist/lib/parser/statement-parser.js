@@ -170,14 +170,10 @@ class StatementParser extends parser_base_1.ParserBase {
             this.parent.statements.push(assignment);
         }
         else if (nextWord === 'assert' && allowedStatements.includes(StatementTypes.Assert)) {
-            this.getNextWord();
-            //        console.log('report');
-            this.advancePast(';');
+            this.parent.statements.push(this.parse_assert(this.parent));
         }
         else if (nextWord === 'wait' && allowedStatements.includes(StatementTypes.Assert)) {
-            //this.parent.statements.push(this.parseWait(this.parent));
-            this.advancePast(';');
-            //continue
+            this.parent.statements.push(this.parse_wait(this.parent));
         }
 //        else if (this.test(/^\w+\s*\([^<]*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {
         else if (this.test(/^\w*\.*\w*\.*\w+\s*\([\s\S\n]+?\)\s*;/) && allowedStatements.includes(StatementTypes.ProcedureInstantiation)) {

@@ -111,9 +111,10 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                     att.name = new objects_1.OName(this.parent, startName, this.pos.i)
                     att.name.text = type
                     att.text = this.text.substring(start, this.getEndOfLineI())
+                    startName = this.pos.i
                     att.type = this.getNextWord()
 
-                    const reads = this.extractReads(this.parent, att.type, this.pos.i-att.type.length)
+                    const reads = this.extractReads(this.parent, att.type, startName)
                     if (reads){
                         att.type = reads[0]
                     }

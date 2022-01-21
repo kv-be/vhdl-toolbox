@@ -226,7 +226,7 @@ class OPackageBody extends ObjectBase {
    }
 }
 exports.OPackageBody = OPackageBody;
-class OUseStatement extends ObjectBase {
+class OUseStatement extends ODefitionable {
 }
 exports.OUseStatement = OUseStatement;
 

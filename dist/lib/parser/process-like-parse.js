@@ -35,11 +35,10 @@ class ProcessLikeParser extends parser_base_1.ParserBase {
                 this.advancePast(';');
             }
             else if (nextWord.toLowerCase() === 'assert') {
-                this.advancePast(';');
+                statements.push(this.parse_assert(parent))
             }
             else if (nextWord.toLowerCase() === 'wait') {
-                //statements.push(this.parseWait(parent));
-                this.advancePast(';');
+                statements.push(this.parse_assert(parent))
             }
             else if (nextWord.toLowerCase() === 'exit') {
                 this.advancePast(';');
@@ -51,6 +50,12 @@ class ProcessLikeParser extends parser_base_1.ParserBase {
                 statements.push(this.parseWhile(parent, label, true));
             }
             else if (nextWord.toLowerCase() === 'return') {
+                this.getNextWord(); // consume return
+                const st = this.pos.i
+                const reads = this.extractReads(parent, this.text.substring(this.pos.i, this.getEndOfLineI()),this.pos.i)
+                const assignment = new objects_1.OAssignment(parent, st ,this.getEndOfLineI())
+                assignment.reads = reads;
+                statements.push(assignment);
                 this.advancePast(';');
             }
             else if (nextWord.toLowerCase() === 'next') {
