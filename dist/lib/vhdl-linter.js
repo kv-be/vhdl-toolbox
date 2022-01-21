@@ -147,10 +147,12 @@ class VhdlLinter {
 
     findDefInPackage(toBeFound, pkg){
         const criteria = toBeFound.text.toLowerCase()
-        for (const constant of pkg.constants) {
-            if (constant.name.text.toLowerCase() === criteria) {
-                return constant;
-            }
+        if (pkg.constants){
+            for (const constant of pkg.constants) {
+                if (constant.name.text.toLowerCase() === criteria) {
+                    return constant;
+                }
+            }                
         }
         if (pkg.generics){
             for (const gen of pkg.generics) {
@@ -160,56 +162,74 @@ class VhdlLinter {
             }
     
         }
-        for (const func of pkg.functions) {
-            if (func.name.text.toLowerCase() === criteria) {
-                return func;
-            }
-            for (const ft of func.types){
-                if (ft.name.text.toLowerCase() === criteria) {
-                    return ft;
-                }    
-            }
-        }
-        for (const type of pkg.types) {
-            const typeRead = type.finddef(toBeFound);
-            if (typeRead !== false) {
-                return typeRead;
-            }
-            if (type instanceof objects_1.OEnum) {
-                for (const state of type.states) {
-                    if (state.name.text.toLowerCase() === criteria) {
-                        return state;
-                    }
+        if (pkg.functions){
+            for (const func of pkg.functions) {
+                if (func.name.text.toLowerCase() === criteria) {
+                    return func;
+                }
+                for (const ft of func.types){
+                    if (ft.name.text.toLowerCase() === criteria) {
+                        return ft;
+                    }    
                 }
             }
-            else if (type instanceof objects_1.ORecord) {
-                for (const child of type.children) {
-                    if (child.name.text.toLowerCase() === criteria) {
+    
+        }
+        if (pkg.procedures){
+            for (const func of pkg.procedures) {
+                if (func.name.text.toLowerCase() === criteria) {
+                    return func;
+                }
+                for (const ft of func.types){
+                    if (ft.name.text.toLowerCase() === criteria) {
+                        return ft;
+                    }    
+                }
+            }
+        }
+        if (pkg.types){
+            for (const type of pkg.types) {
+                const typeRead = type.finddef(toBeFound);
+                if (typeRead !== false) {
+                    return typeRead;
+                }
+                if (type instanceof objects_1.OEnum) {
+                    for (const state of type.states) {
+                        if (state.name.text.toLowerCase() === criteria) {
+                            return state;
+                        }
+                    }
+                }
+                else if (type instanceof objects_1.ORecord) {
+                    for (const child of type.children) {
+                        if (child.name.text.toLowerCase() === criteria) {
+                            return child;
+                        }
+                    }
+                    if (type.name.text === criteria) {
                         return child;
                     }
                 }
-                if (type.name.text === criteria) {
-                    return child;
+                else if (type instanceof objects_1.OProtected) {
+                    for (const proc of type.procedures) {
+                        if (proc.name.text.toLowerCase() === criteria) {
+                            return proc;
+                        }
+                    }
+                    for (const proc of type.functions) {
+                        if (proc.name.text.toLowerCase() === criteria) {
+                            return proc;
+                        }
+                        for (const ft of proc.types){
+                            if (ft.name.text.toLowerCase() === criteria) {
+                                return ft;
+                            }    
+                        }
+    
+                    }
                 }
             }
-            else if (type instanceof objects_1.OProtected) {
-                for (const proc of type.procedures) {
-                    if (proc.name.text.toLowerCase() === criteria) {
-                        return proc;
-                    }
-                }
-                for (const proc of type.functions) {
-                    if (proc.name.text.toLowerCase() === criteria) {
-                        return proc;
-                    }
-                    for (const ft of proc.types){
-                        if (ft.name.text.toLowerCase() === criteria) {
-                            return ft;
-                        }    
-                    }
-
-                }
-            }
+    
         }
         return null
     }
@@ -250,6 +270,7 @@ class VhdlLinter {
                 else {
                     const pkgs = packages.filter(m=> m.name.toLowerCase() === pkg.toLowerCase())
                     found = (pkgs.length > 0)
+                    if (pkgs) useStatement.definition = pkgs[0]
                     for (const p of pkgs){
                         if (p.useStatements) found_packages = found_packages.concat(this.solve_uses(p.useStatements))
                     }
@@ -344,6 +365,8 @@ class VhdlLinter {
             // check if the componentName can be linked to a known entity/package
             instantiation.definition = this.getProjectEntity(instantiation);
         }
+        
+
         for (const obj of this.tree.objectList.filter(o=> o instanceof objects_1.OMapping)) {
             //if (obj instanceof objects_1.OMapping) {
                 if (obj.parent instanceof objects_1.OGenericMap || obj.parent instanceof objects_1.OPortMap) {
@@ -402,6 +425,15 @@ class VhdlLinter {
                     }
                 }
             //}
+        }
+
+        for (const obj of this.tree.objectList.filter(object => object instanceof objects_1.OProcedureCall && typeof object.definition === 'undefined')){
+            for (const pkg of this.packages){
+                obj.definition = this.findDefInPackage(obj.procedureName, pkg)
+                if (obj.definition){
+                    break
+                } 
+            }
         }
     }
 
@@ -822,9 +854,9 @@ class VhdlLinter {
             return [];
         }
         const assignments = this.tree.objectList.filter(object => object instanceof objects_1.OAssignment);
-        const confitions = this.tree.objectList.filter(object => object instanceof objects_1.OIfClause);
+        //const conditions = this.tree.objectList.filter(object => object instanceof objects_1.OIfClause);
         const processes = this.tree.objectList.filter(object => object instanceof objects_1.OProcess);
-        for(const ass of assignments){
+        for(const ass of assignments.filter(a=> a.writes.length > 0)){
             if (ass.writes[0].definition){
                 if (ass.writes[0].definition instanceof objects_1.OVariable){
                     if (this.text.substring(ass.range.start.i, ass.range.end.i).indexOf(":=") === -1){
