@@ -140,6 +140,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 const name = this.getNextWord();
                 alias.name = new objects_1.OName(alias, startI, startI + name.length);
                 alias.name.text = name;
+                alias.isAlias = true
                 alias.definition = this.parent;
                 alias.range.end.i = this.getEndOfLineI()
                 if (this.parent.signals){

@@ -18,7 +18,7 @@ class AssignmentParser extends parser_base_1.ParserBase {
         if (!match) {
             throw new objects_1.ParserError(`expected <= or :=, reached end of text. Start on line`, this.pos.getRangeToEndLine());
         }
-        leftHandSide += this.text.substring(this.pos.i, this.pos.i + match.index);
+        leftHandSide += this.text.substring(this.pos.i, this.pos.i + match.index).trim();
         this.pos.i += match.index;
         [assignment.reads, assignment.writes] = this.extractReadsOrWrite(assignment, leftHandSide, leftHandSideI);
         

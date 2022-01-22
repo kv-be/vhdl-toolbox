@@ -169,10 +169,11 @@ class ParserBase {
                     const iBeforeType = this.pos.i;
                     for (const s of multiports) {
                         if (s){
-                            const { typeReads, defaultValueReads, typename} = this.getTypeDefintion(port, iBeforeType);
-                            s.type = typeReads;
+                            //const a = this.getTypeDefintion(port, iBeforeType);
+                            const { type, defaultValue, typename} = this.getTypeDefintion(port, iBeforeType);
+                            s.type = type;
                             s.typename = typename;
-                            s.defaultValue = defaultValueReads;
+                            s.defaultValue = defaultValue;
                             //s.range.end.i = this.pos.i;
                             s.declaration = port.declaration
                             if (port instanceof objects_1.OPort) {
@@ -318,17 +319,13 @@ class ParserBase {
             }
         }
         defaultValue = defaultValue.trim();
-        type = this.extractReads(parent, type, start)
-        if (defaultValue === '') {
-            return {
-                type: type,
-                endI
-            };
-        }
+        const typename = type.trim()
+        type = this.extractReads(parent, type.trim(), start)
+        if (defaultValue !=="") defaultValue = this.extractReads(parent, defaultValue, startI)
         return {
-            type: type,
-            defaultValue: this.extractReads(parent, defaultValue, startI),
-            endI
+            type,
+            defaultValue,
+            typename
         };
     }
     message(message, severity = 'error') {

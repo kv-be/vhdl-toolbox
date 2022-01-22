@@ -964,8 +964,10 @@ class OProcess extends ObjectBase {
                     missing.push(this.clock)
                     //console.log("missing of clock "+this.clock.toLowerCase())
                 }
-                if ((this.reset_type == "async") && (!sensi.includes(this.reset_signal.toLowerCase()))){
-                    missing.push(this.reset_signal)
+                if (this.reset_type === "async") {
+                    for (const r of this.reset_signal){
+                        if (!sensi.includes(r.toLowerCase())) missing.push(r)
+                    }
                     //console.log("missing async reset")
                 }
                 return missing
@@ -1005,6 +1007,24 @@ class OProcess extends ObjectBase {
         else return ""
     }
 
+    detect_clk_event(clause){
+        if (clause.condition.match(/(rising|falling)_edge/i)) {
+            this.clock = clause.condition.match(/(?<=(rising|falling)_edge\s*\(\s*).+?(?=\s*\))/g)[0];
+            this.clock_range = clause.range;
+            this.registerProcess = true
+            this.reset_type = "sync"
+            return true
+        } 
+        else if (clause.condition.match(/'event\s*and\s*/i)) {
+            this.clock = clause.condition.match(/\b(.+?)'event\s+and\s+.+?\s*=\s*'[01]+'/i)[1];
+            this.clock_range = clause.range;
+            this.registerProcess = true;
+            this.reset_type = "sync"
+            return true
+        } 
+        return false
+    }
+
     isRegisterProcess() {
         if (this.registerProcess !== null) {
             return this.registerProcess;
@@ -1013,83 +1033,52 @@ class OProcess extends ObjectBase {
         let reset_start
         // a process contains typically one statement (the if rising_edge or if reset)
         // exception is if there is a construction like if reset ... elsif rising edge. In this case,there are 2 if statements!
-        for (const statement of this.statements) {
-            //console.log("** statemet glob"+statement.text.substring(0, 40)+", type "+statement.constructor.name)
-            if (statement instanceof OIf) {
-                // the first if statement of hte process can be if rising edge or if reset
-                //console.log("** statemet if"+statement.text.substring(0, 40))
-                for (const clause of statement.clauses) {
-                    //console.log( "\nchecking clause "+clause.condition+", at pos "+clause.range.start.i)
-                    //if (clause instanceof OIf) { // deleted because the clause contains condition itself, so the rising edge 
-                    if (clause.condition.match(/(rising|falling)_edge/i)) {
-                        this.clock = clause.condition.match(/(?<=(rising|falling)_edge\s*\(\s*).+?(?=\s*\))/g)[0];
-                        this.clock_range = clause.range;
-                        //console.log("procdeb clock found in if statement " + this.clock+", at pos "+this.clock_range.startI)
-                        this.registerProcess = true;
-                        //if (this.reset_type === "") this.reset_type = "sync";
-                    }
-                    if (clause.condition.match(/'event\s*and\s*/i)) {
-                        this.clock = clause.condition.match(/\b(.+?)'event\s+and\s+.+?\s*=\s*'[01]+'/i)[1];
-                        this.clock_range = clause.range;
-                        //console.log("procdeb clock found sync proc" + this.clock)
-                        this.registerProcess = true;
-                        //console.log("procdeb clock found in if statement " + this.clock+", at pos "+this.clock_range.start.i)
-                    }
-                    if (clause.condition.match(this.reset_condition)) {
-                        // we come here in case of :
-                        // - an elsif rising_edge
-                        // - if rising_edge ... if rst
-                        reset_start = clause.range.start.i
-                        //console.log( "reset found at "+reset_start)    
-                    }
+        const ifs = this.statements.filter(s=> s instanceof OIf)
+        if (ifs.length !== 1){//if more than one if next to each other in a process => async process
+            return this.registerProcess // async process
+        } 
+        // the first if statement of hte process can be if rising edge or if reset
+        if (!this.detect_clk_event(ifs[0].clauses[0])){ 
+            // first if did not contain any clock events => should contain reset condition
+            // now check if the next if in the else condition contains a clock
+            // two options : 
+            // - construct if (rst) else if (rising edge) => here we have a if.else
+            // - construct if (rst) elsif (rising edge) => here we have 2 if.clauses
+            reset_start = ifs[0].clauses[0].range.start.i
+            this.reset_signal = ifs[0].clauses[0].condition.replace(/[0-9]+|'|"|or|and|=|>|</g, "").split(" ").filter(s=> s!== "")
+    
+            if (ifs[0].else){
+                // construct if (rst) else if (rising edge)
+                // first if after the else is supposed to be the edge detector
+                const eifs = ifs[0].else.statements.filter(s=> s instanceof OIf)
+                if (!this.detect_clk_event(eifs[0].clauses[0])){
+                    // no clock edge detection detected => async process
+                    this.reset_signal = null
+                    this.reset_start = null
+                    this.reset_type = null
                 }
-                if (statement.else) {
-                    // if we end up here, we are in an else clause, typically meaning that the first if was a if reset
-                    for (const stat of statement.else.statements) {
-                        //console.log("** statemet else "+stat.text.substring(0, 40))
-                        if ((stat instanceof OIf) && (this.reset_type==="")) {
-                            for (const clause of stat.clauses) {
-                                //console.log( "\nchecking clause"+clause.condition+", at pos "+clause.range.start.i)
-                                if (clause.condition.match(/(rising|falling)_edge/i)) {
-                                    this.clock = clause.condition.match(/(?<=(rising|falling)_edge\(\s*).+?(?=\s*\))/g)[0];
-                                    this.clock_range = clause.condition.range;
-                                    //console.log("procdeb clock found in else statement" + this.clock)
-                                    this.registerProcess = true;
-                                    this.reset_type = "async";
-                                    
-                                }
-                                if (clause.condition.match(/'event\s*and\s*/i)) {
-                                    this.clock = clause.condition.match(/\b(.+?)'event\s+and\s+.+?\s*=\s*'[01]+'/i)[1];
-                                    this.clock_range = clause.condition.range;
-                                    //console.log("procdeb clock found async proc" + this.clock)
-                                    this.registerProcess = true;
-                                    this.reset_type = "async";
-                                }
-                            }
-                        }         
-                    }                    
+                else this.reset_type = "async"
+            } else if (ifs[0].clauses.length === 2){
+                // in this case the second clause should contain the rising edge
+                if (!this.detect_clk_event(ifs[0].clauses[1])){
+                    // not clk event detected in the second if => async process
+                    this.reset_signal = null
+                    this.reset_start = null
+                    this.reset_type = null
                 }
-                    
+                else this.reset_type = "async"
+            } else{ // we conclude that it is an async process
+                this.reset_signal = null
+                this.reset_start = null
+                this.reset_type = null
             }
-        }
-        if (this.clock_range){
-            //console.log(`reset start = ${reset_start}, clock start = ${this.clock_range.start.i}`)  
-            if (reset_start){
-                if (reset_start > this.clock_range.start.i){
-                    this.reset_type = "sync"
-                    //console.log("reset later than clock => sync")
-                }    
-                else{
-                    this.reset_type = "async"
-                    //console.log("reset earlier than clock => async")
-                }    
-            } 
-            else{ // if no reset found, sync process
-                this.reset_type = "sync"
-                //console.log("reset earlier than clock => async")
-            }    
-        }
-        //console.log("procdeb register is " + this.registerProcess)
+        }  else {
+            // sync proc, detect the reset
+            const eifs = ifs[0].clauses[0].statements.filter(s=>s instanceof OIf)
+            if (eifs.length > 0){ // no reset condition found!
+                this.reset_signal = eifs[0].clauses[0].condition.replace(/\(|\)|[0-9]+|'|"|or|and|=|>|</g, "").split(" ").filter(s=> s!== "")
+            }
+        }      
         return this.registerProcess;
     }
     getFlatWrites() {
@@ -1185,13 +1174,14 @@ class OProcess extends ObjectBase {
         if (!this.isRegisterProcess()) {
             return this.resets;
         }
-        let reset_condition = new RegExp(/\b\w*rst\w*\b|\b\w*reset\w*\b/i)
+        //let reset_condition = new RegExp(/\b\w*rst\w*\b|\b\w*reset\w*\b/i)
+        let reset_condition = new RegExp(/\b\w+\b/i)
         //console.log("determining reset")
         for (const statement of this.statements) {
             if (statement instanceof OIf) {
                 for (const clause of statement.clauses) {
                     if (clause.condition.match(reset_condition)) {
-                        this.reset_signal = clause.condition.match(reset_condition)[0]
+                        //this.reset_signal = clause.condition.match(reset_condition)[0]
                         //console.log("reset = "+this.reset_signal)
                         this.reset_range = statement.range;
                         for (const subStatement of clause.statements) {
@@ -1217,7 +1207,7 @@ class OProcess extends ObjectBase {
                                 for (const c of s.clauses) {
                                     //console.log("ifdeb "+c.text )
                                     if (c.condition.match(reset_condition)) {
-                                        this.reset_signal = c.condition.match(reset_condition)[0]
+                                        //this.reset_signal = c.condition.match(reset_condition)[0]
                                         //console.log("reset = "+this.reset_signal)
                                         for (const ss of c.statements) {
 

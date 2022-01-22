@@ -365,7 +365,7 @@ class VhdlLinter {
             // check if the componentName can be linked to a known entity/package
             instantiation.definition = this.getProjectEntity(instantiation);
         }
-        
+
 
         for (const obj of this.tree.objectList.filter(o=> o instanceof objects_1.OMapping)) {
             //if (obj instanceof objects_1.OMapping) {
@@ -925,16 +925,21 @@ class VhdlLinter {
                     }
                 }
                 if (process.reset_signal){
-                    if (process.reset_type == "async") {
+                    if (process.reset_type === "async") {
                         if (process.hasSensitivityList()){
-                            if (!((process.getSensitivityList().includes(process.clock.trim().toLowerCase())) && 
-                                (process.getSensitivityList().includes(process.reset_signal.trim().toLowerCase())) &&
-                                (process.getSensitivityList().split(",").length ===2 ))) {
-
+                            let exp_sensi = [process.clock.trim().toLowerCase()]
+                            exp_sensi = exp_sensi.concat(process.reset_signal)
+                            const missing = []
+                            for (const e of exp_sensi){
+                                if (process.getSensitivityList().search(new RegExp(`\\b${e}\\b`))===-1){
+                                    missing.push(e)
+                                }
+                            }
+                            if ((missing.length > 0) || (process.getSensitivityList().split(",").length !== exp_sensi.length)){
                                 this.addMessage({
                                     range: range,
                                     severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                                    message: 'Sensitivity list of an asynchronously reset process should only include clk ' + process.clock + ' and reset ' + process.reset_signal
+                                    message: `Sensitivity list of an asynchronously reset process should only include clk '${process.clock}' and reset(s) '${process.reset_signal}'`
                                 });
                             }
                         }
@@ -948,8 +953,15 @@ class VhdlLinter {
                     }
                     if (process.reset_type == "sync") {
                         if (process.hasSensitivityList()){
-                            if (!((process.getSensitivityList().includes(process.clock.trim().toLowerCase())) && 
-                                ( process.getSensitivityList().split(',').length == 1))){
+                            let exp_sensi = [process.clock.trim().toLowerCase()]
+                            const missing = []
+                            for (const e of exp_sensi){
+                                if (!process.getSensitivityList().includes(e)){
+                                    missing.push(e)
+                                }
+                            }
+
+                            if ((missing.length > 0) || (process.getSensitivityList().split(",").length !== exp_sensi.length)){
                                 this.addMessage({
                                     range: range,
                                     severity: vscode_languageserver_1.DiagnosticSeverity.Error,
@@ -1215,6 +1227,7 @@ class VhdlLinter {
                                 type = signal.type.map(read => read.text)[0]
                             }
                         }
+                        if (!type) type = "" // prevent error in the checks below
                         resetValue = "; -- TODO : add the reset value for this signal\n"
                         if      (["std_logic", "std_ulogic"].includes(type)) resetValue = "'0';\n"
                         if      (["std_ulogic_vector", "std_logic_vector", "unsigned","signed"].includes(type)) resetValue = "(others => '0');\n"
@@ -1405,6 +1418,9 @@ class VhdlLinter {
                     }    
                 }
                 //if (mp.parent.) ==> check here if the interface is input or output!!
+            }
+            if (signal.isAlias){
+                msg += 'w' // aliases are a copy of something else, and so by definition are written during initialization
             }
 
             if (msg.includes('w')){

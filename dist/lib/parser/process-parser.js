@@ -46,6 +46,7 @@ class ProcessParser extends process_like_parse_1.ProcessLikeParser {
                     const type = this.getNextWord()
                     this.advanceSemicolon(true);
                     variable.type = type;
+                    variable.isAlias = true;
                     variable.definition = this.parent 
                     variable.range.end.i = this.getEndOfLineI()
                 }

@@ -17,7 +17,7 @@ class Tokenizer {
             { regex: /^[()]/i, tokenType: 'BRACE' },
             { regex: /^,/i, tokenType: 'COMMA' },
             { regex: /^[0-9]+/i, tokenType: 'INTEGER_LITERAL' },
-            { regex: /^true|false/i, tokenType: 'BOOLEAN_LITERAL' },
+            { regex: /^true|^false/i, tokenType: 'BOOLEAN_LITERAL' },
             { regex: /^"[0-9]+"/i, tokenType: 'LOGIC_LITERAL' },
             { regex: /^x"[0-9A-F_]+"/i, tokenType: 'LOGIC_LITERAL' },
             { regex: /^b"[01]+"/i, tokenType: 'LOGIC_LITERAL' },
