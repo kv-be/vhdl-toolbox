@@ -68,7 +68,7 @@ class StatementParser extends parser_base_1.ParserBase {
             this.debug('parse for generate');
             const startI = this.pos.i;
             let variable = this.advancePast(/\bin\b/i);
-            let start = this.advancePast(/\b(to|downto|range)\b/i);
+            let start = this.advancePast(/\b(to|downto|range|reverse_range)\b/i);
             let end = this.advancePast(/\bgenerate\b/i);
             const subarchitecture = new architecture_parser_1.ArchitectureParser(this.text, this.pos, this.file, this.parent, label);
             const generate = subarchitecture.parse(true, 'generate', { variable, start, end, startPosI: startI });
@@ -161,17 +161,13 @@ class StatementParser extends parser_base_1.ParserBase {
         else if (nextWord === 'with' && allowedStatements.includes(StatementTypes.Assignment)) {
             this.getNextWord();
             const beforeI = this.pos.i;
-            const readText = this.getNextWord();
+            const readText = this.advancePast(/\bselect\b/);
             const afterI = this.pos.i;
-            if (this.test(/^\(/)) {
-                this.pos.i++;
-                this.advanceBrace();
-            }
-            this.getNextWord();
+
             const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, this.parent);
             const assignment = assignmentParser.parse();
-            const read = new objects_1.ORead(assignment, beforeI, afterI, readText);
-            assignment.reads.push(read);
+            //const read = new objects_1.ORead(assignment, beforeI, afterI, readText);
+            assignment.reads =assignment.reads.concat(this.extractReads(assignment, readText, beforeI)) 
             this.parent.statements.push(assignment);
         }
         else if (nextWord === 'assert' && allowedStatements.includes(StatementTypes.Assert)) {
@@ -216,9 +212,12 @@ class StatementParser extends parser_base_1.ParserBase {
             }
         }
         else if (allowedStatements.includes(StatementTypes.Assignment)) { // TODO  others
-            const text = this.advanceSemicolon(true, false);
-            if (text.replace(/\([^\)]*?\)/, "\(stuff\)").match(/:=|<=/)){
-            // assignment found
+            let text = this.advanceSemicolon(true, false);
+            text =  text.replace(/\([^\)]*?\)/g, "\(stuff\)")
+            text =  text.replace(/".+?"/g, match => "S".repeat(match.length))
+            
+            if (text.match(/\w+\s*[<:]*=\s*[\w\d\('\)]+/)){ // made the : and < optional to detect common mistake a = 6 iso a <= 6
+            // assignment foun>
                 const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, this.parent);
                 const assignment = assignmentParser.parse();
                 this.parent.statements.push(assignment);        

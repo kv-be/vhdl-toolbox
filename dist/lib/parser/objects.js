@@ -521,6 +521,7 @@ class OPortMap extends OMap {
     constructor(parent, startI, endI) {
         super(parent, startI, endI);
         this.parent = parent;
+        this.isGeneric = false
     }
 }
 exports.OPortMap = OPortMap;
@@ -900,6 +901,7 @@ class OProcess extends ObjectBase {
         this.reset_signal = null;
         this.reset_range = null;
         this.clock = "";
+        this.types = []
         this.clock_range = "";
         this.procedures = [];
         this.functions = [];
@@ -913,10 +915,13 @@ class OProcess extends ObjectBase {
             return this.readstrings
         else{
             let sigs = []
-            for (const p of this.getFlatReads()) {
+            for (const p of this.getFlatReads().filter(b=> !((b.definition instanceof OVariable)||(b.definition instanceof OState)) )) {
                 if ((p.definition) && (p.scope)){
-                    if (!(p.definition.constant) && !(p.definition instanceof OGenericActual) && !(p.scope instanceof OForGenerate)){ // filter out hte generics 
-                        sigs.push(p.text.trim())
+                    if (!(p.definition.constant) &&  !(p.scope instanceof OForGenerate)){ // filter out hte generics 
+                        if (p.definition.isGeneric){
+                            if (!p.definition.isGeneric) sigs.push(p.text.trim())
+                        }
+                        else sigs.push(p.text.trim())
                     }    
                 }
             }
@@ -943,8 +948,8 @@ class OProcess extends ObjectBase {
         else{
             this.sensitivity_list = " "
             let ar 
-            let decl = this.text.substring(  0, this.text.search(/\n\s*begin/i)  ).toLowerCase()
-            const search_sensi = new RegExp(/\s*[a-zA-Z0-9_: ]*process\s*\(([a-zA-Z0-9_: ,\n\(\) -]*)\)/gi)
+            let decl = this.text.substring(  0, this.text.search(/\bbegin/i)  ).toLowerCase()
+            const search_sensi = new RegExp(/\s*[a-zA-Z0-9_: ]*process\s*\(([a-zA-Z0-9_: ,\n\(\) -]*?)\)/gi)
             if (decl.search(search_sensi) >= 0){
                 ar = [...decl.matchAll(search_sensi)];
                 this.sensitivity_list = ar[0][1]
@@ -976,13 +981,18 @@ class OProcess extends ObjectBase {
                 //console.log("missing of async proc")
                 let unique = this.getReadStrings()
                 //console.log("sigdeb "+ unique)
-                for (let s of unique.split(',')) {
-                    s = s.trim()
-                    //console.log("sigdeb checking "+s)
-                    if (!sensi.includes(s.toLocaleLowerCase())) {
-                        //console.log("adding "+s)
-                        missing.push(s)
+                if (sensi.trim().toLowerCase()==="all") {
+                    missing = []
+                } else {
+                    for (let s of unique.split(',')) {
+                        s = s.trim()
+                        //console.log("sigdeb checking "+s)
+                        if (!sensi.includes(s.toLocaleLowerCase())) {
+                            //console.log("adding "+s)
+                            missing.push(s)
+                        }
                     }
+    
                 }
                 return missing     
             }
@@ -996,6 +1006,7 @@ class OProcess extends ObjectBase {
             let unique = this.getReadStrings().toLowerCase()
             let too_much = []
             //console.log("sigdeb "+sensitivity)
+            if (sensitivity.length ===1 && sensitivity[0].toLowerCase()==='all') return ""
             for (let s of sensitivity) {
                 s = s.trim()
                 if (!unique.includes(s)) {
@@ -1051,13 +1062,16 @@ class OProcess extends ObjectBase {
                 // construct if (rst) else if (rising edge)
                 // first if after the else is supposed to be the edge detector
                 const eifs = ifs[0].else.statements.filter(s=> s instanceof OIf)
-                if (!this.detect_clk_event(eifs[0].clauses[0])){
-                    // no clock edge detection detected => async process
-                    this.reset_signal = null
-                    this.reset_start = null
-                    this.reset_type = null
+                if (eifs.length > 0){
+                    if (!this.detect_clk_event(eifs[0].clauses[0])){
+                        // no clock edge detection detected => async process
+                        this.reset_signal = null
+                        this.reset_start = null
+                        this.reset_type = null
+                    }
+                    else this.reset_type = "async"    
                 }
-                else this.reset_type = "async"
+                else this.reset_type = "async"    
             } else if (ifs[0].clauses.length === 2){
                 // in this case the second clause should contain the rising edge
                 if (!this.detect_clk_event(ifs[0].clauses[1])){
@@ -1367,6 +1381,51 @@ class OToken extends ODefitionable {
             }
             else if (object instanceof OProcess) {
                 for (const variable of object.variables) {
+                    if (variable.name.text.toLowerCase() === text.toLowerCase()) {
+                        this.definition = variable;
+                        this.scope = object;
+                        variable.mentions.push(this);
+                        break yank;
+                    }
+                }
+                for (const type of object.types) {
+                    if (type.name.text.toLowerCase() === text.toLowerCase()) {
+                        this.definition = type;
+                        this.scope = object;
+                        type.mentions.push(this);
+                        //console.log("token of type "+this.text+" detectoed")
+                        break yank;
+                    }
+                    if (type instanceof OEnum) {
+                        for (const state of type.states) {
+                            if (state.name.text.toLowerCase() === text.toLowerCase()) {
+                                this.definition = state;
+                                this.scope = object;
+                                state.mentions.push(this);
+                                break yank;
+                            }
+                        }
+                    }
+                    if (type instanceof ORecord) {
+                        for (const child of type.children) {
+                            if (child.name.text.toLowerCase() === text.toLowerCase()) {
+                                this.definition = child;
+                                this.scope = object;
+                                child.mentions.push(this);
+                                break yank;
+                            }
+                        }
+                    }
+                }
+                for (const variable of object.procedures) {
+                    if (variable.name.text.toLowerCase() === text.toLowerCase()) {
+                        this.definition = variable;
+                        this.scope = object;
+                        variable.mentions.push(this);
+                        break yank;
+                    }
+                }
+                for (const variable of object.functions) {
                     if (variable.name.text.toLowerCase() === text.toLowerCase()) {
                         this.definition = variable;
                         this.scope = object;

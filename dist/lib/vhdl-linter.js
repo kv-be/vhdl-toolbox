@@ -1009,17 +1009,6 @@ class VhdlLinter {
                     }
     
                 }
-                else {
-                    // without sensitivity list
-                    if (!process.text.includes(" wait ")) {
-                        this.addMessage({
-                            range: range,
-                            severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                            message: `An asynchronous process without sensitivity list should have at least one wait command`
-                        });
-                    }
-                }
-
             }
         }
     }
@@ -1870,6 +1859,14 @@ class VhdlLinter {
             if (obj instanceof objects_1.OProcedureCall) {
                 let searchObj = obj.parent;
                 while (!(searchObj instanceof objects_1.OFile)) {
+                    if (searchObj instanceof objects_1.OProcess){
+                        for (const procedureSearch of searchObj.procedures) {
+                            if (procedureSearch.name.text === obj.procedureName.text) {
+                                obj.definition = procedureSearch;
+                                break;
+                            }
+                        }                        
+                   }
                     if (searchObj instanceof objects_1.OArchitecture) {
                         for (const procedureSearch of searchObj.procedures) {
                             if (procedureSearch.name.text === obj.procedureName.text) {

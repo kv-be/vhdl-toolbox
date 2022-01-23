@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const objects_1 = require("./objects");
 const process_like_parse_1 = require("./process-like-parse");
-const decl_parser_1 = require("./declarative-part-parser");
+const declarative_part_parser_1 = require("./declarative-part-parser");
 class ProcessParser extends process_like_parse_1.ProcessLikeParser {
     constructor(text, pos, file, parent) {
         super(text, pos, file);
@@ -19,7 +19,9 @@ class ProcessParser extends process_like_parse_1.ProcessLikeParser {
         this.maybeWord('is'); //  alias vvc_config : t_vvc_config is shared_gmii_vvc_config(GC_CHANNEL, GC_INSTANCE_IDX);
 
         let nextWord = this.getNextWord({ consume: false }).toLowerCase();
-        while (nextWord !== 'begin') {
+        new declarative_part_parser_1.DeclarativePartParser(this.text, this.pos, this.file, process).parse();
+
+        /*while (nextWord !== 'begin') {
             if (['variable', 'file', 'alias', 'constant'].includes(nextWord)){
                 const variable = new objects_1.OVariable(process, this.pos.i, this.getEndOfLineI());
                 variable.constant = nextWord === 'constant';
@@ -84,7 +86,7 @@ class ProcessParser extends process_like_parse_1.ProcessLikeParser {
                 this.advanceSemicolon(true);
             }
             nextWord = this.getNextWord({ consume: false }).toLowerCase();
-        }
+        }*/
         this.expect('begin');
         process.statements = this.parseStatements(process, ['end']);
         this.expect('end');

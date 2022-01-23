@@ -115,4 +115,264 @@ package STANDARD is
 
   attribute FOREIGN : string;
 
+
+  function "?=" (L, R  : BOOLEAN) return BOOLEAN;
+  function "?/=" (L, R : BOOLEAN) return BOOLEAN;
+  function "?<" (L, R  : BOOLEAN) return BOOLEAN;
+  function "?<=" (L, R : BOOLEAN) return BOOLEAN;
+  function "?>" (L, R  : BOOLEAN) return BOOLEAN;
+  function "?>=" (L, R : BOOLEAN) return BOOLEAN;
+
+  function MINIMUM (L, R : BOOLEAN) return BOOLEAN;
+  function MAXIMUM (L, R : BOOLEAN) return BOOLEAN;
+
+  function RISING_EDGE (signal S  : BOOLEAN) return BOOLEAN;
+  function FALLING_EDGE (signal S : BOOLEAN) return BOOLEAN;
+
+  function "?=" (L, R  : BIT) return BIT;
+  function "?/=" (L, R : BIT) return BIT;
+  function "?<" (L, R  : BIT) return BIT;
+  function "?<=" (L, R : BIT) return BIT;
+  function "?>" (L, R  : BIT) return BIT;
+  function "?>=" (L, R : BIT) return BIT;
+
+  function MINIMUM (L, R : BIT) return BIT;
+  function MAXIMUM (L, R : BIT) return BIT;
+
+  function "??" (L : BIT) return BOOLEAN;
+
+  function RISING_EDGE (signal S  : BIT) return BOOLEAN;
+  function FALLING_EDGE (signal S : BIT) return BOOLEAN;
+
+  function MINIMUM (L, R : CHARACTER) return CHARACTER;
+  function MAXIMUM (L, R : CHARACTER) return CHARACTER;
+
+  function MINIMUM (L, R : SEVERITY_LEVEL) return SEVERITY_LEVEL;
+  function MAXIMUM (L, R : SEVERITY_LEVEL) return SEVERITY_LEVEL;
+
+  function MINIMUM (L, R : INTEGER) return INTEGER;
+  function MAXIMUM (L, R : INTEGER) return INTEGER;
+
+  function MINIMUM (L, R : REAL) return REAL;
+  function MAXIMUM (L, R : REAL) return REAL;
+
+  function "mod" (L, R : TIME) return TIME;
+  function "rem" (L, R : TIME) return TIME;
+
+  function MINIMUM (L, R : TIME) return TIME;
+  function MAXIMUM (L, R : TIME) return TIME;
+
+  function MINIMUM (L, R : STRING) return STRING;
+  function MAXIMUM (L, R : STRING) return STRING;
+
+  function MINIMUM (L : STRING) return CHARACTER;
+  function MAXIMUM (L : STRING) return CHARACTER;
+
+  type BOOLEAN_VECTOR is array (NATURAL range <>) of BOOLEAN;
+
+  -- The predefined operations for this type are as follows:
+
+  function "and" (L, R  : BOOLEAN_VECTOR) return BOOLEAN_VECTOR;
+  function "or" (L, R   : BOOLEAN_VECTOR) return BOOLEAN_VECTOR;
+  function "nand" (L, R : BOOLEAN_VECTOR) return BOOLEAN_VECTOR;
+  function "nor" (L, R  : BOOLEAN_VECTOR) return BOOLEAN_VECTOR;
+  function "xor" (L, R  : BOOLEAN_VECTOR) return BOOLEAN_VECTOR;
+  function "xnor" (L, R : BOOLEAN_VECTOR) return BOOLEAN_VECTOR;
+
+  function "not" (L : BOOLEAN_VECTOR) return BOOLEAN_VECTOR;
+
+  function "and" (L : BOOLEAN_VECTOR; R : BOOLEAN)
+    return BOOLEAN_VECTOR;
+  function "and" (L : BOOLEAN; R : BOOLEAN_VECTOR)
+    return BOOLEAN_VECTOR;
+  function "or" (L : BOOLEAN_VECTOR; R : BOOLEAN)
+    return BOOLEAN_VECTOR;
+  function "or" (L : BOOLEAN; R : BOOLEAN_VECTOR)
+    return BOOLEAN_VECTOR;
+  function "nand" (L : BOOLEAN_VECTOR; R : BOOLEAN)
+    return BOOLEAN_VECTOR;
+  function "nand" (L : BOOLEAN; R : BOOLEAN_VECTOR)
+    return BOOLEAN_VECTOR;
+  function "nor" (L : BOOLEAN_VECTOR; R : BOOLEAN)
+    return BOOLEAN_VECTOR;
+  function "nor" (L : BOOLEAN; R : BOOLEAN_VECTOR)
+    return BOOLEAN_VECTOR;
+  function "xor" (L : BOOLEAN_VECTOR; R : BOOLEAN)
+    return BOOLEAN_VECTOR;
+  function "xor" (L : BOOLEAN; R : BOOLEAN_VECTOR)
+    return BOOLEAN_VECTOR;
+  function "xnor" (L : BOOLEAN_VECTOR; R : BOOLEAN)
+    return BOOLEAN_VECTOR;
+  function "xnor" (L : BOOLEAN; R : BOOLEAN_VECTOR)
+    return BOOLEAN_VECTOR;
+
+  function and_reduce (L  : BOOLEAN_VECTOR) return BOOLEAN;
+  function or_reduce (L  : BOOLEAN_VECTOR) return BOOLEAN;
+  function nand_reduce (L  : BOOLEAN_VECTOR) return BOOLEAN;
+  function nor_reduce (L  : BOOLEAN_VECTOR) return BOOLEAN;
+  function xor_reduce (L  : BOOLEAN_VECTOR) return BOOLEAN;
+  function xnor_reduce (L  : BOOLEAN_VECTOR) return BOOLEAN;
+
+  function "sll" (L : BOOLEAN_VECTOR; R : INTEGER)
+    return BOOLEAN_VECTOR;
+  function "srl" (L : BOOLEAN_VECTOR; R : INTEGER)
+    return BOOLEAN_VECTOR;
+  function "sla" (L : BOOLEAN_VECTOR; R : INTEGER)
+    return BOOLEAN_VECTOR;
+  function "sra" (L : BOOLEAN_VECTOR; R : INTEGER)
+    return BOOLEAN_VECTOR;
+  function "rol" (L : BOOLEAN_VECTOR; R : INTEGER)
+    return BOOLEAN_VECTOR;
+  function "ror" (L : BOOLEAN_VECTOR; R : INTEGER)
+    return BOOLEAN_VECTOR;
+
+--  function "=" (L, R  : BOOLEAN_VECTOR) return BOOLEAN;
+--  function "/=" (L, R : BOOLEAN_VECTOR) return BOOLEAN;
+--  function "<" (L, R  : BOOLEAN_VECTOR) return BOOLEAN;
+--  function "<=" (L, R : BOOLEAN_VECTOR) return BOOLEAN;
+--  function ">" (L, R  : BOOLEAN_VECTOR) return BOOLEAN;
+--  function ">=" (L, R : BOOLEAN_VECTOR) return BOOLEAN;
+
+  function "?=" (L, R  : BOOLEAN_VECTOR) return BOOLEAN;
+  function "?/=" (L, R : BOOLEAN_VECTOR) return BOOLEAN;
+
+--  function "&" (L : BOOLEAN_VECTOR; R : BOOLEAN_VECTOR)
+    -- return BOOLEAN_VECTOR;
+--  function "&" (L : BOOLEAN_VECTOR; R : BOOLEAN) -- return BOOLEAN_VECTOR;
+--  function "&" (L : BOOLEAN; R : BOOLEAN_VECTOR) -- return BOOLEAN_VECTOR;
+--  function "&" (L : BOOLEAN; R : BOOLEAN) -- return BOOLEAN_VECTOR;
+
+  function MINIMUM (L, R : BOOLEAN_VECTOR) return BOOLEAN_VECTOR;
+  function MAXIMUM (L, R : BOOLEAN_VECTOR) return BOOLEAN_VECTOR;
+
+  function MINIMUM (L : BOOLEAN_VECTOR) return BOOLEAN;
+  function MAXIMUM (L : BOOLEAN_VECTOR) return BOOLEAN;
+
+  function "and" (L  : BIT_VECTOR; R : BIT) return BIT_VECTOR;
+  function "and" (L  : BIT; R : BIT_VECTOR) return BIT_VECTOR;
+  function "or" (L   : BIT_VECTOR; R : BIT) return BIT_VECTOR;
+  function "or" (L   : BIT; R : BIT_VECTOR) return BIT_VECTOR;
+  function "nand" (L : BIT_VECTOR; R : BIT) return BIT_VECTOR;
+  function "nand" (L : BIT; R : BIT_VECTOR) return BIT_VECTOR;
+  function "nor" (L  : BIT_VECTOR; R : BIT) return BIT_VECTOR;
+  function "nor" (L  : BIT; R : BIT_VECTOR) return BIT_VECTOR;
+  function "xor" (L  : BIT_VECTOR; R : BIT) return BIT_VECTOR;
+  function "xor" (L  : BIT; R : BIT_VECTOR) return BIT_VECTOR;
+  function "xnor" (L : BIT_VECTOR; R : BIT) return BIT_VECTOR;
+  function "xnor" (L : BIT; R : BIT_VECTOR) return BIT_VECTOR;
+
+  function and_reduce (L  : BIT_VECTOR) return BIT;
+  function or_reduce (L  : BIT_VECTOR) return BIT;
+  function nand_reduce (L  : BIT_VECTOR) return BIT;
+  function nor_reduce (L  : BIT_VECTOR) return BIT;
+  function xor_reduce (L  : BIT_VECTOR) return BIT;
+  function xnor_reduce (L  : BIT_VECTOR) return BIT;
+
+  function "?=" (L, R  : BIT_VECTOR) return BIT;
+  function "?/=" (L, R : BIT_VECTOR) return BIT;
+
+  function MINIMUM (L, R : BIT_VECTOR) return BIT_VECTOR;
+  function MAXIMUM (L, R : BIT_VECTOR) return BIT_VECTOR;
+
+  function MINIMUM (L : BIT_VECTOR) return BIT;
+  function MAXIMUM (L : BIT_VECTOR) return BIT;
+
+  function TO_STRING (VALUE : BIT_VECTOR) return STRING;
+
+  alias TO_BSTRING is TO_STRING [BIT_VECTOR return STRING];
+  alias TO_BINARY_STRING is TO_STRING [BIT_VECTOR return STRING];
+  function TO_OSTRING (VALUE : BIT_VECTOR) return STRING;
+  alias TO_OCTAL_STRING is TO_OSTRING [BIT_VECTOR return STRING];
+  function TO_HSTRING (VALUE : BIT_VECTOR) return STRING;
+  alias TO_HEX_STRING is TO_HSTRING [BIT_VECTOR return STRING];
+
+  type INTEGER_VECTOR is array (NATURAL range <>) of INTEGER;
+
+  -- The predefined operations for this type are as follows:
+  function "=" (L, R  : INTEGER_VECTOR) return BOOLEAN;
+  function "/=" (L, R  : INTEGER_VECTOR) return BOOLEAN;
+  function "<" (L, R  : INTEGER_VECTOR) return BOOLEAN;
+  function "<=" (L, R  : INTEGER_VECTOR) return BOOLEAN;
+  function ">" (L, R  : INTEGER_VECTOR) return BOOLEAN;
+  function ">=" (L, R  : INTEGER_VECTOR) return BOOLEAN;
+
+--  function "&" (L : INTEGER_VECTOR; R : INTEGER_VECTOR)
+--    return INTEGER_VECTOR;
+--  function "&" (L : INTEGER_VECTOR; R : INTEGER) return INTEGER_VECTOR;
+--  function "&" (L : INTEGER; R : INTEGER_VECTOR) return INTEGER_VECTOR;
+--  function "&" (L : INTEGER; R : INTEGER) return INTEGER_VECTOR;
+
+  function MINIMUM (L, R : INTEGER_VECTOR) return INTEGER_VECTOR;
+  function MAXIMUM (L, R : INTEGER_VECTOR) return INTEGER_VECTOR;
+
+  function MINIMUM (L : INTEGER_VECTOR) return INTEGER;
+  function MAXIMUM (L : INTEGER_VECTOR) return INTEGER;
+
+  type REAL_VECTOR is array (NATURAL range <>) of REAL;
+
+  -- The predefined operations for this type are as follows:
+  function "=" (L, R  : REAL_VECTOR) return BOOLEAN;
+  function "/=" (L, R  : REAL_VECTOR) return BOOLEAN;
+  function "<" (L, R  : REAL_VECTOR) return BOOLEAN;
+  function "<=" (L, R  : REAL_VECTOR) return BOOLEAN;
+  function ">" (L, R  : REAL_VECTOR) return BOOLEAN;
+  function ">=" (L, R  : REAL_VECTOR) return BOOLEAN;
+
+--  function "&" (L : REAL_VECTOR; R : REAL_VECTOR)
+--    return REAL_VECTOR;
+--  function "&" (L : REAL_VECTOR; R : REAL) return REAL_VECTOR;
+--  function "&" (L : REAL; R : REAL_VECTOR) return REAL_VECTOR;
+--  function "&" (L : REAL; R : REAL) return REAL_VECTOR;
+
+  function MINIMUM (L, R : REAL_VECTOR) return REAL_VECTOR;
+  function MAXIMUM (L, R : REAL_VECTOR) return REAL_VECTOR;
+
+  function MINIMUM (L : REAL_VECTOR) return REAL;
+  function MAXIMUM (L : REAL_VECTOR) return REAL;
+
+  type TIME_VECTOR is array (NATURAL range <>) of TIME;
+
+  -- The predefined operations for this type are as follows:
+  function "=" (L, R  : TIME_VECTOR) return BOOLEAN;
+  function "/=" (L, R  : TIME_VECTOR) return BOOLEAN;
+  function "<" (L, R  : TIME_VECTOR) return BOOLEAN;
+  function "<=" (L, R  : TIME_VECTOR) return BOOLEAN;
+  function ">" (L, R  : TIME_VECTOR) return BOOLEAN;
+  function ">=" (L, R  : TIME_VECTOR) return BOOLEAN;
+
+--  function "&" (L : TIME_VECTOR; R : TIME_VECTOR)
+--    return TIME_VECTOR;
+--  function "&" (L : TIME_VECTOR; R : TIME) return TIME_VECTOR;
+--  function "&" (L : TIME; R : TIME_VECTOR) return TIME_VECTOR;
+--  function "&" (L : TIME; R : TIME) return TIME_VECTOR;
+
+  function MINIMUM (L, R : TIME_VECTOR) return TIME_VECTOR;
+  function MAXIMUM (L, R : TIME_VECTOR) return TIME_VECTOR;
+
+  function MINIMUM (L : TIME_VECTOR) return TIME;
+  function MAXIMUM (L : TIME_VECTOR) return TIME;
+
+  function MINIMUM (L, R : FILE_OPEN_KIND) return FILE_OPEN_KIND;
+  function MAXIMUM (L, R : FILE_OPEN_KIND) return FILE_OPEN_KIND;
+
+  function MINIMUM (L, R : FILE_OPEN_STATUS) return FILE_OPEN_STATUS;
+  function MAXIMUM (L, R : FILE_OPEN_STATUS) return FILE_OPEN_STATUS;
+
+  -- predefined TO_STRING operations on scalar types
+  function TO_STRING (VALUE : BOOLEAN) return STRING;
+  function TO_STRING (VALUE : BIT) return STRING;
+  function TO_STRING (VALUE : CHARACTER) return STRING;
+  function TO_STRING (VALUE : SEVERITY_LEVEL) return STRING;
+  function TO_STRING (VALUE : INTEGER) return STRING;
+  function TO_STRING (VALUE : REAL) return STRING;
+  function TO_STRING (VALUE : TIME) return STRING;
+  function TO_STRING (VALUE : FILE_OPEN_KIND) return STRING;
+  function TO_STRING (VALUE : FILE_OPEN_STATUS) return STRING;
+
+  -- predefined overloaded TO_STRING operations
+  function TO_STRING (VALUE : REAL; DIGITS : NATURAL) return STRING;
+  function TO_STRING (VALUE : REAL; FORMAT : STRING) return STRING;
+  function TO_STRING (VALUE : TIME; UNIT : TIME) return STRING;
+
+
 end STANDARD;   

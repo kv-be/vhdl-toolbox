@@ -121,7 +121,6 @@ class ParserBase {
                 this.advanceWhitespace();
                 break;
             }
-
             if (this.getNextWord({ consume: false }).toLowerCase() === 'type') {
                 // generic type in case of generic packages
                 this.getNextWord();
@@ -145,6 +144,7 @@ class ParserBase {
                         this.maybeWord(',');
                         port = new objects_1.OPort(entity, this.pos.i, this.getEndOfLineI());
                         port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
+                        port.isGeneric = generics
                         port.name.text = this.getNextWord();
                         port.name.range.end.i = port.name.range.start.i + port.name.text.length;
                         multiports.push(port);
@@ -261,6 +261,7 @@ class ParserBase {
         }
         if (generics) {
             entity.generics = ports;
+            
         }
         else {
             entity.ports = ports;

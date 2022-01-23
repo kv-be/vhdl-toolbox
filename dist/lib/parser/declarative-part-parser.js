@@ -23,8 +23,8 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         if ((this.parent instanceof objects_1.OEntity) || (this.parent instanceof objects_1.OPackage)) this.allowGeneric = true
         if (this.parent instanceof objects_1.OPackage) this.allowPackage = true
         if (this.parent instanceof objects_1.OPackageBody) this.allowPackage = true
-        //if (this.parent instanceof objects_1.OFunction) this.allowPackage = true
-        //if (this.parent instanceof objects_1.OProcedure) this.allowPackage = true
+        //if (this.parent instanceof objects_1.OProcess) this.allowPackage = true
+        
         
     }
 
@@ -84,7 +84,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 if (this.parent instanceof objects_1.OPackage || this.parent instanceof objects_1.OPackageBody) {
                     this.parent.constants.push(...signals);
                 }
-                else if (this.parent instanceof objects_1.OProcedure || this.parent instanceof objects_1.OFunction){
+                else if (this.parent instanceof objects_1.OProcedure || this.parent instanceof objects_1.OFunction|| this.parent instanceof objects_1.OProcess){
                     this.parent.variables.push(...signals);
                 }else {
                     this.parent.signals.push(...signals);
@@ -113,10 +113,13 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                     att.text = this.text.substring(start, this.getEndOfLineI())
                     startName = this.pos.i
                     att.type = this.getNextWord()
-
-                    const reads = this.extractReads(this.parent, att.type, startName)
-                    if (reads){
-                        att.type = reads[0]
+                    if (att.text.search(/\bsignal\b|\bvariable\b/i)>-1){
+                        //only in case of attributes on signals or variable, push the signals
+                        const reads = this.extractReads(this.parent, att.type, startName)
+                        // there exists attributes on labels and architectures, so not always signals
+                        if (reads){
+                            att.type = reads[0]
+                        }    
                     }
                     this.advanceSemicolon()
                     if (!this.parent.attributes) this.parent.attributes = []
@@ -371,6 +374,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                     protectedWord = this.getNextWord();
                 }
                 this.maybeWord('protected');
+                if (isBody) this.maybeWord('body');
             }
             
             const st = this.pos.i

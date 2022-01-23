@@ -165,9 +165,14 @@ class ProcessLikeParser extends parser_base_1.ParserBase {
         forLoop.variable.name.text = variableName;
         this.expect('in');
         // forLoop.start = this.getNextWord();
-        forLoop.start = this.advancePast(/\b(?:downto|to|range)\b/i).trim();
-        // this.expect(['downto', 'to']);
-        forLoop.end = this.advancePast('loop').trim();
+        if (this.text.substring(this.pos.i, this.getEndOfLineI()).search(/\b(?:downto|to|range|reverse_range)\b/i)>-1){
+            // classical for loop
+            forLoop.start = this.advancePast(/\b(?:downto|to|range|reverse_range)\b/i).trim();
+        }
+        else{ // for loop over an enumeration list like e.g. an enumerated type
+            forLoop.start = this.advancePast(/\s/);
+        }
+        forLoop.end = this.advancePast('loop').trim();    
         forLoop.statements = this.parseStatements(forLoop, ['end']);
         this.expect('end');
         this.expect('loop');

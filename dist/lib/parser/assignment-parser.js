@@ -14,9 +14,10 @@ class AssignmentParser extends parser_base_1.ParserBase {
         let assignment = new objects_1.OAssignment(this.parent, this.pos.i, this.getEndOfLineI());
         let leftHandSideI = this.pos.i;
         let leftHandSide = '';
-        const match = /[<:]/.exec(this.text.substring(this.pos.i));
+        let semi = assignment.text.indexOf(";")
+        const match = /[<:]{1}=.*;/.exec(assignment.text.substr(0, semi+1));
         if (!match) {
-            throw new objects_1.ParserError(`expected <= or :=, reached end of text. Start on line`, this.pos.getRangeToEndLine());
+            throw new objects_1.ParserError(`expected <= or :=, reached end of the assignment.`, this.pos.getRangeToEndLine());
         }
         leftHandSide += this.text.substring(this.pos.i, this.pos.i + match.index).trim();
         this.pos.i += match.index;
