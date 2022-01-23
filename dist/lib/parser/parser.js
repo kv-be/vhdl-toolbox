@@ -99,6 +99,9 @@ class Parser extends parser_base_1.ParserBase {
         while (this.pos.i < this.text.length) {
             this.advanceWhitespace();
             const start = this.pos.i
+            if (this.text.substring(this.pos.i, this.getEndOfLineI()).search(/`protect\s+/i)>-1){
+                break
+            }
             let nextWord = this.getNextWord().toLowerCase();
             if (end !== null){
                 if (nextWord === end){

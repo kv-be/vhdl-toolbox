@@ -7,8 +7,8 @@ class Tokenizer {
             ['abs', 'not'],
             ['mod', "&", "null", "ns", "ms", "us", "fs", "ps", "s", "all", "transport", "after"],
             ['sll', 'srl', 'sla', 'sra', 'rol', 'ror', "rem", "new", "report", "severity", "warning", "error", "failure", "fatal"],
-            ['and', 'or', 'nand', 'nor', 'xor', 'xnor', "for", "until", "on"],
-            ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif']
+            ['and', 'or', 'nand', 'nor', 'xor', 'xnor', "for", "until", "on", "of", "guarded", "reject", "inertial"],
+            ['downto', 'to', 'others', 'when', 'else', 'range', 'elsif', "unaffected"]
         ];
         this.tokenTypes = [
             { regex: /^(["])(([^"\\\n]|\\.|\\\n)*)["]/i, tokenType: 'STRING_LITERAL' },

@@ -178,8 +178,8 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 const procedureParser = new procedure_parser_1.ProcedureParser(this.text, this.pos, this.file, this.parent);
                 this.parent.procedures.push(procedureParser.parse(startI));
             }
-            else if (nextWord === 'impure' || nextWord === 'function') {
-                if (nextWord === 'impure') {
+            else if (nextWord === 'impure' ||nextWord === 'pure' || nextWord === 'function') {
+                if ((nextWord === 'impure')||(nextWord === 'pure')) {
                     this.getNextWord();
                 }
                 const startI = this.pos.i
@@ -246,6 +246,16 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 }
                 this.parent.useStatements.push(usestat)
                 this.expect(';');
+            }
+            else if (nextWord === 'disconnect'){
+                this.getNextWord()
+                const signal_name = this.getNextWord()
+                this.expect(":")
+                const type = this.getNextWord()
+                this.expect("after")
+                const st = this.pos.i
+                let def = this.advanceSemicolon()
+                def = this.extractReads(this.parent, def, st)
             }
            else {
                 throw new objects_1.ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
@@ -315,14 +325,11 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                     child.name = new objects_1.OName(child, position, position + recordWord.length);
                     child.name.text = recordWord;
                     type.children.push(child);
+                    this.expect(':')
                     let start = this.pos.i
-                    this.advanceFinalSemicolon();
+                    let def = this.advanceFinalSemicolon();
+                    def = this.extractReads(this.parent, def, start) // to push the definition on the object list
                     child.range.end.i = this.pos.i;
-                    //the following line checks if there are 2 colons in the text, assuming that 
-                    // the types don't have a colon in its definition
-                    if (this.text.substring(start+1, this.pos.i-1).search(/:/)>-1){
-                        throw new objects_1.ParserError(`could not find ending ";"`, new objects_1.OIRange(this.parent, start, start+this.text.substring(start).search(/\n/)));                                            
-                    }
                     position = this.pos.i;
                     recordWord = this.getNextWord();
                 }
@@ -342,8 +349,8 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                         const procedureParser = new procedure_parser_1.ProcedureParser(this.text, this.pos, this.file, this.parent);
                         type.procedures.push(procedureParser.parse(position));
                     }
-                    else if (protectedWord === 'impure' || protectedWord === 'function') {
-                        if (protectedWord === 'impure') {
+                    else if (protectedWord === 'impure' || protectedWord === 'pure' || protectedWord === 'function') {
+                        if ((protectedWord === 'impure') || (protectedWord === 'pure')) {
                             this.getNextWord();
                         }
                         const procedureParser = new procedure_parser_1.ProcedureParser(this.text, this.pos, this.file, this.parent, true);
@@ -366,8 +373,10 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 this.maybeWord('protected');
             }
             
-
-            this.advancePast(';', {"allowKeywords": false});
+            const st = this.pos.i
+            let def = this.advancePast(';', {"allowKeywords": false});
+            def = this.extractReads(this.parent, def, st) // just to be sure the definitions are pushed to the object stack
+            
             type.range.end.i = this.pos.i-1;
 
             if (!isBody) return type //this.parent.types.push(type);

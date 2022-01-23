@@ -36,9 +36,14 @@ class StatementParser extends parser_base_1.ParserBase {
             this.advanceWhitespace();
             nextWord = this.getNextWord({ consume: false }).toLowerCase();
         }
-        if (nextWord === 'process' && allowedStatements.includes(StatementTypes.Process)) {
+
+        if (((nextWord === 'process') || (nextWord === 'postponed')) && allowedStatements.includes(StatementTypes.Process)) {
             //console.log("**   process found")
-            this.getNextWord();
+            if (nextWord === 'postponed') {
+                this.expect("postponed")
+                this.expect("process")
+            }
+            else this.getNextWord(); // consume process
             const processParser = new process_parser_1.ProcessParser(this.text, this.pos, this.file, this.parent);
             this.parent.statements.push(processParser.parse(savedI, label));
             this.advanceWhitespace();
