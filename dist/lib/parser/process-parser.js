@@ -11,9 +11,9 @@ class ProcessParser extends process_like_parse_1.ProcessLikeParser {
     }
     parse(startI, label) {
         const process = new objects_1.OProcess(this.parent, startI, this.getEndOfLineI());
+        process.label = label;
         if (this.text[this.pos.i] === '(') {
             this.expect('(');
-            process.label = label;
             process.sensitivityList = this.advanceBrace();
         }
         this.maybeWord('is'); //  alias vvc_config : t_vvc_config is shared_gmii_vvc_config(GC_CHANNEL, GC_INSTANCE_IDX);

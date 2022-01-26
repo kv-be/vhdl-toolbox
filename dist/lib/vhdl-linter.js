@@ -145,16 +145,16 @@ class VhdlLinter {
         }
     }
 
-    findDefInPackage(toBeFound, pkg){
+    findDefInPackage(toBeFound, pkg, what=""){
         const criteria = toBeFound.text.toLowerCase()
-        if (pkg.constants){
+        if (pkg.constants && (what ==="" || what === "constant")){
             for (const constant of pkg.constants) {
                 if (constant.name.text.toLowerCase() === criteria) {
                     return constant;
                 }
             }                
         }
-        if (pkg.generics){
+        if (pkg.generics&& (what ==="" || what === "generic")){
             for (const gen of pkg.generics) {
                 if (gen.name.text.toLowerCase() === criteria) {
                     return gen;
@@ -162,7 +162,7 @@ class VhdlLinter {
             }
     
         }
-        if (pkg.functions){
+        if (pkg.functions&& (what ==="" || what === "function")){
             for (const func of pkg.functions) {
                 if (func.name.text.toLowerCase() === criteria) {
                     return func;
@@ -175,7 +175,7 @@ class VhdlLinter {
             }
     
         }
-        if (pkg.procedures){
+        if (pkg.procedures&& (what ==="" || what === "procedure")){
             for (const func of pkg.procedures) {
                 if (func.name.text.toLowerCase() === criteria) {
                     return func;
@@ -187,7 +187,7 @@ class VhdlLinter {
                 }
             }
         }
-        if (pkg.types){
+        if (pkg.types&& (what ==="" || what === "type")){
             for (const type of pkg.types) {
                 const typeRead = type.finddef(toBeFound);
                 if (typeRead !== false) {
@@ -429,7 +429,7 @@ class VhdlLinter {
 
         for (const obj of this.tree.objectList.filter(object => object instanceof objects_1.OProcedureCall && typeof object.definition === 'undefined')){
             for (const pkg of this.packages){
-                obj.definition = this.findDefInPackage(obj.procedureName, pkg)
+                obj.definition = this.findDefInPackage(obj.procedureName, pkg, "procedure")
                 if (obj.definition){
                     break
                 } 
@@ -1030,7 +1030,8 @@ class VhdlLinter {
         const b = a.filter(obj => (((obj.definition === null) || ((typeof obj.definition === "undefined"))) && ((obj instanceof objects_1.ORead) || (obj instanceof objects_1.OWrite) || (obj instanceof objects_1.OMappingName))))
         for (let obj of b) {
             //console.log("pdeb check "+(obj instanceof objects_1.OMappingName)
-            let a = this.GetDefFromPackages(obj);
+            let a = this.
+            GetDefFromPackages(obj);
             if (a != null) {
                 //console.log("pdeb solved "+obj.text+", "+obj.type)
                 obj.definition = a;
