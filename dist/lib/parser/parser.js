@@ -22,7 +22,7 @@ class Parser extends parser_base_1.ParserBase {
         file.options.CheckStdLogicArith = null
         let disabledRangeStart = undefined;
         let ignoreRegex = [];
-        if (this.originalText.search(/^--\s*vhdl_toolbox/)>-1){
+        if (this.originalText.search(/\n\s*--\s*vhdl_toolbox/)>-1){
             for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
                 let match = /(--\s*vhdl_toolbox)(.*)/.exec(line); // vhdl_toolbox_disable_next_line //vhdl_toolbox_disable_this_line
                 if (match) {
@@ -31,25 +31,25 @@ class Parser extends parser_base_1.ParserBase {
                     if ((innerMatch = match[2].match('_disable_this_line')) !== null) {
                         file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, new objects_1.OIRange(file, new objects_1.OI(file, lineNumber, 0), new objects_1.OI(file, lineNumber, line.length - 1))));
                     }
-                    else if (match[2].includes("CheckCodingRules") ) {
+                    else if (match[2].includes("check_coding_rules") ) {
                         file.options.CheckCodingRules = match[2].toLowerCase().includes("true")
                     }
-                    else if (match[2].includes("CheckProcessReset") ) {
+                    else if (match[2].includes("check_process_reset") ) {
                         file.options.CheckProcessReset = match[2].toLowerCase().includes("true")
                     }
-                    else if (match[2].includes("CheckStdLogicArith") ) {
+                    else if (match[2].includes("check_std_logic_arith") ) {
                         file.options.CheckStdLogicArith = match[2].toLowerCase().includes("true")
                     }
                     
                     else if ((innerMatch = match[2].match('_disable_next_line')) !== null) { // TODO: next nonempty line
                         file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, nextLineRange));
                     }
-                    else if ((innerMatch = match[2].match('-disable')) !== null) {
+                    else if ((innerMatch = match[2].match('_disable\s*')) !== null) {
                         if (disabledRangeStart === undefined) {
                             disabledRangeStart = lineNumber;
                         }
                     }
-                    else if ((innerMatch = match[2].match('-enable')) !== null) {
+                    else if ((innerMatch = match[2].match('_enable')) !== null) {
                         if (disabledRangeStart !== undefined) {
                             let disabledRange = new objects_1.OIRange(file, new objects_1.OI(file, disabledRangeStart, 0), new objects_1.OI(file, lineNumber, line.length - 1));
                             file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, disabledRange));
