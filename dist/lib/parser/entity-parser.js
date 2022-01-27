@@ -61,7 +61,7 @@ class EntityParser extends parser_base_1.ParserBase {
                 break;
             }
             else {
-                new declarative_part_parser_1.DeclarativePartParser(this.text, this.pos, this.file, this.entity).parse();
+                new declarative_part_parser_1.DeclarativePartParser(this.text, this.pos, this.file, this.entity).parse(false, 'end');
             }
             if (lastI === this.pos.i) {
                 throw new objects_1.ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.getRangeToEndLine());

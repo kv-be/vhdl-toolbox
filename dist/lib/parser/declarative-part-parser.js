@@ -19,7 +19,10 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             this.allowComponents = true
             this.allowSignals = true
         } 
-        if (this.parent instanceof objects_1.OEntity) this.allowComponents = false
+        if (this.parent instanceof objects_1.OEntity){
+            this.allowComponents = false
+            this.allowSignals = true            
+        } 
         if ((this.parent instanceof objects_1.OEntity) || (this.parent instanceof objects_1.OPackage)) this.allowGeneric = true
         if (this.parent instanceof objects_1.OPackage) this.allowPackage = true
         if (this.parent instanceof objects_1.OPackageBody) this.allowPackage = true
@@ -75,7 +78,9 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             // stop conditions: or a word, or a single letter (e.g. ')' for generic parts)
             if (lastWord.length >1) {
                 nextWord = this.getNextWord({ consume: false }).toLowerCase();
-                if (nextWord === lastWord) break;
+                if (nextWord === lastWord) {
+                    break;
+                }
             } 
             else if ((this.text[this.pos.i]===lastWord[0])&& (lastWord.length === 1)) break;
 

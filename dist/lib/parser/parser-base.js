@@ -247,14 +247,11 @@ class ParserBase {
                     if (isFunc){
                         this.expect("return")
                         const type = this.getNextWord()
-                        this.expect(";")
-                        if (!entity.functions) entity.functions = []
-                        entity.functions.push(f) 
+                        this.maybeWord(";")
+                                               
                     }   
                     else{
-                        this.expect(";")
-                        if (!entity.procedures) entity.procedures = []
-                        entity.procedures.push(f) 
+                        this.maybeWord(";")
                     }
                 }
             }
@@ -591,7 +588,8 @@ class ParserBase {
             }
             throw new objects_1.ParserError(`could not find ';'`, new objects_1.OI(this.pos.parent, start).getRangeToEndLine());
         }
-        const match = /;/.exec(this.text.substring(this.pos.i));
+        const tmptext = this.text.substring(this.pos.i).replace(/"[^"]*?"/g, match => "S".repeat(match.length))
+        const match = /;/.exec(tmptext);
         if (!match) {
             throw new objects_1.ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
         }

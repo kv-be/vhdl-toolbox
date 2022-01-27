@@ -1015,10 +1015,17 @@ class VhdlLinter {
 
 
     checkNotDeclared() {
-        const attDefs = this.tree.objectList.filter(object => object instanceof objects_1.OAttributeDef)
+        let attDefs = this.tree.objectList.filter(object => object instanceof objects_1.OAttributeDef)
+        if (this.packages.filter(p=>p.attribute_defs)){
+            for (const p of this.packages.filter(p=>p.attribute_defs)){
+                attDefs = attDefs.concat(p.attribute_defs)
+            }
+        }
+
         for (const a of this.tree.objectList.filter(object => object instanceof objects_1.OAttribute)){
             a.definition = attDefs.find(d=> d.name.text.toLowerCase() === a.name.text.toLowerCase())
             if (!a.definition){
+                
                 this.addMessage({
                     range: a.range,
                     severity: vscode_languageserver_1.DiagnosticSeverity.Error,
