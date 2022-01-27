@@ -91,7 +91,7 @@ class InstantiationParser extends parser_base_1.ParserBase {
                 this.pos.i++;
             }
             // mapping.name = mapping.name.trim();
-            if (mappingString.search(/\w+?W*\n+\W+\w+/gi)>-1){//if 
+            if (mappingString.search(/\w+?\W*[\n;]+\W+\w+/gi)>-1){//if 
                      throw new objects_1.ParserError(`Expected ',' after this port map`, new objects_1.OIRange(this.parent, start, this.getEndOfLineI(start)));
             }
             if (mappingString.trim().toLowerCase() !== 'open') {

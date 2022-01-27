@@ -22,64 +22,49 @@ class Parser extends parser_base_1.ParserBase {
         file.options.CheckStdLogicArith = null
         let disabledRangeStart = undefined;
         let ignoreRegex = [];
-        /*for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
-            let match = /(--\s*vhdl-linter)(.*)/.exec(line); // vhdl-linter-disable-next-line //vhdl-linter-disable-this-line
-            if (match) {
-                let innerMatch;
-                const nextLineRange = new objects_1.OIRange(file, new objects_1.OI(file, lineNumber + 1, 0), new objects_1.OI(file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1].length - 1));
-                if ((innerMatch = match[2].match('-disable-this-line')) !== null) {
-                    file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, new objects_1.OIRange(file, new objects_1.OI(file, lineNumber, 0), new objects_1.OI(file, lineNumber, line.length - 1))));
-                }
-                else if (match[2].includes("CheckCodingRules") ) {
-                    file.options.CheckCodingRules = match[2].toLowerCase().includes("true")
-                }
-                else if (match[2].includes("CheckProcessReset") ) {
-                    file.options.CheckProcessReset = match[2].toLowerCase().includes("true")
-                }
-                else if (match[2].includes("CheckStdLogicArith") ) {
-                    file.options.CheckStdLogicArith = match[2].toLowerCase().includes("true")
-                }
-                
-                else if ((innerMatch = match[2].match('-disable-next-line')) !== null) { // TODO: next nonempty line
-                    file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, nextLineRange));
-                }
-                else if ((innerMatch = match[2].match('-disable')) !== null) {
-                    if (disabledRangeStart === undefined) {
-                        disabledRangeStart = lineNumber;
+        if (this.originalText.search(/^--\s*vhdl_toolbox/)>-1){
+            for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
+                let match = /(--\s*vhdl_toolbox)(.*)/.exec(line); // vhdl_toolbox_disable_next_line //vhdl_toolbox_disable_this_line
+                if (match) {
+                    let innerMatch;
+                    const nextLineRange = new objects_1.OIRange(file, new objects_1.OI(file, lineNumber + 1, 0), new objects_1.OI(file, lineNumber + 1, this.originalText.split('\n')[lineNumber + 1].length - 1));
+                    if ((innerMatch = match[2].match('_disable_this_line')) !== null) {
+                        file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, new objects_1.OIRange(file, new objects_1.OI(file, lineNumber, 0), new objects_1.OI(file, lineNumber, line.length - 1))));
+                    }
+                    else if (match[2].includes("CheckCodingRules") ) {
+                        file.options.CheckCodingRules = match[2].toLowerCase().includes("true")
+                    }
+                    else if (match[2].includes("CheckProcessReset") ) {
+                        file.options.CheckProcessReset = match[2].toLowerCase().includes("true")
+                    }
+                    else if (match[2].includes("CheckStdLogicArith") ) {
+                        file.options.CheckStdLogicArith = match[2].toLowerCase().includes("true")
+                    }
+                    
+                    else if ((innerMatch = match[2].match('_disable_next_line')) !== null) { // TODO: next nonempty line
+                        file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, nextLineRange));
+                    }
+                    else if ((innerMatch = match[2].match('-disable')) !== null) {
+                        if (disabledRangeStart === undefined) {
+                            disabledRangeStart = lineNumber;
+                        }
+                    }
+                    else if ((innerMatch = match[2].match('-enable')) !== null) {
+                        if (disabledRangeStart !== undefined) {
+                            let disabledRange = new objects_1.OIRange(file, new objects_1.OI(file, disabledRangeStart, 0), new objects_1.OI(file, lineNumber, line.length - 1));
+                            file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, disabledRange));
+                            disabledRangeStart = undefined;
+                        }
                     }
                 }
-                else if ((innerMatch = match[2].match('-enable')) !== null) {
-                    if (disabledRangeStart !== undefined) {
-                        let disabledRange = new objects_1.OIRange(file, new objects_1.OI(file, disabledRangeStart, 0), new objects_1.OI(file, lineNumber, line.length - 1));
-                        file.magicComments.push(new objects_1.OMagicCommentDisable(file, objects_1.MagicCommentType.Disable, disabledRange));
-                        disabledRangeStart = undefined;
-                    }
-                }
-                else if ((innerMatch = match[2].match(/(-parameter-next-line\s+)(.*)/)) !== null) { // TODO: next nonempty line
-                    const parameter = innerMatch[2].split(/,?\s+/);
-                    // .map(parameter => {
-                    //   const innerInnerMatch = new RegExp(String.raw`\b${escapeStringRegexp(parameter)}\b`, 'i').exec((innerMatch as RegExpMatchArray)[2]);
-                    //   console.log(String.raw`\b${escapeStringRegexp(parameter)}\b`);
-                    //   if (!innerInnerMatch) {
-                    //     throw new Error('FUCK');
-                    //   }
-                    //   const startCharacter = (match as RegExpExecArray)[1].length + (innerMatch as RegExpMatchArray)[1].length + innerInnerMatch.index;
-                    //   const read = new ORead(file, new OI(file, lineNumber, startCharacter).i, new OI(file, lineNumber, startCharacter + innerInnerMatch.length - 1).i);
-                    //   read.text = parameter;
-                    //   return read;
-                    // });
-                    file.magicComments.push(new objects_1.OMagicCommentParameter(file, objects_1.MagicCommentType.Parameter, nextLineRange, parameter));
-                }
-                else if ((innerMatch = match[2].match(/-ignore\s+\/([^\/]*)\/(.)?/)) !== null) {
-                    ignoreRegex.push(RegExp(innerMatch[1], innerMatch[2]));
+                match = /(--\s*)(.*TODO.*)/.exec(line);
+                if (match) {
+                    const todoRange = new objects_1.OIRange(file, new objects_1.OI(file, lineNumber, line.length - match[2].length), new objects_1.OI(file, lineNumber, line.length));
+                    file.magicComments.push(new objects_1.OMagicCommentTodo(file, objects_1.MagicCommentType.Todo, todoRange, match[2].toString()));
                 }
             }
-            match = /(--\s*)(.*TODO.*)/.exec(line);
-            if (match) {
-                const todoRange = new objects_1.OIRange(file, new objects_1.OI(file, lineNumber, line.length - match[2].length), new objects_1.OI(file, lineNumber, line.length));
-                file.magicComments.push(new objects_1.OMagicCommentTodo(file, objects_1.MagicCommentType.Todo, todoRange, match[2].toString()));
-            }
-        }*/
+
+        }
         for (const regex of ignoreRegex) {
             const ignores = this.text.match(regex);
             if (ignores === null)
@@ -172,12 +157,20 @@ class Parser extends parser_base_1.ParserBase {
                 this.pos.i++;
             }
         }
+
+        // to support files with packages and entities or only architectures the following it needed
+        // - copy the libraries and uses to entity, architecture, package iso file and reset them when a package/architecure is done
+        // - remove the else if below
+        // - check for if file.architecture iso if file instanceof OFileWithEntityAndArchitecture
+        // - for the libs: indicate when they are used in e.g. a package or so. When detecting again the 'library' word 
+        //   and the used flag is set, the libs and uses are cleared and built again
+        
         if (architecture || entity) { // TODO : support files with only architectures!
             Object.setPrototypeOf(file, objects_1.OFileWithEntityAndArchitecture.prototype);
             if (architecture) file.architecture = architecture;
             if (entity) file.entity = entity;
         }
-        else if (packages.length > 0) {
+        if (packages.length > 0) {
             Object.setPrototypeOf(file, objects_1.OFileWithPackages.prototype);
             file.packages = packages;
         }

@@ -212,11 +212,12 @@ class StatementParser extends parser_base_1.ParserBase {
             }
         }
         else if (allowedStatements.includes(StatementTypes.Assignment)) { // TODO  others
-            let text = this.advanceSemicolon(true, false);
+            let text = this.advanceSemicolon(false, false); // we don't care about braces, so we can detect a badly placed ; easier!
+            //let text = this.advanceSemicolon(true, false);
             text =  text.replace(/\([^\)]*?\)/g, "\(stuff\)")
             text =  text.replace(/".+?"/g, match => "S".repeat(match.length))
             
-            if (text.match(/\w+\s*[<:]*=\s*[\w\d\('\)]+/)){ // made the : and < optional to detect common mistake a = 6 iso a <= 6
+            if (text.match(/[\w\d\('\)]+\s*[<:]*=\s*[\w\d\('\)]+/)){ // made the : and < optional to detect common mistake a = 6 iso a <= 6
             // assignment foun>
                 const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, this.parent);
                 const assignment = assignmentParser.parse();

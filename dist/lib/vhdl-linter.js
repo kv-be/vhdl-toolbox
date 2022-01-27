@@ -931,7 +931,7 @@ class VhdlLinter {
                             exp_sensi = exp_sensi.concat(process.reset_signal)
                             const missing = []
                             for (const e of exp_sensi){
-                                if (process.getSensitivityList().search(new RegExp(`\\b${e}\\b`))===-1){
+                                if (process.getSensitivityList().search(new RegExp(`\\b${e}\\b`, "i"))===-1){
                                     missing.push(e)
                                 }
                             }
