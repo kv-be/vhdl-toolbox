@@ -325,6 +325,7 @@ class ParserBase {
         defaultValue = defaultValue.trim();
         const typename = type.trim()
         type = this.extractReads(parent, type.trim(), start)
+        if (defaultValue) this.extractReads(parent, defaultValue, startI)
         /*if (defaultValue !=="") defaultValue = this.extractReads(parent, defaultValue, startI)
         this.reverseWhitespace()
         const last = this.text[this.pos.i-1]
