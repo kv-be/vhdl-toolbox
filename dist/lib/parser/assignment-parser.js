@@ -24,7 +24,8 @@ class AssignmentParser extends parser_base_1.ParserBase {
         
         this.pos.i += 2;
         let rightHandSideI = this.pos.i;
-        const rightHandSide = this.advanceSemicolon(); // removed final semicolon to support the when - else constructs
+        let rightHandSide = this.advanceSemicolon(); // removed final semicolon to support the when - else constructs
+        rightHandSide = rightHandSide.replace(/[\w\d\.]*?\s*=>\s*/g, match => " ".repeat(match.lentgh)) // to support explicitly mapped procedure/function ports
         assignment.reads.push(...this.extractReads(assignment, rightHandSide, rightHandSideI));
         assignment.range.end.i = this.pos.i;
         return assignment;

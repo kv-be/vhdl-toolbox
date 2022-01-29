@@ -1616,7 +1616,7 @@ class VhdlLinter {
                     //console.log("range = " + instantiation.range.start.i + " - " + instantiation.range.end.i)
                     this.addMessage({
                         range: new objects_1.OIRange(instantiation, instantiation.range.start.i,instantiation.range.start.i+instantiation.text.indexOf('\n')),
-                        severity: vscode_languageserver_1.DiagnosticSeverity.Error,
+                        severity: vscode_languageserver_1.DiagnosticSeverity.Warning,
                         message: `can not find entity ${instantiation.componentName}`
                     });
                 }
