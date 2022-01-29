@@ -72,6 +72,9 @@ class InstantiationParser extends parser_base_1.ParserBase {
                 throw new objects_1.ParserError(`Expected an actual in this port map`, new objects_1.OIRange(this.parent, mappingNameI, this.getEndOfLineI(mappingNameI)));
             }
             mapping.name = this.extractReads(mapping, this.getNextWord({ re: /^[^=]+/ }), mappingNameI, true);
+            if (mapping.name.text === 'end'){
+                throw new objects_1.ParserError("Probably forgot closing ')' at the end of the mapping", this.getRangeToEndLine())
+            }
             for (const namePart of mapping.name) {
                 Object.setPrototypeOf(namePart, objects_1.OMappingName.prototype);
             }

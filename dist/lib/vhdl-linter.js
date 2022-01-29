@@ -21,6 +21,7 @@ class VhdlLinter {
         this.onlyDeclarations = onlyDeclarations;
         this.messages = [];
         this.packages = [];
+        this.messages = [];
         this.diagnosticCodeActionRegistry = [];
         this.commandCallbackRegistry = [];
         this.global_options = projectParser.get_options();

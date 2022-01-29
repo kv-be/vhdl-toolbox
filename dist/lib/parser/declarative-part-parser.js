@@ -69,12 +69,27 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         return false
     }
 
+    check_semicolon(check){
+        const keywords = ['signal', 'constant', 'shared', 'variable', 'impure', 'pure', 'function', 'procedure', 'file', 'type', 'begin', 'attribute', 'subtype', 'alias', 'component', 'package']
+        let hits = 0
+        for (const k of keywords){
+            if (check.match(new RegExp(`\\n\\s*${k}\\b`, "g")) ){
+                hits +=[...check.matchAll(new RegExp(`\\n\\s*${k}\\b`, "g"))].length;
+            }
+        }
+        if (hits > 0){
+            throw new objects_1.ParserError("probably forgot ending ';' at the end of the line", this.pos.getRangeToEndLine())
+        }                   
+
+    }
 
     parse(optional = false, lastWord = 'begin', single_thing = false) {
         //console.log('** starting declarative parser')
         let nextWord = this.getNextWord({ consume: false }).toLowerCase();
+
+        
         while (true){ 
-            
+            let check = this.text.substr(this.pos.i, this.text.substr(this.pos.i).search(/;|return\b.*?\bis\b|\bis\s+protected\b/i)+1)
             // stop conditions: or a word, or a single letter (e.g. ')' for generic parts)
             if (lastWord.length >1) {
                 nextWord = this.getNextWord({ consume: false }).toLowerCase();
@@ -84,7 +99,9 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             } 
             else if ((this.text[this.pos.i]===lastWord[0])&& (lastWord.length === 1)) break;
 
+            let hits = 0
             if (nextWord === 'signal' || nextWord === 'constant' || nextWord === 'shared' || nextWord === 'variable') {
+                this.check_semicolon(check) 
                 const signals = this.parse_signals(nextWord, this.parent)
                 if (this.parent instanceof objects_1.OPackage || this.parent instanceof objects_1.OPackageBody) {
                     this.parent.constants.push(...signals);
@@ -98,6 +115,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             }
             else if (nextWord === 'attribute') { // also in entities!!
                 // add an attribute object and store the different types
+                this.check_semicolon(check) 
                 const start = this.pos.i
                 this.getNextWord(); // consume attribute
                 let startName = this.pos.i
@@ -137,11 +155,13 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
 
             }
             else if (nextWord === 'subtype') {
+                this.check_semicolon(check) 
                 const subtypeParser = new subtype_parser_1.SubtypeParser(this.text, this.pos, this.file, this.parent);
                 const type = subtypeParser.parse();
                 this.parent.types.push(type);
             }
             else if (nextWord === 'alias') {                    //ALIAS std_bit IS STD.STANDARD.BIT ;
+                this.check_semicolon(check) 
                 const alias = new objects_1.OSignal(this.parent, this.pos.i, this.getEndOfLineI());
                 this.getNextWord()
                 const startI = this.pos.i;
@@ -215,6 +235,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 this.advanceSemicolon();
             }
             else if (nextWord === 'file') {
+                this.check_semicolon(check) 
                 if (!this.allowFile){
                     let scope = this.parent.constructor.name.substring(1)
                     throw new objects_1.ParserError(`No file declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(start).search(/\n/)));                                            

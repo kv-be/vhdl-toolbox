@@ -4,8 +4,24 @@ const assignment_parser_1 = require("./assignment-parser");
 const objects_1 = require("./objects");
 const parser_base_1 = require("./parser-base");
 class ProcessLikeParser extends parser_base_1.ParserBase {
+    check_semicolon(check){
+        const keywords = ['signal', 'constant', 'shared', 'variable', 'impure', 'pure', 'function', 'procedure', 'file', 'type', 'begin', 'attribute', 'subtype', 'alias', 'component', 'package']
+        let hits = 0
+        for (const k of keywords){
+            if (check.match(new RegExp(`\\n\\s*${k}\\b`, "g")) ){
+                hits +=[...check.matchAll(new RegExp(`\\n\\s*${k}\\b`, "g"))].length;
+            }
+        }
+        if (hits > 0){
+            throw new objects_1.ParserError("probably forgot ending ';' at the end of the line", this.pos.getRangeToEndLine())
+        }                   
+
+    }
+
+
     parseStatements(parent, exitConditions) {
         const statements = [];
+        let check = this.text.substr(this.pos.i, this.text.substr(this.pos.i).search(/;|return\b.*?\bis\b|\bis\s+protected\b/i)+1)
         while (this.pos.i < this.text.length) {
             let nextWord = this.getNextWord({ consume: false });
             let label;
@@ -62,6 +78,7 @@ class ProcessLikeParser extends parser_base_1.ParserBase {
                 this.advancePast(';');
             }
             else if (statementText.replace(/\([^\)]*?\)/, "\(stuff\)").match(/:=|<=/)){
+                this.check_semicolon(check)
                 const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, parent);
                 let stats = assignmentParser.parse()
                 statements.push(stats);

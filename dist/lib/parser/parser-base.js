@@ -133,7 +133,9 @@ class ParserBase {
             }
             else {
                 const next = this.getNextWord({ consume: false }).toLowerCase();
-
+                if (next === "end"){
+                    throw new objects_1.ParserError("Probably forgot closing ')' in mapping", this.pos.getRangeToEndLine())
+                }
                 if (next === 'signal' || next === 'variable' || next === 'constant' || next === 'file') {
                     this.getNextWord();
                 }
@@ -184,7 +186,7 @@ class ParserBase {
                     }
             
                     ports = ports.concat(multiports)
-                    this.maybeWord(";")
+                    //this.maybeWord(";")
 /*
 
                     if (port instanceof objects_1.OPort) {
@@ -300,6 +302,10 @@ class ParserBase {
                 this.pos.i++;
             }
         }
+        if (defaultValue.indexOf(":")>-1){
+            this.pos.i = startI
+            throw new objects_1.ParserError(`Expected ';' at end of a port declaration`, this.pos.getRangeToEndLine())
+        }
         this.reverseWhitespace();
         const endI = this.pos.i;
         this.advanceWhitespace();
@@ -319,7 +325,15 @@ class ParserBase {
         defaultValue = defaultValue.trim();
         const typename = type.trim()
         type = this.extractReads(parent, type.trim(), start)
-        if (defaultValue !=="") defaultValue = this.extractReads(parent, defaultValue, startI)
+        /*if (defaultValue !=="") defaultValue = this.extractReads(parent, defaultValue, startI)
+        this.reverseWhitespace()
+        const last = this.text[this.pos.i-1]
+        this.advanceWhitespace()
+        const next = this.text[this.pos.i]
+        if ((last!==";") && (next !== ')')){
+            throw new objects_1.ParserError(`Forgot ';' at end of this port`, this.pos.getRangeToEndLine())            
+        }*/
+        
         return {
             type,
             defaultValue,
@@ -622,7 +636,7 @@ class ParserBase {
                 return word;
             }
             re = this.searchpatToString(re)
-            throw new objects_1.ParserError(`did not find "${re}" at the end of the line: ${this.getLine()}`, this.pos.getRangeToEndLine());
+            throw new objects_1.ParserError(`did not find a word but ${this.text.substr(this.pos.i,1)}`, this.pos.getRangeToEndLine());
             
         }
         let word = '';
@@ -719,7 +733,17 @@ class ParserBase {
         else {
             //const lines = [...this.text.substring(startI, savedI).matchAll(/\n/g)]
             let startline =this.getLine()
-            throw new objects_1.ParserError(`expected '${expected.join(' or ')}' found '${this.getNextWord({ re: /^\S+/ })}' line: ${this.getLine()}`, new objects_1.OIRange(this.parent, startI, endI));
+            this.reverseWhitespace()
+            startI = this.pos.i;
+            this.advanceWhitespace()
+            let nextword = ""
+            try{
+                nextword = this.getNextWord({ re: /^\S+/ }, {comsume : false})
+            }
+            catch (e){
+                nextword = ""
+            }            
+            throw new objects_1.ParserError(`expected '${expected.join(' or ')}' found '${nextword}' line: ${this.getLine()}`, new objects_1.OIRange(this.parent, startI, endI));
         }
         return savedI;
     }

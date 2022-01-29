@@ -73,7 +73,7 @@ class ArchitectureParser extends parser_base_1.ParserBase {
                 if (this.name) {
                     this.maybeWord(this.name);
                 }
-                this.expect(';');
+                this.expectDirectly(';');
                 break;
             }
             const statementParser = new statement_parser_1.StatementParser(this.text, this.pos, this.file, this.architecture);

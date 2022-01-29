@@ -21,10 +21,33 @@ class PackageParser extends parser_base_1.ParserBase {
                 this.expect('is');
                 const declarativePartParser = new declarative_part_parser_1.DeclarativePartParser(this.text, this.pos, this.file, pkg);
                 declarativePartParser.parse(false, 'end');
-                this.maybeWord('package');
-                this.maybeWord('body');
-                this.maybeWord(pkg.name);
-                this.advanceSemicolon();
+                this.expect("end")
+                const bef = new objects_1.OI(pkg, this.pos.i)
+                const resttext = this.advanceSemicolon().toLowerCase();
+                const rest = resttext.trim().split(" ")
+                const l = rest.length
+                if ((l === 1)){
+                    if (!( rest[0] === pkg.name.toLowerCase()) ) {
+                        throw new objects_1.ParserError(`Expect 'end package body ${pkg.name}' or 'end ${pkg.name}'`, bef.getRangeToEndLine())
+    
+                    }
+                    
+                } 
+                else if (l <= 2){
+                    if (!(( rest[0] === "package") && (rest[1] === "body"))) {
+                        throw new objects_1.ParserError(`Expected 'package body ${pkg.name}' here`, bef.getRangeToEndLine())                    
+                    }
+                }
+                else if (l === 3){
+                    if ((rest[0].toLowerCase() !== "package") || (rest[1].toLowerCase() !== "body")|| (rest[2].toLowerCase() !== pkg.name.toLowerCase())){
+                        throw new objects_1.ParserError(`Expected 'package body ${pkg.name}' here`, bef.getRangeToEndLine())                    
+                    }
+                }
+                else{
+                    throw new objects_1.ParserError("forgot ';' at the end of the package body?", bef.getRangeToEndLine())
+
+
+                }
                 return pkg;
             }
             else{
@@ -61,9 +84,27 @@ class PackageParser extends parser_base_1.ParserBase {
             }
             const declarativePartParser = new declarative_part_parser_1.DeclarativePartParser(this.text, this.pos, this.file, pkg);
             declarativePartParser.parse(false, 'end');
-            this.maybeWord('package');
+            this.expect("end")
+            const bef = new objects_1.OI(pkg, this.pos.i)
+            const resttext = this.advanceSemicolon();
+            const rest = resttext.trim().split(" ")
+            const l = rest.length
+            if ((l === 1) ){
+                if ((rest[0].toLowerCase() !== pkg.name.toLowerCase())&&(rest[0].toLowerCase() !== "package")){
+                    throw new objects_1.ParserError(`Expected 'end package ${pkg.name}' here 'end ${pkg.name}'`, bef.getRangeToEndLine())
+                }
+            } 
+            else if (l === 2){
+                if ((rest[0].toLowerCase() !== "package") || (rest[1].toLowerCase() !== pkg.name.toLowerCase())){
+                    throw new objects_1.ParserError(`Expected 'package ${pkg.name}' here`, bef.getRangeToEndLine())                    
+                }
+            } else if (l > 2){
+                throw new objects_1.ParserError("forgot a ';' at the end of the package?",  bef.getRangeToEndLine())                    
+            }
+    /*        this.maybeWord('package');
             this.maybeWord(pkg.name);
-            this.advanceSemicolon();
+            //this.expectDirectly(";")
+            this.advanceSemicolon();*/
             return pkg;
         }
     }
