@@ -20,6 +20,10 @@ class Parser extends parser_base_1.ParserBase {
         file.options.CheckCodingRules = null
         file.options.CheckProcessReset = null
         file.options.CheckStdLogicArith = null
+        file.options.CheckClockCrossing = true
+        file.options.CheckClockCrossingStart = 0
+        file.options.CheckClockCrossingEnd = 0
+        
         let disabledRangeStart = undefined;
         let ignoreRegex = [];
         if (this.originalText.search(/\n\s*--\s*vhdl_toolbox/)>-1){
@@ -39,6 +43,11 @@ class Parser extends parser_base_1.ParserBase {
                     }
                     else if (match[2].includes("check_std_logic_arith") ) {
                         file.options.CheckStdLogicArith = match[2].toLowerCase().includes("true")
+                    }
+                    else if (match[2].includes("check_clock_crossing") ) {
+                        file.options.CheckClockCrossing = !match[2].toLowerCase().includes("false")
+                        if (!file.options.CheckClockCrossing) file.options.CheckClockCrossingStart = lineNumber
+                        else file.options.CheckClockCrossingEnd = lineNumber
                     }
                     
                     else if ((innerMatch = match[2].match('_disable_next_line')) !== null) { // TODO: next nonempty line

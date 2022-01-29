@@ -7,7 +7,7 @@ const vscode_languageserver_1 = require("vscode-languageserver");
 const utils = require("./utils");
 const { threadId } = require("worker_threads");
 const { thenable } = require("vscode-languageserver/lib/utils/is");
-const { isThisTypeNode } = require("typescript");
+const { isThisTypeNode, textChangeRangeIsUnchanged } = require("typescript");
 const { throws } = require("assert");
 var LinterRules;
 (function (LinterRules) {
@@ -115,7 +115,8 @@ class VhdlLinter {
             arguments: [textDocumentUri, counter]
         };
     }
-    checkMagicComments(range, rule, parameter) {
+    checkMagicComments(diagnostic, rule, parameter) {
+        const range = diagnostic.range
         const matchingMagiComments = this.tree.magicComments.filter(magicComment => (magicComment.range.start.character <= range.start.character && magicComment.range.start.line <= range.start.line &&
             magicComment.range.end.character >= range.start.character && magicComment.range.end.line >= range.start.line) || (magicComment.range.start.character <= range.end.character && magicComment.range.start.line <= range.end.line &&
                 magicComment.range.end.character >= range.end.character && magicComment.range.end.line >= range.end.line)).filter(magicComment => {
@@ -141,7 +142,7 @@ class VhdlLinter {
         });
     }
     addMessage(diagnostic, rule, parameter) {
-        if (this.checkMagicComments(diagnostic.range, rule, parameter)) {
+        if (this.checkMagicComments(diagnostic, rule, parameter)) {
             this.messages.push(diagnostic);
         }
     }
@@ -651,7 +652,7 @@ class VhdlLinter {
             this.checkNotDeclared();
             this.checkLibrary();
             this.checkTodos();
-            this.checkClkCrossing();
+            if (this.tree.options.CheckClockCrossing) this.checkClkCrossing();
             if (this.tree instanceof objects_1.OFileWithEntityAndArchitecture) {
                 this.checkResets();
                 this.checkUnused(this.tree.architecture, this.tree.entity);
@@ -1579,12 +1580,18 @@ class VhdlLinter {
                     }
                     for (const r of reads){
                         if (wr.includes(r.text)){
-                            this.addMessage({
-                                range: r.range,
-                                severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                                message: `Signal ${r.text} is written on clock ${clk} and read on clock ${proc.clock}`,
-                            });
+                            if ((this.tree.options.CheckClockCrossingStart !== 0) && (this.tree.options.CheckClockCrossingEnd !== 0)){
+                                if ((this.tree.options.CheckClockCrossingStart > r.range.start.line) || (this.tree.options.CheckClockCrossingEnd < r.range.end.line)){
+                                    this.addMessage({
+                                        range: r.range,
+                                        severity: vscode_languageserver_1.DiagnosticSeverity.Error,
+                                        message: `Signal ${r.text} is written on clock ${clk} and read on clock ${proc.clock}`,
+                                    });
+        
                                 }
+    
+                            }
+                        }
                     }
                 }   
             }

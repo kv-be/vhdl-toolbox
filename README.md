@@ -76,20 +76,11 @@ The linter doesn't need any configuration file if the code is written as describ
 ### Magical comments
 The linter supports the following "magical comments" in a VHDL file. It can be put anywhere in the file.
 ```
---vhdl-linter-coding_rules true/false   : to enable (true) or disable (false) the code rule checkings in the current file
---vhdl-linter-missing_resets_detected true/false  : to enable (true) or disable (false) the error stating that a signal is not reset
---vhdl-linter-std_logic_arith_forbidden true/false : to enable (true) or disable (false) the error on the use of std_logic_arith_forbidden/unsigned
+--vhdl_toolbox_check_coding_rules true/false   : to enable (true) or disable (false) the code rule checkings in the current file
+--vhdl_toolbox_check_process_reset true/false  : to enable (true) or disable (false) the error stating that a signal is not reset 
+--vhdl_toolbox_check_std_logic_arith true/false : to enable (true) or disable (false) the error on the use of std_logic_arith_forbidden/unsigned
+--vhdl_toolbox_check_clock_crossing true/false : to enable (true) or disable (false) the clock crossings. Can also be used on a part of the file: the part between the false and true won't be checked.
 ```
-### Config file
-To define these settings for all files, one can add a file named 'vhdl-linter.json' to the root directory. This file should contain the following :
-```
-{
-   "coding_rules"              : true,
-   "missing_resets_detected"   : true,
-   "std_logic_arith_forbidden" : true
-}
-```
-Where each option can be set to true/false. A template of this file can be found in the root directory of the extension right here: [./vhdl-linter.json](./vhdl-linter.json)
 
 # Known issues/limitations
 - when a lot of VHDL files are detected, the colorization of the files (yellow for warnings, red for errors, blue for information only) is not working correctly

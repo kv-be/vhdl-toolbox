@@ -31,6 +31,8 @@ class InstantiationParser extends parser_base_1.ParserBase {
             this.expect(")")
         }
         while (this.text[this.pos.i] !== ';') {
+            const pos = Object.assign({}, this.pos)
+            Object.setPrototypeOf(pos, objects_1.OI.prototype)
             const savedI = this.pos.i;
             nextWord = this.getNextWord().toLowerCase();
             //       console.log(nextWord, 'nextWord');
@@ -44,6 +46,10 @@ class InstantiationParser extends parser_base_1.ParserBase {
                 this.expect('map');
                 this.expect('(');
                 instantiation.genericMappings = this.parseMapping(savedI, instantiation, true);
+            }
+            else{
+                // if next word is not port or generic, then there is probably a ';' missing
+                throw new objects_1.ParserError(`Looks like a missing ';' at the end of the port/generic mapping`, pos.getRangeToEndLine());
             }
             if (lastI === this.pos.i) {
                 throw new objects_1.ParserError(`Parser stuck on line ${this.getLine} in module ${this.constructor.name}`, this.pos.getRangeToEndLine());
@@ -83,7 +89,7 @@ class InstantiationParser extends parser_base_1.ParserBase {
             let mappingString = '';
             let braceLevel = 0;
             let start = this.pos.i
-            while (this.text[this.pos.i].match(/[,)]/) === null || braceLevel > 0) {
+            while (this.text[this.pos.i].match(/[,);]/) === null || braceLevel > 0) {
                 mappingString += this.text[this.pos.i];
                 if (this.text[this.pos.i] === '(') {
                     braceLevel++;
@@ -92,6 +98,9 @@ class InstantiationParser extends parser_base_1.ParserBase {
                     braceLevel--;
                 }
                 this.pos.i++;
+            }
+            if (this.text[this.pos.i-1]=== ";"){
+                throw new objects_1.ParserError(`Looks like a missing ')' at the end of the port/generics map`,this.pos.getRangeToEndLine())
             }
             // mapping.name = mapping.name.trim();
             if (mappingString.search(/\w+?\W*[\n;]+\W+\w+/gi)>-1){//if 
@@ -123,10 +132,13 @@ class InstantiationParser extends parser_base_1.ParserBase {
                 }
             }
             else if (this.text[this.pos.i] === ')') {
-                this.pos.i++;
+                this.expect(")")
                 map.range.end.i = this.pos.i;
                 this.advanceWhitespace();
                 break;
+            }
+            else{
+                throw new objects_1.ParserError(`Looks like a missing ')' at the end of the port/generics map`,this.pos.getRangeToEndLine())
             }
         }
         return map;
