@@ -6,6 +6,7 @@ const process_parser_1 = require("./process-parser");
 const assignment_parser_1 = require("./assignment-parser");
 const instantiation_parser_1 = require("./instantiation-parser");
 const architecture_parser_1 = require("./architecture-parser");
+const process_like_parser_1 = require("./process-like-parse")
 const { throws } = require("assert");
 var StatementTypes;
 (function (StatementTypes) {
@@ -197,18 +198,21 @@ class StatementParser extends parser_base_1.ParserBase {
                     }
                 }
                 while (tmp)
-                const procedureInstantiation = new objects_1.OProcedureInstantiation(this.parent, this.pos.i, this.pos.i);
+                const parser = new process_like_parser_1.ProcessLikeParser(this.text, this.pos, this.file) 
+                this.parent.statements.push(parser.parseProcedureCall(this.parent));
+                
+                /*const procedureInstantiation = new objects_1.OProcedureInstantiation(this.parent, this.pos.i, this.pos.i);
                 procedureInstantiation.name = this.getNextWord();
                 this.expect('(');
                 const startI = this.pos.i;
-                const text = this.advanceBrace()
+                let text = this.advanceBrace()
                 if (text.includes("=>")){
-                    this.text.replace(/^.*?=>/g, "")
+                    text =text.replace(/^.*?=>/g, "")
                 }
                 procedureInstantiation.tokens = this.extractReads(procedureInstantiation, text, startI);
                 procedureInstantiation.range.end.i = this.pos.i;
                 this.parent.statements.push(procedureInstantiation);
-                this.expect(';');    
+                this.expect(';');   */ 
             }
         }
         else if (allowedStatements.includes(StatementTypes.Assignment)) { // TODO  others
