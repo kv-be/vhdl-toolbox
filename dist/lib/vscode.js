@@ -113,6 +113,13 @@ function activate(context) {
         const text = basicInput_1.addsignal(args)
 
     }));
+	context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:allign_whatever', function () {
+		// The code you place here will be executed every time your command is executed
+
+		// Display a message box to the user
+        const text = get_allignment_string()
+ 
+	}));
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:declare-enum-type', async (args) => {
 
         const editor = vscode_1.window.activeTextEditor;
@@ -143,25 +150,78 @@ function activate(context) {
         let success = await vscode_1.workspace.applyEdit(edit);    
         
     }));
+    
 	let hovering = vscode_1.languages.registerHoverProvider({ pattern: '**' }, {
         provideHover(document, position, token) {
 
-			/*const range = document.getWordRangeAtPosition(position);
+			const range = document.getWordRangeAtPosition(position);
             
-			let word = document.getText().substring(document.offsetAt(range.start), document.offsetAt(range.end))
-            client.sendRequest("custom/data", JSON.stringify({"position":position, "uri":document.uri._formatted})).then(data => console.log(data));
-            const popup = new vscode_1.MarkdownString(`${word}\n\n----------------------\n[een link](${document.uri})`, true)
+			let word = ""
+			let char = document.getText()[document.offsetAt(position)]
+			let index = 0
+			while (char.search(/[0-9a-f_x"]+/i)>-1){
+				word += char
+				index +=1
+				char = document.getText()[document.offsetAt(position)+index]
+			};
+			char = document.getText()[document.offsetAt(position)-1]
+			index = -1
+			while (char.search(/[0-9a-f_x"]+/i)>-1){
+				word = char + word
+				index -=1
+				char = document.getText()[document.offsetAt(position)+index]
 
-            return new vscode_1.Hover(popup, new vscode_1.Range(position, position));*/
-            
-            /*return new vscode_1.Hover({
-                language: "VHDL",
-                value: popup
-            });*/
+			};
+			word =word.replace(/_/g, "")
+			let hex = "" 
+			let bin = ""
+			let dec = 0
+			if (word.toLowerCase().startsWith('b"') ||word.toLowerCase().startsWith('"') || word.toLowerCase().startsWith('0b')){
+				// assume binary as "011010"
+				word = word.replace(/"/g, "")
+				word = word.toLowerCase().replace('0b', '')
+				word = word.toLowerCase().replace('b', '')
+				dec = parseInt(word, 2);
+			} 
+			else if (word.toLowerCase().startsWith('x"')|| word.toLowerCase().startsWith('0x')){
+				// assume hex
+				word = word.replace(/"/g, "")
+				word = word.toLowerCase().replace('0x','')
+				word = word.toLowerCase().replace('x', '')
+				dec = parseInt(word, 16);
+			} 
+			else {// assume integer
+				dec = parseInt(word, 10)
+				if (isNaN(dec )) return
+			}
+			hex = dec.toString(16);
+			bin = dec.toString(2);
+            if ((bin === 'NaN') || (hex === 'NaN')) return
+			let hhex = insert_separators(hex, "_", 4)
+			let bbin = insert_separators(bin, "_", 4)
+			let ddec = insert_separators(`${dec}`, " ", 3)
+			let popup = ""
+
+			hhex = hhex.replace(/^_/g, '')
+			bbin = bbin.replace(/^_/g, '')
+			ddec = ddec.replace(/^ /g, '')
+
+			if ((dec < 128)&&(dec > 39)){
+				popup = `dec  : ${ddec}\nhex  : ${hhex}\nbin  : ${bbin}\nchar : `+String.fromCharCode(dec)
+			}
+			else{
+				popup = `dec : ${ddec}\nhex : ${hhex}\nbin : ${bbin}`
+			}
+
+                return new vscode_1.Hover({
+                    language: "VHDL",
+                    value: popup
+                });
             //}
         }
     });	
 
+    
 
     const hierarchyView = new hierarchyTree_1.HierarchyDataProvider(HierarchyList)
     vscode_1.window.registerTreeDataProvider('HierarchyView', hierarchyView);
@@ -216,7 +276,96 @@ function activate(context) {
 
 
     }));
+    function insert_separators(string, separator, size){
+        let hhex
+        let bbin
+        if (string.length > size){
+            const start = string.length %size
+            let i = 0
+            hhex = string.substring(0, start)
+            while(i <= string.length/size){
+                hhex += (separator + string.substring(i*size+start, (i+1)*size+start))
+                i+=1
+            }
+            hhex = hhex[hhex.length-1]===separator? hhex.substring(0, hhex.length-1) : hhex
+        }
+        else hhex = string
+        return hhex
+    }
+    
+    
+    function allign_whatever(pattern, text){
+        let max = 0
+        let pos = 0
+        if (pattern.startsWith('/')&&pattern.endsWith('/')){
+            if (pattern.substring(1, pattern.length-1).indexOf("\\n")>0){
+                vscode_1.window.showErrorMessage("new line characters not supported in regular expressions to align")
+                return
+            }
+            if (pattern.substring(1, pattern.length-1).indexOf("\\n")===-1){
+                pattern = new RegExp(pattern.substring(1, pattern.length-1))
+            }
+            else{
+                pattern =pattern.substring(1, pattern.length-1)
+            }
+        }
+        if (pattern === '\\n'){
+            for (const l of text.split("\n")){
+                pos = l.length
+                if (max < pos) max = pos
+                pattern = '\r'
+            }	
+        }else{
+            for (const l of text.split("\n")){
+                pos = l.search(pattern)
+                if (max < pos) max = pos
+            }	
+        }
+        let nt = ""
+        for (const l of text.split("\n")){
+            let start = l.search(pattern)
+            if (start > 0){
+                nt += (l.substring(0, start)+" ".repeat(max-start)+l.substring(start)+"\n")
+            }
+            else if (start === 0){
+                nt += (" ".repeat(max-l.length)+l.substring(start)+"\n")
+            }else{
+                nt+=(l+"\n")
+            }
+        }
+        return nt
+    }
+    
+    async function get_allignment_string() {
+        let type = await vscode_1.window.showInputBox({
+            value: '=>',
+            prompt: 'Give alignment string (can be reg ex)',   
+        });
+        if (!type) {
+            return;
+        }
+        const editor = vscode_1.window.activeTextEditor;
+    
+        if (editor) {
+            const document = editor.document;
+            const selection = editor.selection;
+    
+            // Get the word within the selection
+            let max = 0
+            const word = document.getText(selection);
+            const newtext = allign_whatever(type, word)
+            editor.edit(editBuilder => {
+                editBuilder.replace(selection, newtext)
+            });
+        }
+    
+    }
 }
+
+
+
+
+
 exports.activate = activate;
 function deactivate() {
     if (!client) {
