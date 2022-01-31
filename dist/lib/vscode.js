@@ -152,7 +152,7 @@ function activate(context) {
     }));
     
 	let hovering = vscode_1.languages.registerHoverProvider({ pattern: '**' }, {
-        provideHover(document, position, token) {
+        /*provideHover(document, position, token) {
 
 			const range = document.getWordRangeAtPosition(position);
             
@@ -218,7 +218,7 @@ function activate(context) {
                     value: popup
                 });
             //}
-        }
+        }*/
     });	
 
     
@@ -312,6 +312,7 @@ function activate(context) {
         if (pattern === '\\n'){
             for (const l of text.split("\n")){
                 pos = l.length
+                if (l === '\r') pos = pos-1
                 if (max < pos) max = pos
                 pattern = '\r'
             }	

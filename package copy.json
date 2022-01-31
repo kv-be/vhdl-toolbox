@@ -1,12 +1,26 @@
 {
-    "name": "vhdl-toolbox",
-    "displayName": "vhdl-toolbox",
-    "description": "Toolbox for VHDL designers",
-    "version": "0.0.1",
-    "engines": {
-        "vscode": "^1.63.0"
-    },
+	"name": "vhdl-toolbox",
+	"publisher": "kv-be",
+	"main": "./dist/lib/vscode.js",
+	"version": "0.1.1",
+	"description": "A toolbox for VHDL designers",
+	"keywords": [],
+	"engines": {
+		"vscode": "^1.39.0"
+	},
 	"contributes": {
+
+		"views": {
+			"explorer": 
+		     	[
+				{
+					"id": "HierarchyView",
+					"name": "HierarchyView"
+				}
+
+			]
+		},
+
 		"languages": [
 			{
 				"id": "vhdl",
@@ -39,117 +53,177 @@
 		"keybindings": [
 			{
 				"key": "ctrl+alt+c ctrl+alt+s",
-				"command": "vhdl-linter:copy-as-signals",
+				"command": "VHDL-Toolbox:copy-as-signals",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+i",
-				"command": "vhdl-linter:copy-as-instance",
+				"command": "VHDL-Toolbox:copy-as-instance",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+t",
-				"command": "vhdl-linter:copy-tree",
+				"command": "VHDL-Toolbox:copy-tree",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+l",
-				"command": "vhdl-linter:copy-file-listing",
+				"command": "VHDL-Toolbox:copy-file-listing",
+				"when": "editorLangId == vhdl"
+			},
+			{
+				"key": "ctrl+alt+d ctrl+alt+s",
+				"command": "VHDL-Toolbox:add-signal",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+d ctrl+alt+a",
-				"command": "vhdl-linter:add-signal",
+				"command": "VHDL-Toolbox:allign_whatever",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+d ctrl+alt+d",
-				"command": "vhdl-linter:add-attribute",
+				"command": "VHDL-Toolbox:add-attribute",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+d ctrl+alt+e",
-				"command": "vhdl-linter:declare-enum-type",
+				"command": "VHDL-Toolbox:declare-enum-type",
 				"when": "editorLangId == vhdl"
 			}
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"command": "vhdl-linter:add-signal",
-					"group": "vhdl_linter@1"
+					"command": "VHDL-Toolbox:add-signal",
+					"group": "vhdl_toolbox@1"
+				},
+				{
+					"command": "VHDL-Toolbox:allign_whatever",
+					"group": "vhdl_toolbox@1"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "HierarchyView.open",
+					"when": "view == HierarchyView"
+				},
+				{
+					"command": "HierarchyView.getPath",
+					"when": "view == HierarchyView"
 				}
 			],
 			"commandPalette": [
 				{
-					"command": "vhdl-linter:copy-as-instance",
+					"command": "VHDL-Toolbox:copy-as-instance",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "vhdl-linter:copy-as-signals",
+					"command": "VHDL-Toolbox:copy-as-signals",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "vhdl-linter:copy-tree",
+					"command": "VHDL-Toolbox:copy-tree",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "vhdl-linter:copy-file-listing",
+					"command": "VHDL-Toolbox:copy-file-listing",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "vhdl-linter:add-signal",
+					"command": "VHDL-Toolbox:add-signal",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "vhdl-linter:add-attribute",
+					"command": "VHDL-Toolbox:allign_whatever",
+					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "VHDL-Toolbox:add-attribute",
 					"when": "editorLangId == vhdl"
 				}
+
+				
 			]
 		},
 		"commands": [
 			{
-				"command": "vhdl-linter:copy-as-instance",
+				"command": "HierarchyView.open",
+				"title": "Open"
+			},
+			{
+				"command": "HierarchyView.getPath",
+				"title": "Get Path"
+			},
+			{
+				"command": "VHDL-Toolbox:copy-as-instance",
 				"title": "Copy as Instance"
 			},
 			{
-				"command": "vhdl-linter:copy-as-signals",
+				"command": "VHDL-Toolbox:copy-as-signals",
 				"title": "Copy as Signals"
 			},
 			{
-				"command": "vhdl-linter:copy-tree",
+				"command": "VHDL-Toolbox:copy-tree",
 				"title": "Copy Vhdl Tree"
 			},
 			{
-				"command": "vhdl-linter:copy-file-listing",
+				"command": "VHDL-Toolbox:copy-file-listing",
 				"title": "Copy File Listing"
 			},
 			{
-				"command": "vhdl-linter:add-attribute",
+				"command": "VHDL-Toolbox:add-attribute",
 				"title": "Add mark_debug"
 			},
 			{
-				"command": "vhdl-linter:add-signal",
+				"command": "VHDL-Toolbox:allign_whatever",
+				"title": "Allign a selection on whatever pattern"
+			},
+			{
+				"command": "VHDL-Toolbox:add-signal",
 				"title": "Add declaration"
 			}
 		],
 		"configuration": {
 			"type": "object",
-			"title": "vhdl-linter",
+			"title": "VHDL-Toolbox",
 			"properties": {
-				"languageServerExample.maxNumberOfProblems": {
-					"scope": "resource",
-					"type": "number",
-					"default": 500,
-					"description": "Controls the maximum number of problems produced by the server."
+				"VHDLToolbox.CheckCodingRules": {
+					"type": "boolean",
+					"default": true,
+					"description": ""
 				},
-		
-				"VhdlLinter.test": {
+				"VHDLToolbox.CheckProcessReset": {
+					"type": "boolean",
+					"default": true,
+					"description": ""
+				},
+				"VHDLToolbox.CheckStdLogicArith": {
+					"type": "boolean",
+					"default": true,
+					"description": ""
+				},
+				"VHDLToolbox.ShowProcessesInOutline": {
 					"type": "boolean",
 					"default": false,
 					"description": ""
 				},
-				"VhdlLinter.trace.server": {
+				"VHDLToolbox.PathsToPartiallyCheck": {
+					"type": "string",
+					"default": "",
+					"description": "Pattern to select paths/files which are only parsed on the interface. This is typically used for external IP or libraries."
+				},
+				"VHDLToolbox.IgnorePattern": {
+					"type": "string",
+					"default": "",
+					"description": "Pattern selecting files which are not parsed."
+				},
+				"VHDLToolbox.ToplevelSelectPattern": {
+					"type": "string",
+					"default": "",
+					"description": "Pattern selecting files which are considered as toplevels."
+				},
+				"VHDLToolbox.trace.server": {
 					"scope": "window",
 					"type": "string",
 					"enum": [
@@ -163,13 +237,16 @@
 			}
 		}
 	},
+
 	"activationEvents": [
-		"onLanguage:vhdl"
+		"onLanguage:vhdl", "onView:HierarchyView"
 	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc --project .",
 		"watch": "tsc -w  --project  .",
+		"lint": "tslint --project .",
+		"test": "node dist/test/test.js"
 	},
 	"husky": {
 		"hooks": {
@@ -179,6 +256,7 @@
 	"dependencies": {
 		"chokidar": "^3.2.2",
 		"escape-string-regexp": "^2.0.0",
+		"globby": "^12.0.2",
 		"string-similarity": "^3.0.0",
 		"vscode-languageclient": "^5.2.1",
 		"vscode-languageserver": "^5.2.1",

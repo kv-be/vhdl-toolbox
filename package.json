@@ -77,11 +77,6 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
-				"key": "ctrl+alt+d ctrl+alt+a",
-				"command": "VHDL-Toolbox:allign_whatever",
-				"when": "editorLangId == vhdl"
-			},
-			{
 				"key": "ctrl+alt+d ctrl+alt+d",
 				"command": "VHDL-Toolbox:add-attribute",
 				"when": "editorLangId == vhdl"
@@ -96,10 +91,6 @@
 			"editor/context": [
 				{
 					"command": "VHDL-Toolbox:add-signal",
-					"group": "vhdl_toolbox@1"
-				},
-				{
-					"command": "VHDL-Toolbox:allign_whatever",
 					"group": "vhdl_toolbox@1"
 				}
 			],
@@ -132,10 +123,6 @@
 				},
 				{
 					"command": "VHDL-Toolbox:add-signal",
-					"when": "editorLangId == vhdl"
-				},
-				{
-					"command": "VHDL-Toolbox:allign_whatever",
 					"when": "editorLangId == vhdl"
 				},
 				{
@@ -174,10 +161,6 @@
 			{
 				"command": "VHDL-Toolbox:add-attribute",
 				"title": "Add mark_debug"
-			},
-			{
-				"command": "VHDL-Toolbox:allign_whatever",
-				"title": "Allign a selection on whatever pattern"
 			},
 			{
 				"command": "VHDL-Toolbox:add-signal",
