@@ -38,7 +38,7 @@ function activate(context) {
         }
     };
     // Options to control the language client
-    
+    vscode_1.commands.executeCommand('setContext', 'VHDL-Toolbox:showHierarchy', true);
     let clientOptions = {
         // Register the server for plain text documents
         documentSelector: [{ scheme: 'file', language: 'vhdl' }],
@@ -109,6 +109,10 @@ function activate(context) {
         const text = basicInput_1.addDebug(args)
     }));
 
+    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:add-keep', async (args) => {
+        const text = basicInput_1.addKeep(args)
+    }));
+
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:add-signal', async (args) => {
         const text = basicInput_1.addsignal(args)
 
@@ -145,10 +149,9 @@ function activate(context) {
             document.positionAt(0),
             document.positionAt(old_text.length)
         )
-
-        edit.replace( editor.document.uri.path, fullRange, new_text);
-        let success = await vscode_1.workspace.applyEdit(edit);    
-        
+        editor.edit(editBuilder => {
+            editBuilder.replace(fullRange, new_text);
+        })        
     }));
     
 	let hovering = vscode_1.languages.registerHoverProvider({ pattern: '**' }, {
@@ -276,6 +279,15 @@ function activate(context) {
 
 
     }));
+
+    const setContext = () => {vscode_1.commands.executeCommand('setContext', 'VHDL-Toolbox:showHierarchy',
+            vscode_1.window.activeTextEditor.document.languageId == 'vhdl') }
+
+            
+    vscode_1.window.onDidChangeActiveTextEditor(setContext, null, context.subscriptions);
+    setContext();
+
+    
     function insert_separators(string, separator, size){
         let hhex
         let bbin

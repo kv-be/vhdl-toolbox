@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode_1 = require("vscode");
+const { RequestType0 } = require("vscode-languageclient");
 
 function findProcess(text, start){
     let proc_pos = 0
@@ -93,7 +94,10 @@ function findStartOfTypes(old_text,type_definition){
         match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(signal\s+[\s\S\n]+)/gi)];
         if (match.length === 0){
             no_signal = true
-            match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(constant\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+            // first check for the default template header
+            match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*type\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
+
+            if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(constant\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
             if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(end\s+component[\s\S]+?\n)([\s\S\n]+)/gi)];
             if (match.length === 0){
                 match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)([\s\S\n]+)/gi)];
@@ -150,13 +154,20 @@ function findStartOfSignals(old_text ){
     //console.log("match = "+match)
     if (match.length === 0){
         no_signal = true
-        match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(type\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+        // first check for the default template header
+        match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*signal\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
+        // if not present, check if types are defined
+        if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(type\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+        // if no types, check if constants are defined
         if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(constant\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+        // if no constants, check if components are defined        
         if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(end\s+component[\s\S]+?\n)([\s\S\n]+)/gi)];
+        // if none of the above, check if the architecture is defined
         if (match.length === 0){
             match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)([\s\S\n]+)/gi)];
             only_arch = true
-        } 
+        }
+
     } 
     let before 
     let space 
@@ -194,15 +205,15 @@ function findStartOfAttributes(old_text ){
     let add_attribute_declaration = false
     // check first if attribute mark_debug                   : string; is in text
     
-    let match = [...old_text.matchAll(/([\s\S\n]+)(\n\s*)(attribute\s+mark_debug\s+:\s*string\s*;\n)([\s\S\n]+)/gi)];
+    let match = [...old_text.matchAll(/([\s\S\n]+)(\r*\n\s*)(attribute\s+mark_debug\s+:\s*string\s*;.*\r*\n)([\s\S\n]+)/gi)];
     //console.log("match = "+match)
-    if (match.length === 0){
-        match = [...old_text.matchAll(/([\s\S\n]+)(\n\s*)(-- attribute\b.*\n\s*-*.*\n)([\s\S\n]+)/gi)];
+    if (match.length === 0){//\s*--{2,}\s*CONSTANT\s+-{2,}\n\s*--{2,}\s*$
+        match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*attribute\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
         add_attribute_declaration = true
         if (match.length ===0){
-            match = [...old_text.matchAll(/([\s\S\n]+)(\n\s*)(attribute\b.*\n)([\s\S\n]+)/gi)];
+            match = [...old_text.matchAll(/([\s\S\n]+)(\r*\n\s*)(attribute\s+.*\r*\n)([\s\S\n]+)/gi)];
             if (match.length ===0){
-                vscode_1.window.showErrorMessage(`Could not find start of the attributes section. \n\nMark it with a '-- attributes' comment or add manually one mark_debug attribute`);
+                vscode_1.window.showErrorMessage(`Could not find start of the attributes section. \n\nMark it with a '-- attribute' comment or add manually one mark_debug attribute`);
                 return    
             }
         }
@@ -281,7 +292,7 @@ function expandType(type){
                     type = type.replace(/([0-9]+)\s+([0-9]+)/, "range $1 to $2")            
                 }
                 else {// assume vectors
-                    type = type.replace(/\s+([0-9]+)\s+([0-9]+)/, "$1 to $2")
+                    type = type.replace(/([0-9]+)\s+([0-9]+)/, "$1 to $2$")
                 }
             }
             else{
@@ -289,7 +300,7 @@ function expandType(type){
                     type = type.replace(/([0-9]+)\s+([0-9]+)/, "range $1 downto $2")            
                 }
                 else {// assume vectors
-                    type = type.replace(/\s+([0-9]+)\s+([0-9]+)/, "$1 downto $2")
+                    type = type.replace(/([0-9]+)\s+([0-9]+)/, "$1 downto $2$")
                 }
             }
             
@@ -300,7 +311,7 @@ function expandType(type){
         }
     }
     if (vector){
-        type += ")"
+        type = type.replace(/\$/, ")") 
     }
     /*type = type.replace(/\s*([a-zA-Z_0-9']+)\s*([a-zA-Z_0-9']+)\s+([a-zA-Z_0-9']+)/, "$1 range $2 to $3")
     type = type.replace(/\s*([a-zA-Z_0-9']+)\s+d\s+([a-zA-Z_0-9']+)/, "($1 downto $2)")

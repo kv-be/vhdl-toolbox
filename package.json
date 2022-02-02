@@ -9,19 +9,7 @@
 		"vscode": "^1.39.0"
 	},
 	"contributes": {
-
-		"views": {
-			"explorer": 
-		     	[
-				{
-					"id": "HierarchyView",
-					"name": "HierarchyView"
-				}
-
-			]
-		},
-
-		"languages": [
+  		"languages": [
 			{
 				"id": "vhdl",
 				"aliases": [
@@ -50,6 +38,17 @@
 				"path": "./snippets/snippets.json"
 			}
 		],
+		"views": {
+			"explorer": 
+		     	[
+				{
+					"id": "HierarchyView",
+					"name": "HierarchyView",
+					"when": "VHDL-Toolbox:showHierarchy"
+				}
+
+			]
+		},
 		"keybindings": [
 			{
 				"key": "ctrl+alt+c ctrl+alt+s",
@@ -82,6 +81,11 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
+				"key": "ctrl+alt+d ctrl+alt+k",
+				"command": "VHDL-Toolbox:add-keep",
+				"when": "editorLangId == vhdl"
+			},
+			{
 				"key": "ctrl+alt+d ctrl+alt+e",
 				"command": "VHDL-Toolbox:declare-enum-type",
 				"when": "editorLangId == vhdl"
@@ -91,7 +95,23 @@
 			"editor/context": [
 				{
 					"command": "VHDL-Toolbox:add-signal",
+					"group": "vhdl_toolbox@1",
+					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "VHDL-Toolbox:add-attribute",
+					"group": "vhdl_toolbox@1",
+					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "VHDL-Toolbox:add-keep",
+					"when": "editorLangId == vhdl",
 					"group": "vhdl_toolbox@1"
+				},
+				{
+					"command": "VHDL-Toolbox:declare-enum-type",
+					"group": "vhdl_toolbox@1",
+					"when": "editorHasSelection && editorLangId == vhdl"
 				}
 			],
 			"view/item/context": [
@@ -128,9 +148,15 @@
 				{
 					"command": "VHDL-Toolbox:add-attribute",
 					"when": "editorLangId == vhdl"
-				}
-
-				
+				},
+				{
+					"command": "VHDL-Toolbox:add-keep",
+					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "VHDL-Toolbox:declare-enum-type",
+					"when": "editorLangId == vhdl"
+				}			
 			]
 		},
 		"commands": [
@@ -161,6 +187,14 @@
 			{
 				"command": "VHDL-Toolbox:add-attribute",
 				"title": "Add mark_debug"
+			},
+			{
+				"command": "VHDL-Toolbox:add-keep",
+				"title": "Add keep attribute"
+			},
+			{
+				"command": "VHDL-Toolbox:declare-enum-type",
+				"title": "Declare an enum type based on a case"
 			},
 			{
 				"command": "VHDL-Toolbox:add-signal",
