@@ -15,6 +15,7 @@ const codeLens_1 = require("./languageFeatures/codeLens");
 const documentFormatting_1 = require("./languageFeatures/documentFormatting");
 const executeCommand_1 = require("./languageFeatures/executeCommand");
 const vscode_uri_1 = require("vscode-uri");
+
 //const vscode_1 = require("vscode");
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
@@ -26,6 +27,47 @@ exports.documents = new vscode_languageserver_1.TextDocuments();
 let hasWorkspaceFolderCapability = false;
 let hasConfigurationCapability = false;
 let rootUri;
+
+function instanceTemplate(entity) {
+    let text = ""//`u_${entity.name} : entity work.${entity.name}`;
+    const indentString = '  ';
+    if (entity.generics.length > 0) {
+        text += `\ngeneric map (\n`;
+        const longest = longestinArray(entity.generics);
+        for (let generic of entity.generics) {
+            const name = generic.name.text.padEnd(longest, ' ');
+            text += `${indentString}${name} => ,-- ${generic.typename};\n`;
+        }
+
+        // Strip the final comma
+        text = text.slice(0, -2);
+        text += `\n)`;
+    }
+    if (entity.ports.length > 0) {
+        text += `\nport map (\n`;
+        const longest = longestinArray(entity.ports);
+        for (let port of entity.ports) {
+            const name = port.name.text.padEnd(longest, ' ');
+            text += `${indentString}${name} => ,-- ${port.direction.toLowerCase()} ${port.typename.toLowerCase()};\n`;
+        }
+        text += `\n)`;
+    }
+    text += `;\n`;
+    // strip last comma of generic and port maps
+    text = text.replace(/=> ,(.*\r*\n\s*\);)/i, "=> $1")
+    text = text.replace(/=> ,(.*\r*\n\s*\)\s*\r*\n\s*port map)/i, "=> $1")
+    return text;
+}
+
+function longestinArray(array) {
+    let longest = 0;
+    for (let object of array) {
+        if (object.name.text.length > longest) {
+            longest = object.name.text.length;
+        }
+    }
+    return longest;
+}
 
 exports.connection.onInitialize((params) => {
     let capabilities = params.capabilities;
@@ -99,14 +141,21 @@ exports.initialization = new Promise(resolve => {
             validateTextDocument(change.document);
             //exports.documents.all().forEach(validateTextDocument);
         });
-        /*exports.connection.onRequest("custom/data",  async (params) => {
+        exports.connection.onRequest("custom/getEntity",  async (params) => {
             //console.log("received parameter '" + params + "'");
-            params = JSON.parse(params)
-            return findDefinitionExt(params)
-        })*/
+            let entity = exports.projectParser.getEntities().filter(m=>m.name===params.toLowerCase())
+            let instance = instanceTemplate(entity[0])
+            return instance
+        })
+        exports.connection.onRequest("custom/getEntities",  async (params) => {
+            let entity = exports.projectParser.getEntities().map(m=> m.name)
+            return JSON.stringify(entity.sort())
+        })
         resolve();
     });
 });
+
+
 
 exports.connection.onDidChangeConfiguration(change => {
     if (hasConfigurationCapability) {

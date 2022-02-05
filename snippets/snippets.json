@@ -42,7 +42,7 @@
 	},
 	"rec": {
 		"prefix": "record template",
-		"body": "type $(1:recordname} is record\n   $0\nend record;",
+		"body": "type ${1:recordname} is record\n   $0\nend record;",
 		"description": "recprd",
 		"scope": "source.vhdl"
 	},
@@ -64,15 +64,33 @@
 		"description": "if",
 		"scope": "source.vhdl"
 	},
+	"ife": {
+		"prefix": "if else",
+		"body": "if ${1:expression} then\n   $0\nelse\n   \nend if;\n",
+		"description": "if",
+		"scope": "source.vhdl"
+	},
+	"ifg": {
+		"prefix": "if generate",
+		"body": "${1:identifier} : if ${2:expression} generate\n   $0\nend generate; -- ${1:identifier}\n",
+		"description": "for generate",
+		"scope": "source.vhdl"
+	},
+	"ifeg": {
+		"prefix": "if else generate",
+		"body": "${1:identifier} : if ${2:expression} generate\n   $0\nelse\n   \nend generate; -- ${1:identifier}\n",
+		"description": "for generate",
+		"scope": "source.vhdl"
+	},
 	"func": {
 		"prefix": "function",
-		"body": "function ${1:expression}(${2:arguments}) return ${3:return type} is\nbegin\n   $0\nend function;\n",
+		"body": "function ${1:function_name}(${2:arguments}) return ${3:return type} is\nbegin\n   $0\nend function;\n",
 		"description": "if",
 		"scope": "source.vhdl"
 	},
 	"proc": {
 		"prefix": "procedure",
-		"body": "procedure ${1:expression}(${2:arguments}) is\nbegin\n   $0\nend procedure;\n",
+		"body": "procedure ${1:procedure_name}(${2:arguments}) is\nbegin\n   $0\nend procedure;\n",
 		"description": "if",
 		"scope": "source.vhdl"
 	},

@@ -287,12 +287,12 @@ function findStartOfSignals(old_text ){
 }
 exports.findStartOfSignals=findStartOfSignals
 
-function findStartOfAttributes(old_text ){
+function findStartOfAttributes(old_text , attribute = "mark_debug"){
     let no_signal = false
     let add_attribute_declaration = false
     // check first if attribute mark_debug                   : string; is in text
     
-    let match = [...old_text.matchAll(/([\s\S\n]+)(\r*\n\s*)(attribute\s+mark_debug\s+:\s*string\s*;.*\r*\n)([\s\S\n]+)/gi)];
+    let match = [...old_text.matchAll(new RegExp(`([\\s\\S\\n]+)(\\r*\\n\\s*)(attribute\\s+${attribute}\\s+:\\s*string\\s*;.*\\r*\\n)([\\s\\S\\n]+)`,"gi"))];
     //console.log("match = "+match)
     if (match.length === 0){//\s*--{2,}\s*CONSTANT\s+-{2,}\n\s*--{2,}\s*$
         match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*attribute\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
@@ -314,7 +314,7 @@ function findStartOfAttributes(old_text ){
         }
         before = match[0][1]+match[0][2]+match[0][3]
         if (add_attribute_declaration){
-            before += ("attribute mark_debug                   : string;\n")
+            before += (`attribute ${attribute}                   : string;\n`)
         }
         space = match[0][2].replace(/\n/, '')
         after = match[0][4]    

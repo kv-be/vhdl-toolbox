@@ -6,23 +6,55 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addsignal = exports.addDebug = exports.showQuickPick = void 0;
 
+const { JSON_CONFIG_FILENAME } = require("tslint/lib/configuration");
 const vscode_1 = require("vscode");
 const vhdl_utils_1 = require("./vhdl-utils")
 /**
  * Shows a pick list using window.showQuickPick().
  */
-async function showQuickPick() {
+async function showQuickPick(list) {
     let i = 0;
-    const result = await vscode_1.window.showQuickPick(['eins', 'zwei', 'drei'], {
-        placeHolder: 'eins, zwei or drei',
-        onDidSelectItem: item => vscode_1.window.showInformationMessage(`Focus ${++i}: ${item}`)
+    list = JSON.parse(list)
+    const result = await vscode_1.window.showQuickPick(list, {
+        //placeHolder: 'eins, zwei or drei',
+        //onDidSelectItem: item => vscode_1.window.showInformationMessage(`Focus ${++i}: ${item}`)
     });
-    vscode_1.window.showInformationMessage(`Got: ${result}`);
+
+    const editor = vscode_1.window.activeTextEditor;
+    if (editor) {
+        editor.edit(editBuilder => {
+            editBuilder.insert(editor.selection.active, result);
+        });
+    }
 }
 exports.showQuickPick = showQuickPick;
 /**
  * Shows an input box using window.showInputBox().
  */
+ async function addInstance(args) {
+    const editor = vscode_1.window.activeTextEditor;
+    if (!editor) {
+        return;
+    }
+    let signal = editor.document.getText(editor.selection);
+    let objType
+    let pos = editor.selection.active
+    pos = editor.document.offsetAt(pos)
+    if (!signal){
+        if (args){
+            signal = args.signalName;
+            pos = 0    
+        }
+        if (!signal){
+            signal = editor.document.getText(editor.document.getWordRangeAtPosition(editor.selection.active));
+            pos = editor.selection.active
+        }
+    } 
+
+
+ }
+
+
 
  async function addDebug(args) {
     const editor = vscode_1.window.activeTextEditor;
@@ -44,30 +76,11 @@ exports.showQuickPick = showQuickPick;
         }
     } 
 
-    let declaration = `attribute mark_debug of ${signal} : signal is "TRUE";`
     
     const edit = new vscode_1.WorkspaceEdit();
     const document = editor.document;
     let old_text = document.getText()
-    let before 
-    let space_before 
-    let space_after 
-    let after
-    let noSpace 
-
-    if (old_text.search(new RegExp(`\\n\\s*attribute\\s+mark_debug\\s+of\\s+${signal}\\s*:\\s*signal\\s+is\\s+"true"\\s*;`, "i"))>-1){
-        vscode_1.window.showInformationMessage(`A mark_debug attribute for signal ${signal} already exists. Nothing added.`)
-        return
-    }
-
-
-    [before, noSpace, after] = vhdl_utils_1.findStartOfAttributes(old_text)
-    space_before = " ".repeat(noSpace)
-    space_after = " ".repeat(noSpace)    
-
-    declaration = `${space_before}${declaration}\n${space_after}`
-    let new_text = before + declaration + after;
-
+    let new_text = addAttribute("mark_debug", signal, old_text)
 
     let fullRange = new vscode_1.Range(
         document.positionAt(0),
@@ -77,9 +90,13 @@ exports.showQuickPick = showQuickPick;
         editBuilder.replace(fullRange, new_text);
     })
 
+    /*await vscode_1.commands.executeCommand("cursorMove",
+                {
+                    to: "down", by:'line', value:noLines
+                })
+    */
 }
 exports.addDebug = addDebug;
-
 
 async function addKeep(args) {
     const editor = vscode_1.window.activeTextEditor;
@@ -101,30 +118,13 @@ async function addKeep(args) {
         }
     } 
 
-    let declaration = `attribute keep of ${signal} : signal is "TRUE";`
     
     const edit = new vscode_1.WorkspaceEdit();
     const document = editor.document;
     let old_text = document.getText()
-    let before 
-    let space_before 
-    let space_after 
-    let after
-    let noSpace 
-
-    if (old_text.search(new RegExp(`\\n\\s*attribute\\s+keep\\s+of\\s+${signal}\\s*:\\s*signal\\s+is\\s+"true"\\s*;`, "i"))>-1){
-        vscode_1.window.showInformationMessage(`A keep attribute for signal ${signal} already exists. Nothing added.`)
-        return
-    }
-
-
-    [before, noSpace, after] = vhdl_utils_1.findStartOfAttributes(old_text)
-    space_before = " ".repeat(noSpace)
-    space_after = " ".repeat(noSpace)    
-
-    declaration = `${space_before}${declaration}\n${space_after}`
-    let new_text = before + declaration + after;
-
+    let noLines = old_text.split("\n").length
+    let new_text = addAttribute("keep", signal, old_text)
+    noLines = new_text.split("\n").length - noLines
 
     let fullRange = new vscode_1.Range(
         document.positionAt(0),
@@ -134,8 +134,43 @@ async function addKeep(args) {
         editBuilder.replace(fullRange, new_text);
     })
 
+    /*await vscode_1.commands.executeCommand("cursorMove",
+                {
+                    to: "down", by:'wrappedLine', value:noLines
+                })
+    */
 }
 exports.addKeep = addKeep;
+
+
+function addAttribute(attribute, signal, old_text) {
+
+
+    let declaration = `attribute ${attribute} of ${signal} : signal is "TRUE";`
+
+    let before 
+    let space_before 
+    let space_after 
+    let after
+    let noSpace 
+
+    if (old_text.search(new RegExp(`\\n\\s*attribute\\s+${attribute}\\s+of\\s+${signal}\\s*:\\s*signal\\s+is\\s+"true"\\s*;`, "i"))>-1){
+        vscode_1.window.showInformationMessage(`A ${attribute} attribute for signal ${signal} already exists. Nothing added.`)
+        return old_text
+    }
+
+
+    [before, noSpace, after] = vhdl_utils_1.findStartOfAttributes(old_text, attribute)
+    space_before = " ".repeat(noSpace)
+    space_after = " ".repeat(noSpace)    
+
+    declaration = `${space_before}${declaration}\n${space_after}`
+    let new_text = before + declaration + after;
+
+    return new_text
+
+}
+
 
 async function addsignal(args) {
     let type = await vscode_1.window.showInputBox({

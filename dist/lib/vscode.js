@@ -117,13 +117,7 @@ function activate(context) {
         const text = basicInput_1.addsignal(args)
 
     }));
-	context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:allign_whatever', function () {
-		// The code you place here will be executed every time your command is executed
 
-		// Display a message box to the user
-        const text = get_allignment_string()
- 
-	}));
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:declare-enum-type', async (args) => {
 
         const editor = vscode_1.window.activeTextEditor;
@@ -233,6 +227,27 @@ function activate(context) {
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-instance', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Instance)));
     //context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-sysverilog', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Sysverilog)));
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-signals', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Signals)));
+    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:instantiate', (args) => {
+        const editor = vscode_1.window.activeTextEditor;
+        let signal = editor.document.getText(editor.document.getWordRangeAtPosition(editor.selection.active));
+        client.sendRequest("custom/getEntity", signal).then(data => enterText(data));
+    }));
+    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:instantiateFromList', (args) => {
+        let entity
+        client.sendRequest("custom/getEntities", "").then(data => entity = basicInput_1.showQuickPick(data));
+    }));
+
+    
+
+    function enterText(text) {
+        const editor = vscode_1.window.activeTextEditor;
+        if (editor) {
+            editor.edit(editBuilder => {
+                editBuilder.insert(editor.selection.active, text);
+            });
+        }
+    }
+    
     context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-tree', () => {
         const editor = vscode_1.window.activeTextEditor;
         if (!editor) {
@@ -287,7 +302,7 @@ function activate(context) {
     vscode_1.window.onDidChangeActiveTextEditor(setContext, null, context.subscriptions);
     setContext();
 
-    
+
     function insert_separators(string, separator, size){
         let hhex
         let bbin
@@ -306,73 +321,6 @@ function activate(context) {
     }
     
     
-    function allign_whatever(pattern, text){
-        let max = 0
-        let pos = 0
-        if (pattern.startsWith('/')&&pattern.endsWith('/')){
-            if (pattern.substring(1, pattern.length-1).indexOf("\\n")>0){
-                vscode_1.window.showErrorMessage("new line characters not supported in regular expressions to align")
-                return
-            }
-            if (pattern.substring(1, pattern.length-1).indexOf("\\n")===-1){
-                pattern = new RegExp(pattern.substring(1, pattern.length-1))
-            }
-            else{
-                pattern =pattern.substring(1, pattern.length-1)
-            }
-        }
-        if (pattern === '\\n'){
-            for (const l of text.split("\n")){
-                pos = l.length
-                if (l === '\r') pos = pos-1
-                if (max < pos) max = pos
-                pattern = '\r'
-            }	
-        }else{
-            for (const l of text.split("\n")){
-                pos = l.search(pattern)
-                if (max < pos) max = pos
-            }	
-        }
-        let nt = ""
-        for (const l of text.split("\n")){
-            let start = l.search(pattern)
-            if (start > 0){
-                nt += (l.substring(0, start)+" ".repeat(max-start)+l.substring(start)+"\n")
-            }
-            else if (start === 0){
-                nt += (" ".repeat(max-l.length)+l.substring(start)+"\n")
-            }else{
-                nt+=(l+"\n")
-            }
-        }
-        return nt
-    }
-    
-    async function get_allignment_string() {
-        let type = await vscode_1.window.showInputBox({
-            value: '=>',
-            prompt: 'Give alignment string (can be reg ex)',   
-        });
-        if (!type) {
-            return;
-        }
-        const editor = vscode_1.window.activeTextEditor;
-    
-        if (editor) {
-            const document = editor.document;
-            const selection = editor.selection;
-    
-            // Get the word within the selection
-            let max = 0
-            const word = document.getText(selection);
-            const newtext = allign_whatever(type, word)
-            editor.edit(editBuilder => {
-                editBuilder.replace(selection, newtext)
-            });
-        }
-    
-    }
 }
 
 

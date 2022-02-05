@@ -14,6 +14,22 @@ function getEntity() {
         return vhdlLinter.tree.entity;
     }
 }
+
+function getInstance(name){
+    let entity = getEntityByName(name)
+    return instanceTemplate(entity)
+}
+
+function getEntityByName(name) {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        return;
+    }
+    return vhdlLinter.projectParser.getEntities().find(m=>m.name.toLowerCase()===name.toLowerCase())
+}
+exports.getEntityByName = getEntityByName;
+
+
 var CopyTypes;
 (function (CopyTypes) {
     CopyTypes[CopyTypes["Instance"] = 0] = "Instance";
@@ -52,14 +68,14 @@ function longestinArray(array) {
     return longest;
 }
 function instanceTemplate(entity) {
-    let text = `inst_${entity.name} : entity work.${entity.name}`;
+    let text = `u_${entity.name} : entity work.${entity.name}`;
     const indentString = '  ';
     if (entity.generics.length > 0) {
         text += `\ngeneric map (\n`;
         const longest = longestinArray(entity.generics);
         for (let generic of entity.generics) {
             const name = generic.name.text.padEnd(longest, ' ');
-            text += `${indentString}${name} => ${generic.name},\n`;
+            text += `${indentString}${name} => ,-- ${generic.typename};\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);
@@ -70,7 +86,7 @@ function instanceTemplate(entity) {
         const longest = longestinArray(entity.ports);
         for (let port of entity.ports) {
             const name = port.name.text.padEnd(longest, ' ');
-            text += `${indentString}${name} => ${port.name},\n`;
+            text += `${indentString}${name} => ,-- ${port.direction} ${port.typename};\n`;
         }
         // Strip the final comma
         text = text.slice(0, -2);

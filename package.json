@@ -56,6 +56,16 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
+				"key": "ctrl+alt+d ctrl+alt+i",
+				"command": "VHDL-Toolbox:instantiate",
+				"when": "editorLangId == vhdl"
+			},
+			{
+				"key": "ctrl+alt+d ctrl+alt+l",
+				"command": "VHDL-Toolbox:instantiateFromList",
+				"when": "editorLangId == vhdl"
+			},
+			{
 				"key": "ctrl+alt+i",
 				"command": "VHDL-Toolbox:copy-as-instance",
 				"when": "editorLangId == vhdl"
@@ -134,6 +144,14 @@
 					"when": "editorLangId == vhdl"
 				},
 				{
+					"command": "VHDL-Toolbox:instantiate",
+					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "VHDL-Toolbox:instantiateFromList",
+					"when": "editorLangId == vhdl"
+				},
+				{
 					"command": "VHDL-Toolbox:copy-tree",
 					"when": "editorLangId == vhdl"
 				},
@@ -175,6 +193,14 @@
 			{
 				"command": "VHDL-Toolbox:copy-as-signals",
 				"title": "Copy as Signals"
+			},
+			{
+				"command": "VHDL-Toolbox:instantiate",
+				"title": "Instantiate an entity"
+			},
+			{
+				"command": "VHDL-Toolbox:instantiateFromList",
+				"title": "Instantiate an entity selected from a list"
 			},
 			{
 				"command": "VHDL-Toolbox:copy-tree",
