@@ -141,6 +141,7 @@ class ParserBase {
                 }
                 let nextWord = this.getNextWord({consume:false});
                 let multiports = []
+                const multistart = this.pos.i
                 if ((nextWord !== "package") && (nextWord !== "type") && (nextWord !== "procedure") && (nextWord !== "function")){
                     do {
                         this.maybeWord(',');
@@ -148,6 +149,7 @@ class ParserBase {
                         port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
                         port.isGeneric = generics
                         port.name.text = this.getNextWord();
+                        port.name.range.start.i = multistart;
                         port.name.range.end.i = port.name.range.start.i + port.name.text.length;
                         multiports.push(port);
                     } while (this.text[this.pos.i] === ',');
@@ -166,8 +168,14 @@ class ParserBase {
                         }
                     }
 
-                    port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI())
-            
+                    if (entity instanceof objects_1.OEntity) port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI())
+                    else {
+                        let end = this.text.substring(this.pos.i).search(/;/i)
+                        let end2 = this.text.substring(this.pos.i).search(/\)\s+(return|is)/i)
+                        if (end > end2) end = (end2 > -1 ? end2: end)
+                        port.declaration = this.text.substring(this.pos.i, this.pos.i+end)
+                        port.range.end.i = this.pos.i+end
+                    }
                     const iBeforeType = this.pos.i;
                     for (const s of multiports) {
                         if (s){
@@ -178,6 +186,7 @@ class ParserBase {
                             s.defaultValue = defaultValue;
                             //s.range.end.i = this.pos.i;
                             s.declaration = port.declaration
+                            s.range.end.i = port.range.end.i
                             if (port instanceof objects_1.OPort) {
                                 s.direction = port.direction
                                 s.directionRange =  port.directionRange

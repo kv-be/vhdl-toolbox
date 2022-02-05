@@ -215,8 +215,15 @@ const findDefinition = async (params) => {
     }
     let id = ""
     if (candidate.definition instanceof objects_1.OPort){
-        if (candidate.definition.parent.generics.filter(g=>g===candidate.definition).length > 0) id = "generic "
-        else if (candidate.definition.parent.ports.filter(g=>g===candidate.definition).length > 0) id = "port "    
+        if (candidate.definition.parent.generics){
+            if (candidate.definition.parent.generics.filter(g=>g===candidate.definition).length > 0) id = "generic "    
+        }
+        if (candidate.definition.parent.ports){ 
+            if (candidate.definition.parent.ports.filter(g=>g===candidate.definition).length > 0){
+                if ((candidate.definition.parent instanceof objects_1.OEntity))  id = "port "    
+                else id = "argument "
+            }
+        }
     }
     //else if (candidate.definition.parent.ports.filter(g=>g===candidate.definition)) id = "port "
     if (candidate instanceof objects_1.ODefitionable && candidate.definition) {

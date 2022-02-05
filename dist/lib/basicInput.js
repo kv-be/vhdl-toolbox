@@ -162,7 +162,6 @@ async function addsignal(args) {
     let signal = editor.document.getText(editor.selection);
     let objType
     let pos = editor.selection.active
-    pos = editor.document.offsetAt(pos)
     if (!signal){
         if (args){
             signal = args.signalName;
@@ -174,6 +173,7 @@ async function addsignal(args) {
         }
     } 
 
+    pos = editor.document.offsetAt(pos)
 
     objType = vhdl_utils_1.getObjType(signal)
     if (objType === null){

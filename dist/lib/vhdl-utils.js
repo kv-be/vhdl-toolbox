@@ -27,6 +27,53 @@ function findProcess(text, start){
 }
 exports.findProcess = findProcess;
 
+function findFunction(text, start){
+    let proc_pos = 0
+    let st_end = 0
+    let st_start = 0
+    let i = 0
+    let fragment
+    let proc_pat
+    let cont = 1
+    while ((cont > 0) && (i < 50)){
+        i = i+1
+        fragment = text.substring(proc_pos,start)
+        proc_pat = [...fragment.matchAll(/\n(\s*function\s+\w+\s*\(*[A-Za-z0-9_:, \-\t\r\n]*?\)\s+return\s+.*?\s+is\s*\r*\n)\s*(begin|variable|function|procedure)+.*\r*\n/gi)]
+
+        if (proc_pat.length > 0){
+            proc_pos = st_end + proc_pat[0].index + proc_pat[0][1].length + 1
+            st_start = proc_pos  - proc_pat[0][1].length
+            st_end = proc_pos  
+        }
+        cont = proc_pat.length
+    }
+    return [st_start, st_end]
+}
+exports.findFunction = findFunction;
+
+function findProcedure(text, start){
+    let proc_pos = 0
+    let st_end = 0
+    let st_start = 0
+    let i = 0
+    let fragment
+    let proc_pat
+    let cont = 1
+    while ((cont > 0) && (i < 50)){
+        i = i+1
+        fragment = text.substring(proc_pos,start)
+        proc_pat = [...fragment.matchAll(/\n(\s*procedure\s+\w+\s*\(*[A-Za-z0-9_:, \-\t\r\n]*?\)\s+is\s*\r*\n)\s*(begin|variable|function|procedure)+.*\r*\n/gi)]
+        if (proc_pat.length > 0){
+            proc_pos = st_end + proc_pat[0].index + proc_pat[0][1].length + 1
+            st_start = proc_pos  - proc_pat[0][1].length
+            st_end = proc_pos  
+        }
+        cont = proc_pat.length
+    }
+    return [st_start, st_end]
+}
+exports.findProcedure = findProcedure;
+
 function findStartOfPorts(text, pos){
     let proc_pos = 0
     let st_end = 0
@@ -139,7 +186,47 @@ function findStartOfTypes(old_text,type_definition){
 exports.findStartOfTypes=findStartOfTypes
 
 function findStartOfVariables(text, start){
-    const [proc_offset_start, proc_offsett_end] = findProcess(text, start)
+    let proc_offset_start  
+    let proc_offsett_end 
+    let proc_offset_start2 = 0 
+    let proc_offsett_end2 = 0
+    let proc_offset_start3 = 0
+    let proc_offsett_end3 = 0
+    let [proc_offset_start1, proc_offsett_end1] = findProcess(text, start)
+
+    if ((proc_offset_start1 === 0)&&(proc_offsett_end1 ===0))
+    {
+        [proc_offset_start2, proc_offsett_end2] = findFunction(text, start)
+    }
+    
+    if ((proc_offset_start1 === 0)&&(proc_offsett_end1 ===0))
+    {
+        [proc_offset_start3, proc_offsett_end3] = findProcedure(text, start)
+    }
+    proc_offsett_end = proc_offsett_end1
+    proc_offset_start = proc_offset_start1
+
+    if ((start-proc_offset_start3) >=0) {
+        // procedure detected
+        if ((start-proc_offset_start2)>=0){
+            // also a function detected => take the one closest to the start
+            if ((start - proc_offset_start2) > (start - proc_offset_start3)){
+                // procedure closest 
+                proc_offsett_end = proc_offsett_end3
+                proc_offset_start = proc_offset_start3
+            }
+            else{
+                proc_offsett_end = proc_offsett_end2
+                proc_offset_start = proc_offset_start2
+            }
+        }
+    }
+    else {
+        // no procedire detected
+        proc_offsett_end = proc_offsett_end2
+        proc_offset_start = proc_offset_start2
+    }
+    
     const before = text.substring(0, proc_offsett_end)
     const spaces = text.substring(proc_offset_start).search(/\S/)-1
     const after = text.substring(proc_offsett_end)
@@ -341,6 +428,7 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
     if (objType === "var"){
         [before, noSpace, after] = findStartOfVariables(old_text, pos)
         sigvar = "variable" 
+        if (noSpace < 0) noSpace = 0 
         space_before = " ".repeat(noSpace)
         space_before += " ".repeat(3)
         space_after = ""
