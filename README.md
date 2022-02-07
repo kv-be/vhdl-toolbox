@@ -22,10 +22,10 @@ If the tool finds (assumed) parser errors, it stops parsing the file and shows t
 When the parsing is done, click on any VHDL file to see the results. At that moment, VS Code understands your code and will:
 
 - show the declaration of anything (type, component, signal, variable, constant, ...) in a pop-up if you put your cursor on it
-- show an outline of your code in the outline window
+- show an outline of the current file in the outline window
 - pressing `F12` (or Ctrl click) on a anything will go to the place where it is defined (even if it is in another file).
 - pressing `Shift+F12` will show all places where your object is used. Doing it multiple times will cycle through the different places
-- propose fixes for problems (not always, depends on the actual error).
+- the tool proposes code fixes for problems (not always, depends on the actual error).
 - the project wide checking process works with data on disk. This means that changes which are not yet saved, are not visible outside the file itself. So if you add a constant to a package, inside the package, the constant is recognised immediately. In any other file, it will only be recognized once the modified packge file has been saved.
 - show an overview of all issues in the problem tab of VS Code (View - Problems). If auto-fixes are available, you can activate them by :
 
@@ -37,7 +37,7 @@ When the parsing is done, click on any VHDL file to see the results. At that mom
 
  The following checks are done:
 
-- DT coding rules
+- coding rules
 - for case statements:
 
   - with enum types: are all defined states used in the case statement (unused defined states are shown with a warning)
@@ -46,7 +46,7 @@ When the parsing is done, click on any VHDL file to see the results. At that mom
 - detects undeclared signals, constants, variables, components, ports
 - the statement 'library work;' will cause a warning as it is not really needed
 - a comment starting with TODO will appear in the problems view as an information message. Like that, you get an overview of your todo's per file
-- if a signal is used on a different clock as the one used to assign it, it will generate an error since it is a clock crossing (plan is to have a magical comment to suppress this error to indicate intended use)
+- if a signal is used on a different clock as the one used to assign it, it will generate an error since it is a clock crossing 
 - checks that all signals of a clocked process are reset (can be disabled in the settings)
 - checks that each clocked process has a reset (can be disabled in the settings)
 - checks the completeness (missing signals as well as signal which are not needed) of a process sensitivity list

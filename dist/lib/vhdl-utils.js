@@ -135,20 +135,26 @@ function findStartOfTypes(old_text,type_definition){
 
     let no_signal = true
     let only_arch = false
-    let match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(type\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
-    //console.log("match = "+match)
+    let match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*type\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
+    
     if (match.length === 0){
-        match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(signal\s+[\s\S\n]+)/gi)];
+        // type declaration exists already
+        match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(type\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
         if (match.length === 0){
-            no_signal = true
-            // first check for the default template header
-            match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*type\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
-
-            if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(constant\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
-            if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(end\s+component[\s\S]+?\n)([\s\S\n]+)/gi)];
+            no_signal = false
+            // search beginning of signals
+            match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(signal\s+[\s\S\n]+)/gi)];
             if (match.length === 0){
-                match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)([\s\S\n]+)/gi)];
-                only_arch = true
+                no_signal = true
+                // check if constants exist
+                match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(constant\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+                //check if components exist
+                if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(end\s+component[\s\S]+?\n)([\s\S\n]+)/gi)];
+                if (match.length === 0){
+                    // locate architecture itself
+                    match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)([\s\S\n]+)/gi)];
+                    only_arch = true
+                } 
             } 
         } 
     } 

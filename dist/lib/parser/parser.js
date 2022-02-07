@@ -26,7 +26,7 @@ class Parser extends parser_base_1.ParserBase {
         
         let disabledRangeStart = undefined;
         let ignoreRegex = [];
-        if (this.originalText.search(/\n\s*--\s*vhdl_toolbox/)>-1){
+        if ((this.originalText.search(/\n\s*--\s*vhdl_toolbox/)>-1) || (this.originalText.search(/(--\s*)(.*TODO.*)/)>-1)){
             for (const [lineNumber, line] of this.originalText.split('\n').entries()) {
                 let match = /(--\s*vhdl_toolbox)(.*)/.exec(line); // vhdl_toolbox_disable_next_line //vhdl_toolbox_disable_this_line
                 if (match) {
