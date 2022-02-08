@@ -290,7 +290,7 @@ class OFileCache {
         this.text = text;
         this.path = file;
         utils.message("parsing of "+file)
-        this.onlyDeclarations = false
+
         if (linter === null){
             this.linter = new vhdl_linter_1.VhdlLinter(this.path, this.text, this.projectParser);
         }

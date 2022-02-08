@@ -27,11 +27,10 @@ class VhdlLinter {
         this.global_options = projectParser.get_options();
         //("finally parsing "+this.editorPath)
         this.onlyDeclarations = false
-        if (this.global_options.PathsToPartiallyCheck.length > 0){
-            for (const sk of this.global_options.PathsToPartiallyCheck.split(',')){
-                if (editorPath.includes(sk.trim())) this.onlyDeclarations = true
-            }
-        }  
+        if (this.projectParser.options.PathsToPartiallyCheck.length > 0){
+            const expr = new RegExp(this.projectParser.options.PathsToPartiallyCheck)
+            this.onlyDeclarations = (this.editorPath.search(expr)>-1)
+        }
         this.parser = new parser_1.Parser(this.text, this.editorPath, this.onlyDeclarations);
         this.file_options = {"CheckCodingRules" : null, "CheckProcessReset" : null, "CheckStdLogicArith" : null};
         

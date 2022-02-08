@@ -167,7 +167,7 @@ In order to speed up the parsing process, one can define one (or more) regular e
 
 ### Toplevel patterns
 
-The 'Toplevel Select Pattern' allows entering a regular expression which filters the toplevels shown in the hierarchy view.
+The 'Toplevel Select Pattern' allows entering a filter for the toplevels shown in the hierarchy view. Please notice that the filter is run on the autodetected toplevels. It is not possible to define a lower level as toplevel.
 
 # Known issues/limitations
 

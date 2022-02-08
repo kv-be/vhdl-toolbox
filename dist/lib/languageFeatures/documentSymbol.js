@@ -112,7 +112,7 @@ function parseArchitecture1(architecture, linter) {
             kind: vscode_languageserver_1.SymbolKind.Enum,
             range: generate.range,
             selectionRange: generate.range,
-            children: parseArchitecture(generate, linter)
+            children: parseArchitecture(generate, linter).flat()
         });
     }
     return symbols;
