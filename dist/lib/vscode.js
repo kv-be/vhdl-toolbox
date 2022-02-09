@@ -38,7 +38,7 @@ function activate(context) {
         }
     };
     // Options to control the language client
-    vscode_1.commands.executeCommand('setContext', 'VHDL-Toolbox:showHierarchy', true);
+    vscode_1.commands.executeCommand('setContext', 'vhdl-toolbox:showHierarchy', true);
     let clientOptions = {
         // Register the server for plain text documents
         documentSelector: [{ scheme: 'file', language: 'vhdl' }],
@@ -51,11 +51,11 @@ function activate(context) {
         }
     };
     // Create the language client and start the client.
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:quick', async () => {
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:quick', async () => {
         const text = basicInput_1.showInputBox1()
     }));
 
-    client = new vscode_languageclient_1.LanguageClient('VHDL-Toolbox', 'VHDL-Toolbox', serverOptions, clientOptions);
+    client = new vscode_languageclient_1.LanguageClient('vhdl-toolbox', 'vhdl-toolbox', serverOptions, clientOptions);
     // Start the client. This will also launch the server
     client.onReady().then(() => {
         client.onNotification("custom/test", (files) => {
@@ -105,20 +105,20 @@ function activate(context) {
     //    else vscode_1.window.showInformationMessage(`${args.label} is not used in any component`);
     //}));
 
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:add-attribute', async (args) => {
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:add-attribute', async (args) => {
         const text = basicInput_1.addDebug(args)
     }));
 
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:add-keep', async (args) => {
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:add-keep', async (args) => {
         const text = basicInput_1.addKeep(args)
     }));
 
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:add-signal', async (args) => {
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:add-signal', async (args) => {
         const text = basicInput_1.addsignal(args)
 
     }));
 
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:declare-enum-type', async (args) => {
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:declare-enum-type', async (args) => {
 
         const editor = vscode_1.window.activeTextEditor;
         if (!editor) {
@@ -224,15 +224,15 @@ function activate(context) {
     vscode_1.window.registerTreeDataProvider('HierarchyView', hierarchyView);
 	context.subscriptions.push(hovering);
 
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-instance', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Instance)));
-    //context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-sysverilog', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Sysverilog)));
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-as-signals', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Signals)));
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:instantiate', (args) => {
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-as-instance', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Instance)));
+    //context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-as-sysverilog', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Sysverilog)));
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-as-signals', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Signals)));
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:instantiate', (args) => {
         const editor = vscode_1.window.activeTextEditor;
         let signal = editor.document.getText(editor.document.getWordRangeAtPosition(editor.selection.active));
         client.sendRequest("custom/getEntity", signal).then(data => enterText(data));
     }));
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:instantiateFromList', (args) => {
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:instantiateFromList', (args) => {
         let entity
         client.sendRequest("custom/getEntities", "").then(data => entity = basicInput_1.showQuickPick(data));
     }));
@@ -248,7 +248,7 @@ function activate(context) {
         }
     }
     
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-tree', () => {
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-tree', () => {
         const editor = vscode_1.window.activeTextEditor;
         if (!editor) {
             return;
@@ -259,7 +259,7 @@ function activate(context) {
             vscode_1.window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
         }
     }));
-    context.subscriptions.push(vscode_1.commands.registerCommand('VHDL-Toolbox:copy-file-listing', async () => {    
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-file-listing', async () => {    
         
         
         const editor = vscode_1.window.activeTextEditor;
@@ -295,7 +295,7 @@ function activate(context) {
 
     }));
 
-    const setContext = () => {vscode_1.commands.executeCommand('setContext', 'VHDL-Toolbox:showHierarchy',
+    const setContext = () => {vscode_1.commands.executeCommand('setContext', 'vhdl-toolbox:showHierarchy',
             vscode_1.window.activeTextEditor.document.languageId == 'vhdl') }
 
             

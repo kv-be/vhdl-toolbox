@@ -199,6 +199,9 @@ function findStartOfVariables(text, start){
     let proc_offset_start3 = 0
     let proc_offsett_end3 = 0
     let [proc_offset_start1, proc_offsett_end1] = findProcess(text, start)
+    proc_offsett_end = proc_offsett_end1
+    proc_offset_start = proc_offset_start1
+
 
     if ((proc_offset_start1 === 0)&&(proc_offsett_end1 ===0))
     {
@@ -209,12 +212,9 @@ function findStartOfVariables(text, start){
     {
         [proc_offset_start3, proc_offsett_end3] = findProcedure(text, start)
     }
-    proc_offsett_end = proc_offsett_end1
-    proc_offset_start = proc_offset_start1
-
-    if ((start-proc_offset_start3) >=0) {
+    if ((start-proc_offset_start3) >=0 && (proc_offset_start3 >0)) {
         // procedure detected
-        if ((start-proc_offset_start2)>=0){
+        if ((start-proc_offset_start2)>=0 && (proc_offset_start2>0)){
             // also a function detected => take the one closest to the start
             if ((start - proc_offset_start2) > (start - proc_offset_start3)){
                 // procedure closest 
@@ -228,9 +228,11 @@ function findStartOfVariables(text, start){
         }
     }
     else {
-        // no procedire detected
-        proc_offsett_end = proc_offsett_end2
-        proc_offset_start = proc_offset_start2
+        if (proc_offset_start2 > 0){
+            // no procedire detected
+            proc_offsett_end = proc_offsett_end2
+            proc_offset_start = proc_offset_start2            
+        }
     }
     
     const before = text.substring(0, proc_offsett_end)

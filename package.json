@@ -49,7 +49,7 @@
 				{
 					"id": "HierarchyView",
 					"name": "HierarchyView",
-					"when": "VHDL-Toolbox:showHierarchy"
+					"when": "vhdl-toolbox:showHierarchy"
 				}
 
 			]
@@ -57,74 +57,74 @@
 		"keybindings": [
 			{
 				"key": "ctrl+alt+c ctrl+alt+s",
-				"command": "VHDL-Toolbox:copy-as-signals",
+				"command": "vhdl-toolbox:copy-as-signals",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+d ctrl+alt+i",
-				"command": "VHDL-Toolbox:instantiate",
+				"command": "vhdl-toolbox:instantiate",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+d ctrl+alt+l",
-				"command": "VHDL-Toolbox:instantiateFromList",
+				"command": "vhdl-toolbox:instantiateFromList",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+i",
-				"command": "VHDL-Toolbox:copy-as-instance",
+				"command": "vhdl-toolbox:copy-as-instance",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+t",
-				"command": "VHDL-Toolbox:copy-tree",
+				"command": "vhdl-toolbox:copy-tree",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+l",
-				"command": "VHDL-Toolbox:copy-file-listing",
+				"command": "vhdl-toolbox:copy-file-listing",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+d ctrl+alt+s",
-				"command": "VHDL-Toolbox:add-signal",
+				"command": "vhdl-toolbox:add-signal",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+d ctrl+alt+d",
-				"command": "VHDL-Toolbox:add-attribute",
+				"command": "vhdl-toolbox:add-attribute",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+d ctrl+alt+k",
-				"command": "VHDL-Toolbox:add-keep",
+				"command": "vhdl-toolbox:add-keep",
 				"when": "editorLangId == vhdl"
 			},
 			{
 				"key": "ctrl+alt+d ctrl+alt+e",
-				"command": "VHDL-Toolbox:declare-enum-type",
+				"command": "vhdl-toolbox:declare-enum-type",
 				"when": "editorLangId == vhdl"
 			}
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"command": "VHDL-Toolbox:add-signal",
+					"command": "vhdl-toolbox:add-signal",
 					"group": "vhdl_toolbox@1",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:add-attribute",
+					"command": "vhdl-toolbox:add-attribute",
 					"group": "vhdl_toolbox@1",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:add-keep",
+					"command": "vhdl-toolbox:add-keep",
 					"when": "editorLangId == vhdl",
 					"group": "vhdl_toolbox@1"
 				},
 				{
-					"command": "VHDL-Toolbox:declare-enum-type",
+					"command": "vhdl-toolbox:declare-enum-type",
 					"group": "vhdl_toolbox@1",
 					"when": "editorHasSelection && editorLangId == vhdl"
 				}
@@ -141,43 +141,43 @@
 			],
 			"commandPalette": [
 				{
-					"command": "VHDL-Toolbox:copy-as-instance",
+					"command": "vhdl-toolbox:copy-as-instance",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:copy-as-signals",
+					"command": "vhdl-toolbox:copy-as-signals",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:instantiate",
+					"command": "vhdl-toolbox:instantiate",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:instantiateFromList",
+					"command": "vhdl-toolbox:instantiateFromList",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:copy-tree",
+					"command": "vhdl-toolbox:copy-tree",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:copy-file-listing",
+					"command": "vhdl-toolbox:copy-file-listing",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:add-signal",
+					"command": "vhdl-toolbox:add-signal",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:add-attribute",
+					"command": "vhdl-toolbox:add-attribute",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:add-keep",
+					"command": "vhdl-toolbox:add-keep",
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "VHDL-Toolbox:declare-enum-type",
+					"command": "vhdl-toolbox:declare-enum-type",
 					"when": "editorLangId == vhdl"
 				}			
 			]
@@ -192,49 +192,49 @@
 				"title": "Get Path"
 			},
 			{
-				"command": "VHDL-Toolbox:copy-as-instance",
+				"command": "vhdl-toolbox:copy-as-instance",
 				"title": "Copy as Instance"
 			},
 			{
-				"command": "VHDL-Toolbox:copy-as-signals",
+				"command": "vhdl-toolbox:copy-as-signals",
 				"title": "Copy as Signals"
 			},
 			{
-				"command": "VHDL-Toolbox:instantiate",
+				"command": "vhdl-toolbox:instantiate",
 				"title": "Instantiate an entity"
 			},
 			{
-				"command": "VHDL-Toolbox:instantiateFromList",
+				"command": "vhdl-toolbox:instantiateFromList",
 				"title": "Instantiate an entity selected from a list"
 			},
 			{
-				"command": "VHDL-Toolbox:copy-tree",
+				"command": "vhdl-toolbox:copy-tree",
 				"title": "Copy Vhdl Tree"
 			},
 			{
-				"command": "VHDL-Toolbox:copy-file-listing",
+				"command": "vhdl-toolbox:copy-file-listing",
 				"title": "Copy File Listing"
 			},
 			{
-				"command": "VHDL-Toolbox:add-attribute",
+				"command": "vhdl-toolbox:add-attribute",
 				"title": "Add mark_debug"
 			},
 			{
-				"command": "VHDL-Toolbox:add-keep",
+				"command": "vhdl-toolbox:add-keep",
 				"title": "Add keep attribute"
 			},
 			{
-				"command": "VHDL-Toolbox:declare-enum-type",
+				"command": "vhdl-toolbox:declare-enum-type",
 				"title": "Declare an enum type based on a case"
 			},
 			{
-				"command": "VHDL-Toolbox:add-signal",
+				"command": "vhdl-toolbox:add-signal",
 				"title": "Add declaration"
 			}
 		],
 		"configuration": {
 			"type": "object",
-			"title": "VHDL-Toolbox",
+			"title": "vhdl-toolbox",
 			"properties": {
 				"VHDLToolbox.CheckCodingRules": {
 					"type": "boolean",

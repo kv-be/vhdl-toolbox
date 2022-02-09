@@ -110,7 +110,7 @@ class VhdlLinter {
         const counter = this.commandCallbackRegistry.push(handler) - 1;
         return {
             title,
-            command: 'vhdl-linter:lsp-command',
+            command: 'vhdl-toolbox:lsp-command',
             arguments: [textDocumentUri, counter]
         };
     }
@@ -802,7 +802,7 @@ class VhdlLinter {
             if (this.tree instanceof objects_1.OFileWithEntityAndArchitecture) {
                 const args = { textDocumentUri, vscode_languageserver_1, signalName: write.text, range: this.tree.architecture.range };
                 actions.push(vscode_languageserver_1.CodeAction.create('add signal to architecture', 
-                     vscode_languageserver_1.Command.create('add signal to architecture', 'vhdl-linter:add-signal', args), vscode_languageserver_1.CodeActionKind.QuickFix));
+                     vscode_languageserver_1.Command.create('add signal to architecture', 'vhdl-toolbox:add-signal', args), vscode_languageserver_1.CodeActionKind.QuickFix));
             }
             return actions;
         });
@@ -835,7 +835,7 @@ class VhdlLinter {
             if (this.tree instanceof objects_1.OFileWithEntityAndArchitecture) {
                 const args = { textDocumentUri, vscode_languageserver_1, signalName: read.text, range: this.tree.architecture.range };
                 actions.push(vscode_languageserver_1.CodeAction.create('add signal to architecture', 
-                     vscode_languageserver_1.Command.create('add signal to architecture', 'vhdl-linter:add-signal', args), vscode_languageserver_1.CodeActionKind.QuickFix));
+                     vscode_languageserver_1.Command.create('add signal to architecture', 'vhdl-toolbox:add-signal', args), vscode_languageserver_1.CodeActionKind.QuickFix));
             }
             return actions;
         });
@@ -1976,7 +1976,7 @@ exports.VhdlLinter = VhdlLinter;
 //   position: Range,
 //   apply: (() => any),
 // }
-//# sourceMappingURL=vhdl-linter.js.map
+//# sourceMappingURL=vhdl-toolbox.js.map
 // TODO : space between number and physical units
 // TODO : find  dead states, 
 // TODO : check if booleans are compared to false/true

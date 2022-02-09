@@ -58,7 +58,7 @@ class VhdlLinter {
         const counter = this.commandCallbackRegistry.push(handler) - 1;
         return {
             title,
-            command: 'vhdl-linter:lsp-command',
+            command: 'vhdl-toolbox:lsp-command',
             arguments: [textDocumentUri, counter]
         };
     }
@@ -287,7 +287,7 @@ class VhdlLinter {
             const actions = [];
             if (this.tree instanceof objects_1.OFileWithEntityAndArchitecture) {
                 const args = { textDocumentUri, signalName: write.text, range: this.tree.architecture.range };
-                actions.push(vscode_languageserver_1.CodeAction.create('add signal to architecture', vscode_languageserver_1.Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
+                actions.push(vscode_languageserver_1.CodeAction.create('add signal to architecture', vscode_languageserver_1.Command.create('add signal to architecture', 'vhdl-toolbox:add-signal', args)));
             }
             return actions;
         });
@@ -319,7 +319,7 @@ class VhdlLinter {
             }
             if (this.tree instanceof objects_1.OFileWithEntityAndArchitecture) {
                 const args = { textDocumentUri, signalName: read.text, range: this.tree.architecture.range };
-                actions.push(vscode_languageserver_1.CodeAction.create('add signal to architecture', vscode_languageserver_1.Command.create('add signal to architecture', 'vhdl-linter:add-signal', args)));
+                actions.push(vscode_languageserver_1.CodeAction.create('add signal to architecture', vscode_languageserver_1.Command.create('add signal to architecture', 'vhdl-toolbox:add-signal', args)));
             }
             return actions;
         });
