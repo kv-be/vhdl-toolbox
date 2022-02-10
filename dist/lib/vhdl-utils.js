@@ -236,7 +236,7 @@ function findStartOfVariables(text, start){
     }
     
     const before = text.substring(0, proc_offsett_end)
-    const spaces = text.substring(proc_offset_start).search(/\S/)-1
+    const spaces = text.substring(proc_offset_start).search(/\S/)
     const after = text.substring(proc_offsett_end)
     return [before,spaces, after]
 }
@@ -291,7 +291,7 @@ function findStartOfSignals(old_text ){
         space = "   "
         after = match[0][2]    
     }
-    return [before, space,after]
+    return [before, space.length,after]
 }
 exports.findStartOfSignals=findStartOfSignals
 
