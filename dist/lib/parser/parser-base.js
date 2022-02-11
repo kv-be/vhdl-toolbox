@@ -783,12 +783,16 @@ class ParserBase {
         // }
         let defaultValueReads;
         let typeReads;
-        if (type.includes("=>")){
-            type = type.replace(/^.*?=>/g, "")
+        //this commented piece of code is needed for explicitly instantiated functions/procedures
+        //but interferes with default values like (others => '0')
+        if (type.includes("(others\s*=>\s*.*?)")===-1){
+            if (type.includes("=>")){
+                type = type.replace(/^.*?=>/g, "")
+            }    
         }
         if (type.indexOf(':=') > -1) {
             const split = type.split(':=');
-            if (split[1].includes("=>")){
+            if (split[1].includes("=>") && split[1].includes("(others\s*=>\s*.*?)")===-1){
                 // instantiation using =>, so delete the arguments with the assignment
                 const ssplit = split[1].split("(")
                 ssplit[1]=ssplit[1].replace(/\w+\s*=>/g, "")

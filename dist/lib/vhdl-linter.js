@@ -1318,22 +1318,24 @@ class VhdlLinter {
                     const actions = [];
                     let resetValue = null;
                     let type = signal.type.map(read => read.text)[0] // changed from read.text.join(' ') to this because it did not work for std_logic_vector(test'high downto test'low)
-                    resetValue = '; -- TODO : correct this reset value\n'
-                    if      (["std_logic", "std_ulogic"].includes(type)) resetValue = "'0';\n"
-                    if      (["std_ulogic_vector", "std_logic_vector", "unsigned","signed"].includes(type)) resetValue = "(others => '0');\n"
-                    else if (["positive","natural","integer"].includes(type)) resetValue = "0;\n"
-                    else if (type.search(/boolean/)>=0) resetValue = "false;\n"
-                    else if (type.search(/real/)>=0) resetValue = "0.0;\n"
-                    if (resetValue !== null) {
-                        let positionStart = vscode_languageserver_1.Position.create(registerProcess.reset_range.start.line, registerProcess.reset_range.start.character);
-                        positionStart.line++;
-                        const indent = positionStart.character;
-                        positionStart.character = 0;
-                        actions.push(vscode_languageserver_1.CodeAction.create('Add reset for ' + signal.name, {
-                            changes: {
-                                [textDocumentUri]: [vscode_languageserver_1.TextEdit.insert(positionStart, ' '.repeat(indent) + `${signal.name} <= ${resetValue}`)]
-                            }
-                        }, vscode_languageserver_1.CodeActionKind.QuickFix));
+                    if (typeof type !== 'undefined'){
+                        resetValue = '; -- TODO : correct this reset value\n'
+                        if      (["std_logic", "std_ulogic"].includes(type)) resetValue = "'0';\n"
+                        if      (["std_ulogic_vector", "std_logic_vector", "unsigned","signed"].includes(type)) resetValue = "(others => '0');\n"
+                        else if (["positive","natural","integer"].includes(type)) resetValue = "0;\n"
+                        else if (type.search(/boolean/)>=0) resetValue = "false;\n"
+                        else if (type.search(/real/)>=0) resetValue = "0.0;\n"
+                        if (resetValue !== null) {
+                            let positionStart = vscode_languageserver_1.Position.create(registerProcess.reset_range.start.line, registerProcess.reset_range.start.character);
+                            positionStart.line++;
+                            const indent = positionStart.character;
+                            positionStart.character = 0;
+                            actions.push(vscode_languageserver_1.CodeAction.create('Add reset for ' + signal.name, {
+                                changes: {
+                                    [textDocumentUri]: [vscode_languageserver_1.TextEdit.insert(positionStart, ' '.repeat(indent) + `${signal.name} <= ${resetValue}`)]
+                                }
+                            }, vscode_languageserver_1.CodeActionKind.QuickFix));
+                        }    
                     }
                     return actions;
                 });
