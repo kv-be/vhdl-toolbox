@@ -912,15 +912,19 @@ class VhdlLinter {
                         });
                     }
                     if (process.reset_signal){
-                        if (process.reset_signal.match(/[A-Za-z_0-9]*rst/i) === null) {
+                        let ok = false
+                        for (const r of process.reset_signal){
+                            if (r.match(/[A-Za-z_0-9]*rst/i) !== null) ok = true
+                        }
+                        if (!ok) {
                             let rst = ""
                             if (process.reset_signal) {
-                                rst = `'${process.reset_signal}'`
+                                rst = `'${process.reset_signal.join(', ')}'`
                             }
                             this.addMessage({
                                 range: range,
                                 severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                                message: 'reset signal ' + rst + ' should  end in rst'
+                                message: 'at least one reset signal of ' + rst + ' should  end in rst'
                             });
                         }        
                     }

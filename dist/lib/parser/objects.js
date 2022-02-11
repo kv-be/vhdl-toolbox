@@ -1056,7 +1056,7 @@ class OProcess extends ObjectBase {
             // - construct if (rst) else if (rising edge) => here we have a if.else
             // - construct if (rst) elsif (rising edge) => here we have 2 if.clauses
             reset_start = ifs[0].clauses[0].range.start.i
-            this.reset_signal = ifs[0].clauses[0].condition.replace(/[0-9]+|'|"|or|and|=|>|</g, "").split(" ").filter(s=> s!== "")
+            this.reset_signal = ifs[0].clauses[0].condition.replace(/[0-9]+|'|"|or|and|=|>|<|\(|\)/g, "").split(" ").filter(s=> s!== "")
     
             if (ifs[0].else){
                 // construct if (rst) else if (rising edge)
@@ -1194,10 +1194,11 @@ class OProcess extends ObjectBase {
         for (const statement of this.statements) {
             if (statement instanceof OIf) {
                 for (const clause of statement.clauses) {
-                    if (clause.condition.match(reset_condition)) {
+                    if (clause.condition.indexOf(this.clock)===-1) {
                         //this.reset_signal = clause.condition.match(reset_condition)[0]
                         //console.log("reset = "+this.reset_signal)
                         this.reset_range = statement.range;
+                        this.reset_range.start.character +=3
                         for (const subStatement of clause.statements) {
                             if (subStatement instanceof OForLoop){
                                 for (const ss of subStatement.statements){
@@ -1243,7 +1244,7 @@ class OProcess extends ObjectBase {
                                         }
                                         else{
                                             const a = c.range
-                                            a.start.line = a.start.line+1
+                                            a.start.character = a.start.character+3
                                             this.reset_range = a
                                         }
                                     }            

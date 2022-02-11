@@ -405,9 +405,7 @@ function expandType(type){
             type = type.replace(/([0-9]+)/, ":= $1")
         }
     }
-    if (vector){
-        type = type.replace(/\$/, ")") 
-    }
+    type = type.replace(/\$/, ")") 
     /*type = type.replace(/\s*([a-zA-Z_0-9']+)\s*([a-zA-Z_0-9']+)\s+([a-zA-Z_0-9']+)/, "$1 range $2 to $3")
     type = type.replace(/\s*([a-zA-Z_0-9']+)\s+d\s+([a-zA-Z_0-9']+)/, "($1 downto $2)")
     type = type.replace(/\s*([a-zA-Z_0-9']+)\s+t\s+([a-zA-Z_0-9']+)/, "($1 to $2)")
