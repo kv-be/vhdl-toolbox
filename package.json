@@ -61,12 +61,12 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
-				"key": "ctrl+alt+d ctrl+alt+i",
+				"key": "ctrl+alt+v i",
 				"command": "vhdl-toolbox:instantiate",
 				"when": "editorLangId == vhdl"
 			},
 			{
-				"key": "ctrl+alt+d ctrl+alt+l",
+				"key": "ctrl+alt+v l",
 				"command": "vhdl-toolbox:instantiateFromList",
 				"when": "editorLangId == vhdl"
 			},
@@ -86,28 +86,28 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
-				"key": "ctrl+alt+d ctrl+alt+s",
+				"key": "ctrl+alt+v d",
 				"command": "vhdl-toolbox:add-signal",
 				"when": "editorLangId == vhdl"
 			},
 			{
-				"key": "ctrl+alt+d ctrl+alt+d",
+				"key": "ctrl+alt+v m",
 				"command": "vhdl-toolbox:add-attribute",
 				"when": "editorLangId == vhdl"
 			},
 			{
-				"key": "ctrl+alt+d ctrl+alt+k",
+				"key": "ctrl+alt+v k",
 				"command": "vhdl-toolbox:add-keep",
 				"when": "editorLangId == vhdl"
 			},
 			{
-				"key": "ctrl+alt+d ctrl+alt+e",
+				"key": "ctrl+alt+v e",
 				"command": "vhdl-toolbox:declare-enum-type",
 				"when": "editorLangId == vhdl"
 			}
 		],
 		"menus": {
-			"editor/context": [
+			"vhdltoolbox/main": [
 				{
 					"command": "vhdl-toolbox:add-signal",
 					"group": "vhdl_toolbox@1",
@@ -127,6 +127,13 @@
 					"command": "vhdl-toolbox:declare-enum-type",
 					"group": "vhdl_toolbox@1",
 					"when": "editorHasSelection && editorLangId == vhdl"
+				}
+			],
+			"editor/context": [
+				{
+					"submenu": "vhdltoolbox/main",
+					"group": "vhdltools@2",
+					"when": "editorLangId == vhdl"
 				}
 			],
 			"view/item/context": [
@@ -182,6 +189,12 @@
 				}			
 			]
 		},
+		"submenus": [
+			{
+				"id": "vhdltoolbox/main",
+				"label": "VHDL Toolbox"
+			}
+		],
 		"commands": [
 			{
 				"command": "HierarchyView.open",

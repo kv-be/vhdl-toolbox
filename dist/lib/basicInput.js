@@ -61,6 +61,7 @@ exports.showQuickPick = showQuickPick;
     if (!editor) {
         return;
     }
+    //let a = await vscode_1.env.clipboard.readText()
     let signal = editor.document.getText(editor.selection);
     let objType
     let pos = editor.selection.active

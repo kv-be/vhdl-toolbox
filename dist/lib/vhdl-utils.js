@@ -303,10 +303,10 @@ function findStartOfAttributes(old_text , attribute = "mark_debug"){
     let match = [...old_text.matchAll(new RegExp(`([\\s\\S\\n]+)(\\r*\\n\\s*)(attribute\\s+${attribute}\\s+:\\s*string\\s*;.*\\r*\\n)([\\s\\S\\n]+)`,"gi"))];
     //console.log("match = "+match)
     if (match.length === 0){//\s*--{2,}\s*CONSTANT\s+-{2,}\n\s*--{2,}\s*$
-        match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*attribute\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
+        match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*attributes*\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
         add_attribute_declaration = true
         if (match.length ===0){
-            match = [...old_text.matchAll(/([\s\S\n]+)(\r*\n\s*)(attribute\s+.*\r*\n)([\s\S\n]+)/gi)];
+            match = [...old_text.matchAll(/([\s\S\n]+)(\r*\n\s*)(attributes*\s+.*\r*\n)([\s\S\n]+)/gi)];
             if (match.length ===0){
                 vscode_1.window.showErrorMessage(`Could not find start of the attributes section. \n\nMark it with a '-- attribute' comment or add manually one mark_debug attribute`);
                 return    
@@ -321,13 +321,14 @@ function findStartOfAttributes(old_text , attribute = "mark_debug"){
             return
         }
         before = match[0][1]+match[0][2]+match[0][3]
+        let spaces = match[0][2].replace(/\r*\n/, '')
         if (add_attribute_declaration){
-            before += (`attribute ${attribute}                   : string;\n`)
+            before += (spaces+`attribute ${attribute}                   : string;\n`)
         }
-        space = match[0][2].replace(/\n/, '')
+        space = match[0][2].replace(/\r*\n/, '')
         after = match[0][4]    
     }
-    return [before, space,after]
+    return [before, space.length,after]
 }
 exports.findStartOfAttributes=findStartOfAttributes
 
@@ -362,7 +363,7 @@ function findStartOfConstants(old_text ){
         space = "   "
         after = match[0][2]    
     }
-    return [before, space,after]
+    return [before, space.length,after]
 }
 exports.findStartOfConstants=findStartOfConstants
 

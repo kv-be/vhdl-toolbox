@@ -107,6 +107,7 @@ function activate(context) {
 
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:add-attribute', async (args) => {
         const text = basicInput_1.addDebug(args)
+        
     }));
 
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:add-keep', async (args) => {
