@@ -173,7 +173,7 @@ function addAttribute(attribute, signal, old_text) {
 }
 
 
-async function addsignal(args) {
+async function addsignal(args, client) {
     let type = await vscode_1.window.showInputBox({
         value: 'sl',
         prompt: 'Give type for signal',
@@ -224,10 +224,31 @@ async function addsignal(args) {
     }
     type = vhdl_utils_1.expandType(type)
 
-    const edit = new vscode_1.WorkspaceEdit();
+    const path = vscode_1.window.activeTextEditor.document.uri.fsPath
+    const isVar = (objType ==="var")
+    if (objType ==="var" || objType ==="sig"||objType ==="const"){
+        client.sendRequest("custom/getScopeRange", JSON.stringify({pos, signal, path, isVar}) ).then(posi => declare_signal(type, signal, objType, JSON.parse(posi)));
+    }
+    else{
+        let posi = JSON.parse(`{"start":${pos}, "end":${pos}, "text":""}`) 
+        declare_signal(type, signal, objType, posi);
+    }
+
+}
+exports.addsignal = addsignal;
+//# sourceMappingURL=basicInput.js.map
+
+function declare_signal(type, signal, objType, posi){
+    const editor = vscode_1.window.activeTextEditor;
+    if (!editor) {
+        return;
+    }
+    if ((posi.start ===0) && (posi.end === 0) && (posi.text === "")){
+        vscode_1.window.showWarningMessage(`Automatic declaration failed. Probably you used a ${objType} at an illegal place in the code (e.g. a variable assignment in an architecture). \n\nPleae note that the ${objType} is derived from the object name ${signal}`)
+    }
     const document = editor.document;
     let old_text = document.getText()
-    let new_text = vhdl_utils_1.getDeclaration(old_text, type, signal, "", objType, pos)
+    let new_text = vhdl_utils_1.getDeclaration(old_text, type, signal, "", objType, posi)
 
     let fullRange = new vscode_1.Range(
         document.positionAt(0),
@@ -235,9 +256,5 @@ async function addsignal(args) {
     )
     editor.edit(editBuilder => {
         editBuilder.replace(fullRange, new_text);
-    })
-
-}
-exports.addsignal = addsignal;
-//# sourceMappingURL=basicInput.js.map
-
+    })    
+}    

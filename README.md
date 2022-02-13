@@ -103,16 +103,16 @@ When the parsing is done, click on any VHDL file to see the results. At that mom
   
 ## Shortcuts
 
-All shortcuts for this extension start with `Ctrl+Alt+d` followed by the following key combinations:
+All shortcuts for this extension start with `Ctrl+Alt+v` followed by the following key combinations:
 
 | shortcut  | Description
 |-----------|--------------------------------------------------------|
-|  `Ctrl+Alt+s`      | inserts the declaration of whatever is under the cursor (and is coding rules compliant)              |
-|  `Ctrl+Alt+d`      | inserts attribute 'mark_debug' for whatever is under the cursor              |
-|  `Ctrl+Alt+k`      | inserts attribute 'keep' for whatever is under the cursor              |
-|  `Ctrl+Alt+e`      | detects a case statement in the selected text and <ul><li>defines a type based on the case signal containing all enums in the case</li><li>defined the case signal as a signal of the type above</li></ul>|
-|  `Ctrl+Alt+i`      | inserts an instantiation (generic and port maps) of the entity just before the cursor           |
-|  `Ctrl+Alt+l`      | shows a list of all entities in the project. Pressing enter on any of them inserts the name into the editor   |
+|  `d`      | inserts the declaration of whatever is under the cursor (and is coding rules compliant)              |
+|  `m`      | inserts attribute 'mark_debug' for whatever is under the cursor              |
+|  `k`      | inserts attribute 'keep' for whatever is under the cursor              |
+|  `e`      | detects a case statement in the selected text and <ul><li>defines a type based on the case signal containing all enums in the case</li><li>defined the case signal as a signal of the type above</li></ul>|
+|  `i`      | inserts an instantiation (generic and port maps) of the entity just before the cursor           |
+|  `l`      | shows a list of all entities in the project. Pressing enter on any of them inserts the name into the editor   |
 
 ## Configuration
 

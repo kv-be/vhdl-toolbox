@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const { visitEachChild } = require("typescript");
 const vscode_1 = require("vscode");
 const { RequestType0 } = require("vscode-languageclient");
 
@@ -14,7 +15,7 @@ function findProcess(text, start){
     while ((cont > 0) && (i < 50)){
         i = i+1
         fragment = text.substring(proc_pos,start)
-        proc_pat = [...fragment.matchAll(/\n(\s*.*:*process\s*\(*[A-Za-z0-9_:, \-\t\n]*\)*.*\n)\s*(begin|variable|function|procedure)+.*\n/gi)]
+        proc_pat = [...fragment.matchAll(/\n(\s*[^-]*:*process\s*\(*[A-Za-z0-9_:, \-\t\r*\n]*\)*.*\r*\n)\s*(begin|variable|function|procedure)+.*\r*\n/gi)]
 
         if (proc_pat.length > 0){
             proc_pos = st_end + proc_pat[0].index + proc_pat[0][1].length + 1
@@ -29,8 +30,8 @@ exports.findProcess = findProcess;
 
 function findFunction(text, start){
     let proc_pos = 0
-    let st_end = 0
-    let st_start = 0
+    let func_offset_end = 0
+    let func_offset_start = 0
     let i = 0
     let fragment
     let proc_pat
@@ -41,20 +42,20 @@ function findFunction(text, start){
         proc_pat = [...fragment.matchAll(/\n(\s*function\s+\w+\s*\(*[A-Za-z0-9_:, \-\t\r\n]*?\)\s+return\s+.*?\s+is\s*\r*\n)\s*(begin|variable|function|procedure)+.*\r*\n/gi)]
 
         if (proc_pat.length > 0){
-            proc_pos = st_end + proc_pat[0].index + proc_pat[0][1].length + 1
-            st_start = proc_pos  - proc_pat[0][1].length
-            st_end = proc_pos  
+            proc_pos = func_offset_end + proc_pat[0].index + proc_pat[0][1].length + 1
+            func_offset_start = proc_pos  - proc_pat[0][1].length
+            func_offset_end = proc_pos  
         }
         cont = proc_pat.length
     }
-    return [st_start, st_end]
+    return [func_offset_start, func_offset_end]
 }
 exports.findFunction = findFunction;
 
 function findProcedure(text, start){
     let proc_pos = 0
-    let st_end = 0
-    let st_start = 0
+    let prod_offset_end = 0
+    let prod_offset_start = 0
     let i = 0
     let fragment
     let proc_pat
@@ -64,13 +65,13 @@ function findProcedure(text, start){
         fragment = text.substring(proc_pos,start)
         proc_pat = [...fragment.matchAll(/\n(\s*procedure\s+\w+\s*\(*[A-Za-z0-9_:, \-\t\r\n]*?\)\s+is\s*\r*\n)\s*(begin|variable|function|procedure)+.*\r*\n/gi)]
         if (proc_pat.length > 0){
-            proc_pos = st_end + proc_pat[0].index + proc_pat[0][1].length + 1
-            st_start = proc_pos  - proc_pat[0][1].length
-            st_end = proc_pos  
+            proc_pos = prod_offset_end + proc_pat[0].index + proc_pat[0][1].length + 1
+            prod_offset_start = proc_pos  - proc_pat[0][1].length
+            prod_offset_end = proc_pos  
         }
         cont = proc_pat.length
     }
-    return [st_start, st_end]
+    return [prod_offset_start, prod_offset_end]
 }
 exports.findProcedure = findProcedure;
 
@@ -82,19 +83,19 @@ function findStartOfPorts(text, pos){
     let proc_pat
     fragment = text.substring(proc_pos)
     // first look for the entity to be sure we don't end somewhere else
-    proc_pat = [...fragment.matchAll(/\n\s*entity\s+[A-Za-z_0-9]+.*?\n/g)]
+    proc_pat = [...fragment.matchAll(/\n\s*entity\s+[A-Za-z_0-9]+.*?\s+is\r*\n/g)]
     if (proc_pat.length>0){
         proc_pos = proc_pat[0].index
     }    
     fragment = text.substring(proc_pos)
-    proc_pat = [...fragment.matchAll(/\n(\s*port\s*\n*\(.*\n)/g)]
+    proc_pat = [...fragment.matchAll(/\r*\n(\s*port\s*\r*\n*\(.*\r*\n)/g)]
 
     if (proc_pat.length>0){
         st_end = proc_pos + proc_pat[0].index + proc_pat[0][1].length+1
         st_start = proc_pos + proc_pat[0].index+1 // get rid of the \n
     }
     const before = text.substring(0, st_end)
-    const spaces = text.substring(st_start, st_end).search(/\S/)
+    const spaces = text.substring(st_start, st_end).replace(/\n/, "").search(/\S/)
     const after = text.substring(st_end)
     return [before,spaces, after]
 }
@@ -109,14 +110,14 @@ function findStartOfGenerics(text){
     let add_generics_section = false
     fragment = text.substring(proc_pos)
     // first look for the entity to be sure we don't end somewhere else
-    proc_pat = [...fragment.matchAll(/\n(\s*entity\s+[A-Za-z_0-9]+.*?\n)/g)]
+    proc_pat = [...fragment.matchAll(/\r*\n(\s*entity\s+[A-Za-z_0-9]+.*?\r*\n)/g)]
     if (proc_pat.length>0){
         st_end = proc_pos + proc_pat[0].index + proc_pat[0][1].length+1
         st_start = proc_pos + proc_pat[0].index+1 // get rid of the \n
         proc_pos = proc_pat[0].index
     }    
     fragment = text.substring(proc_pos)
-    proc_pat = [...fragment.matchAll(/\n(\s*generic\s*\n*\(.*\n)/g)]
+    proc_pat = [...fragment.matchAll(/\r*\n(\s*generic\s*\r*\n*\(.*\r*\n)/g)]
 
     if (proc_pat.length>0){
         st_end = proc_pos + proc_pat[0].index + proc_pat[0][1].length+1
@@ -125,7 +126,7 @@ function findStartOfGenerics(text){
     else  add_generics_section = true
 
     const before = text.substring(0, st_end)
-    const spaces = text.substring(st_start, st_end).search(/\S/)
+    const spaces = text.substring(st_start, st_end).replace(/\n/,"").search(/\S/)
     const after = text.substring(st_end)
     return [before,spaces, after, add_generics_section]
 }
@@ -135,24 +136,24 @@ function findStartOfTypes(old_text,type_definition){
 
     let no_signal = true
     let only_arch = false
-    let match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*type\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
+    let match = [...old_text.matchAll(/([\s\S\r*\n]+)(\r*\n\s*)(-{2,}\s*type\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r*\n]+)/gi)]
     
     if (match.length === 0){
         // type declaration exists already
-        match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(type\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+        match = [...old_text.matchAll(/([\s\S\r\n]+?\r*\n\s*architecture [\s\S\n]+?\r*\n)(\s*)(type\s+[\s\S]+?\r*\n)([\s\S\r\n]+)/gi)];
         if (match.length === 0){
             no_signal = false
             // search beginning of signals
-            match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(signal\s+[\s\S\n]+)/gi)];
+            match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\r\n]+?\r*\n)(\s*)(signal\s+[\s\S\r\n]+)/gi)];
             if (match.length === 0){
                 no_signal = true
                 // check if constants exist
-                match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(constant\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+                match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\r\n]+?\r*\n)(\s*)(constant\s+[\s\S]+?\r*\n)([\s\S\r\n]+)/gi)];
                 //check if components exist
-                if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(end\s+component[\s\S]+?\n)([\s\S\n]+)/gi)];
+                if (match.length === 0) match = [...old_text.matchAll(/([\s\S\r\n]+?\r*\n\s*architecture [\s\S\r\n]+?\r*\n)(\s*)(end\s+component[\s\S]+?\r*\n)([\s\S\r\n]+)/gi)];
                 if (match.length === 0){
                     // locate architecture itself
-                    match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)([\s\S\n]+)/gi)];
+                    match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\r\n]+?\r*\n)([\s\S\r\n]+)/gi)];
                     only_arch = true
                 } 
             } 
@@ -192,52 +193,16 @@ function findStartOfTypes(old_text,type_definition){
 exports.findStartOfTypes=findStartOfTypes
 
 function findStartOfVariables(text, start){
-    let proc_offset_start  
-    let proc_offsett_end 
-    let proc_offset_start2 = 0 
-    let proc_offsett_end2 = 0
-    let proc_offset_start3 = 0
-    let proc_offsett_end3 = 0
-    let [proc_offset_start1, proc_offsett_end1] = findProcess(text, start)
-    proc_offsett_end = proc_offsett_end1
-    proc_offset_start = proc_offset_start1
-
-
-    if ((proc_offset_start1 === 0)&&(proc_offsett_end1 ===0))
-    {
-        [proc_offset_start2, proc_offsett_end2] = findFunction(text, start)
+    const pstart = new vscode_1.Position(start+1, 0)    
+    const pend = new vscode_1.Position(start+2, 0)    
+    let editor = vscode_1.window.activeTextEditor;
+    if (!editor) {
+        return;
     }
-    
-    if ((proc_offset_start1 === 0)&&(proc_offsett_end1 ===0))
-    {
-        [proc_offset_start3, proc_offsett_end3] = findProcedure(text, start)
-    }
-    if ((start-proc_offset_start3) >=0 && (proc_offset_start3 >0)) {
-        // procedure detected
-        if ((start-proc_offset_start2)>=0 && (proc_offset_start2>0)){
-            // also a function detected => take the one closest to the start
-            if ((start - proc_offset_start2) > (start - proc_offset_start3)){
-                // procedure closest 
-                proc_offsett_end = proc_offsett_end3
-                proc_offset_start = proc_offset_start3
-            }
-            else{
-                proc_offsett_end = proc_offsett_end2
-                proc_offset_start = proc_offset_start2
-            }
-        }
-    }
-    else {
-        if (proc_offset_start2 > 0){
-            // no procedire detected
-            proc_offsett_end = proc_offsett_end2
-            proc_offset_start = proc_offset_start2            
-        }
-    }
-    
-    const before = text.substring(0, proc_offsett_end)
-    const spaces = text.substring(proc_offset_start).search(/\S/)
-    const after = text.substring(proc_offsett_end)
+    const posi = editor.document.offsetAt(pstart)
+    const before = text.substring(0, editor.document.offsetAt(pstart)) //process => process
+    const after = text.substring(editor.document.offsetAt(pstart)) //process => starting from begin
+    const spaces = editor.document.lineAt(start).replace(/\n/,"").text.search(/\S/)
     return [before,spaces, after]
 }
 exports.findStartOfVariables=findStartOfVariables
@@ -245,21 +210,21 @@ exports.findStartOfVariables=findStartOfVariables
 function findStartOfSignals(old_text ){
     let no_signal = false
     let only_arch = false
-    let match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(signal\s+[\s\S\n]+)/gi)];
+    let match = [...old_text.matchAll(/([\s\S\r\n]+?\r*\n\s*architecture [\s\S\r\n]+?\r*\n)(\s*)(signal\s+[\s\S\r\n]+)/gi)];
     //console.log("match = "+match)
     if (match.length === 0){
         no_signal = true
         // first check for the default template header
         match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*signal\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
         // if not present, check if types are defined
-        if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(type\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+        if (match.length === 0) match = [...old_text.matchAll(/([\s\S\r\n]+?\r*\n\s*architecture [\s\S\n\r]+?\r*\n)(\s*)(type\s+[\s\S]+?\r*\n)([\s\S\r\n]+)/gi)];
         // if no types, check if constants are defined
-        if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(constant\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+        if (match.length === 0) match = [...old_text.matchAll(/([\s\S\r\n]+?\r*\n\s*architecture [\s\S\n\r]+?\r*\n)(\s*)(constant\s+[\s\S]+?\r*\n)([\s\S\r\n]+)/gi)];
         // if no constants, check if components are defined        
-        if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(end\s+component[\s\S]+?\n)([\s\S\n]+)/gi)];
+        if (match.length === 0) match = [...old_text.matchAll(/([\s\S\r\n]+?\r*\n\s*architecture [\s\S\n\r]+?\r*\n)(\s*)(end\s+component[\s\S]+?\r*\n)([\s\S\r\n]+)/gi)];
         // if none of the above, check if the architecture is defined
         if (match.length === 0){
-            match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)([\s\S\n]+)/gi)];
+            match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\n\r]+?\r*\n)([\s\S\n\r]+)/gi)];
             only_arch = true
         }
 
@@ -303,30 +268,35 @@ function findStartOfAttributes(old_text , attribute = "mark_debug"){
     let match = [...old_text.matchAll(new RegExp(`([\\s\\S\\n]+)(\\r*\\n\\s*)(attribute\\s+${attribute}\\s+:\\s*string\\s*;.*\\r*\\n)([\\s\\S\\n]+)`,"gi"))];
     //console.log("match = "+match)
     if (match.length === 0){//\s*--{2,}\s*CONSTANT\s+-{2,}\n\s*--{2,}\s*$
-        match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*attributes*\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
+        match = [...old_text.matchAll(/([\s\S\n\r]+)(\r*\n\s*)(-{2,}[ \t]*attributes*.*?\r*\n)([\s\S\n\r]+)/gi)];
+        //match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*attributes*\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
         add_attribute_declaration = true
         if (match.length ===0){
-            match = [...old_text.matchAll(/([\s\S\n]+)(\r*\n\s*)(attributes*\s+.*\r*\n)([\s\S\n]+)/gi)];
-            if (match.length ===0){
-                vscode_1.window.showErrorMessage(`Could not find start of the attributes section. \n\nMark it with a '-- attribute' comment or add manually one mark_debug attribute`);
-                return    
-            }
+            vscode_1.window.showErrorMessage(`Could not find start of the attributes section. \n\nMark it with a '-- attribute' comment or add manually one mark_debug attribute`);
+            return    
         }
     } 
     let before 
     let space 
     let after 
     if (no_signal === false){
-        if (match[0].length != 5) {
+        if (match[0].length !== 5) {
             return
         }
-        before = match[0][1]+match[0][2]+match[0][3]
+        if (match[0][4].split('\n')[0].trim().startsWith("--")){
+            after = match[0][4].split('\n').slice(1).join("\n")    
+            before = match[0][1]+match[0][2]+match[0][3]+match[0][4].split('\n')[0]+"\n"
+        } 
+        else {
+            //case where there is no "-----------" directly under the -- attribute
+            before = match[0][1]+match[0][2]+match[0][3]
+            after = match[0][4]   
+        }
         let spaces = match[0][2].replace(/\r*\n/, '')
         if (add_attribute_declaration){
             before += (spaces+`attribute ${attribute}                   : string;\n`)
         }
         space = match[0][2].replace(/\r*\n/, '')
-        after = match[0][4]    
     }
     return [before, space.length,after]
 }
@@ -335,12 +305,12 @@ exports.findStartOfAttributes=findStartOfAttributes
 function findStartOfConstants(old_text ){
     let no_signal = true
     let only_arch = false
-    let match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(constant\s+[\s\S]+?\n)([\s\S\n]+)/gi)];
+    let match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\r\n]+?\r*\n)(\s*)(constant\s+[\s\S]+?\r*\n)([\s\S\r\n]+)/gi)];
     //console.log("match = "+match)
     if (match.length === 0){
-        if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)(\s*)(end\s+component[\s\S]+?\n)([\s\S\n]+)/gi)];
+        if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\n\r]+?\r*\n)(\s*)(end\s+component[\s\S]+?\r*\n)([\s\S\n\r]+)/gi)];
         if (match.length === 0){
-            match = [...old_text.matchAll(/([\s\S\n]+?\n\s*architecture [\s\S\n]+?\n)([\s\S\n]+)/gi)];
+            match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\n\r]+?\r*\n)([\s\S\n\r]+)/gi)];
             only_arch = true
         } 
     } 
@@ -424,7 +394,14 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
     let noSpace 
     let sigvar
     let add_generics_section
-    
+    let editor = vscode_1.window.activeTextEditor;
+    if (!editor) {
+        return;
+    }
+    const start = editor.document.offsetAt(new vscode_1.Position(pos.start, 0))
+    const end = editor.document.offsetAt(new vscode_1.Position(pos.end+1, 0))
+
+
     if (objType == "signal"){
         [before, noSpace, after] = findStartOfSignals(old_text)
         sigvar = "signal"
@@ -433,7 +410,7 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
     }
 
     if (objType === "var"){
-        [before, noSpace, after] = findStartOfVariables(old_text, pos)
+        [before, noSpace, after] = findStartOfVariables(old_text, pos.start)
         sigvar = "variable" 
         if (noSpace < 0) noSpace = 0 
         space_before = " ".repeat(noSpace)
@@ -442,7 +419,7 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
     } 
 
     if (objType === "const"){
-        [before, noSpace, after] = findStartOfConstants(old_text, pos)
+        [before, noSpace, after] = findStartOfConstants(old_text, start)
         sigvar = "constant" 
         space_before = " ".repeat(noSpace)
         space_after = " ".repeat(noSpace)  
@@ -452,7 +429,7 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
         } 
     } 
     if (objType === "port"){
-        [before, noSpace, after] = findStartOfPorts(old_text, pos)
+        [before, noSpace, after] = findStartOfPorts(old_text, pos.start)
         sigvar = "" 
         space_before = " ".repeat(noSpace+3-1)
         space_after = ""    
@@ -461,15 +438,20 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
         }
     } 
     if (objType === "generic"){
-        [before, noSpace, after, add_generics_section] = findStartOfGenerics(old_text, pos)
+        [before, noSpace, after, add_generics_section] = findStartOfGenerics(old_text, pos.start)
         sigvar = "" 
         space_before = " ".repeat(noSpace+3-1)
         space_after = ""    
         comment = "--TODO define default value"
+        if (type.include(":=")) comment = ""
     } 
 
     let declaration = `${space_before}${sigvar} ${name} : ${type};${comment}\n${space_after}`
-    if (old_text.search(new RegExp(`\\n\\s*${sigvar}\\s+${name}\\s*:\\s*${type.replace(/ /, "\\s+")}\\s*;`, "i"))>-1){
+    let text = old_text
+    if ((objType === "var")||(objType === "const")){
+        text = pos.text
+    }
+    if (text.search(new RegExp(`\\n\\s*${sigvar}\\s+${name}\\s*:\\s*${type.replace(/ /, "\\s+")}\\s*;`, "i"))>-1){
         vscode_1.window.showInformationMessage(`A declaration for ${objType} ${name} already exists. Nothing added.`)
         return old_text
     }

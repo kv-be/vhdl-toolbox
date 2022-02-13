@@ -129,7 +129,34 @@ class ProjectParser {
         return files;
     }
 
-    
+    getScopeRange(pos, signal, path, isVar){
+        const file = this.cachedFiles.filter(p=>p.path === path)[0]
+        let start = 0
+        let end = 0
+        // strip first and last lines
+        let text = ""
+        // all objects around the position
+        let obj = file.linter.tree.objectList.filter(b=> (b.range.start.i < pos)&&(b.range.end.i > pos))
+        // filter out all procedures, functions, architectures, entities and processes, package
+        if (isVar) obj = obj.filter(o=> (o instanceof objects_1.OProcedure) || (o instanceof objects_1.OFunction)|| (o instanceof objects_1.OProcess))
+        else obj = obj.filter(o=> (o instanceof objects_1.OProcedure) ||(o instanceof objects_1.OPackage) || (o instanceof objects_1.OFunction) || (o instanceof objects_1.OArchitecture)|| (o instanceof objects_1.OEntity) )
+        if (obj.length === 0) return {start, end, text}
+        let min = obj[0].range.end.i
+        let target = obj[0]
+        for (const o of obj){
+            if (o.range.end.i < min){
+                min = o.range.end.i
+                target = o
+            }
+        }
+        start = target.range.start.line
+        end = target.range.end.line
+        // strip first and last lines
+        text = "\n"+file.text.substring(target.range.start.i, target.range.end.i).split('\n').slice(1,-1).join('\n')
+        text = text.replace(/\r*\n\s*function\s+.*\s+return\s+.*?\s+is[\s\S\n]+?end\s+function\s*.*?;/gi, "")
+        text = text.replace(/\r*\n\s*procedure\s+.*\s+is[\s\S\n]+?end\s+procedure\s*.*?;/gi, "")
+        return {start, end, text}
+    }    
 
     fetchEntitesAndPackages() {
         //     console.log(this.cachedFiles);

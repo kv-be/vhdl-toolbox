@@ -115,7 +115,7 @@ function activate(context) {
     }));
 
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:add-signal', async (args) => {
-        const text = basicInput_1.addsignal(args)
+        const text = basicInput_1.addsignal(args, client)
 
     }));
 
@@ -231,7 +231,8 @@ function activate(context) {
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:instantiate', (args) => {
         const editor = vscode_1.window.activeTextEditor;
         let signal = editor.document.getText(editor.document.getWordRangeAtPosition(editor.selection.active));
-        client.sendRequest("custom/getEntity", signal).then(data => enterText(data));
+        let indent = editor.document.lineAt(editor.selection.active.line).text.match(/^\s*/)[0]
+        client.sendRequest("custom/getEntity", signal).then(data => enterText(data, indent));
     }));
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:instantiateFromList', (args) => {
         let entity
@@ -240,11 +241,15 @@ function activate(context) {
 
     
 
-    function enterText(text) {
+    function enterText(text, indent) {
         const editor = vscode_1.window.activeTextEditor;
+        let new_text = []
+        for (const t of text.split('\n')){
+            new_text += (indent+t+'\n')
+        }
         if (editor) {
             editor.edit(editBuilder => {
-                editBuilder.insert(editor.selection.active, text);
+                editBuilder.insert(editor.selection.active, new_text);
             });
         }
     }

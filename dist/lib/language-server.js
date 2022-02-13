@@ -30,7 +30,7 @@ let rootUri;
 
 function instanceTemplate(entity) {
     let text = ""//`u_${entity.name} : entity work.${entity.name}`;
-    const indentString = '  ';
+    const indentString = '   ';
     if (entity.generics.length > 0) {
         text += `\ngeneric map (\n`;
         const longest = longestinArray(entity.generics);
@@ -38,7 +38,6 @@ function instanceTemplate(entity) {
             const name = generic.name.text.padEnd(longest, ' ');
             text += `${indentString}${name} => ,-- ${generic.typename};\n`;
         }
-
         // Strip the final comma
         text = text.slice(0, -2);
         text += `\n)`;
@@ -150,6 +149,12 @@ exports.initialization = new Promise(resolve => {
         exports.connection.onRequest("custom/getEntities",  async (params) => {
             let entity = exports.projectParser.getEntities().map(m=> m.name)
             return JSON.stringify(entity.sort())
+        })
+
+        exports.connection.onRequest("custom/getScopeRange",  async (params) => {
+            let a = JSON.parse(params)
+            let pos = exports.projectParser.getScopeRange(a.pos, a.signal, a.path, a.isVar)
+            return JSON.stringify(pos)
         })
         resolve();
     });
