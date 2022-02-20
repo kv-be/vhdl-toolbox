@@ -283,7 +283,7 @@ class ProjectParser {
     updateFile(file, text, linter){
         for (let f in this.cachedFiles){
             if (this.cachedFiles[f].path === file){
-                //delete this.cachedFiles[f]
+                delete this.cachedFiles[f]
                 const tmpfile = new OFileCache(file, this, text, linter);
                 this.cachedFiles[f] = tmpfile
                 break

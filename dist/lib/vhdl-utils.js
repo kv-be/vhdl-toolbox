@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const { visitEachChild } = require("typescript");
 const vscode_1 = require("vscode");
-const { RequestType0 } = require("vscode-languageclient");
 
 function findProcess(text, start){
     let proc_pos = 0
@@ -202,7 +200,7 @@ function findStartOfVariables(text, start){
     const posi = editor.document.offsetAt(pstart)
     const before = text.substring(0, editor.document.offsetAt(pstart)) //process => process
     const after = text.substring(editor.document.offsetAt(pstart)) //process => starting from begin
-    const spaces = editor.document.lineAt(start).replace(/\n/,"").text.search(/\S/)
+    const spaces = editor.document.lineAt(start).text.replace(/\n/,"").search(/\S/)
     return [before,spaces, after]
 }
 exports.findStartOfVariables=findStartOfVariables
@@ -308,6 +306,7 @@ function findStartOfConstants(old_text ){
     let match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\r\n]+?\r*\n)(\s*)(constant\s+[\s\S]+?\r*\n)([\s\S\r\n]+)/gi)];
     //console.log("match = "+match)
     if (match.length === 0){
+        match = [...old_text.matchAll(/([\s\S\r\n]+)(\r*\n\s*)(-{2,}\s*constant\s+-{2,}\r*\n\s*-{2,}[ \t]*\r*\n)([\s\S\r\n]+)/gi)]
         if (match.length === 0) match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\n\r]+?\r*\n)(\s*)(end\s+component[\s\S]+?\r*\n)([\s\S\n\r]+)/gi)];
         if (match.length === 0){
             match = [...old_text.matchAll(/([\s\S\n\r]+?\r*\n\s*architecture [\s\S\n\r]+?\r*\n)([\s\S\n\r]+)/gi)];
@@ -343,12 +342,18 @@ function expandType(type){
         vector = true
     }
     type = type.replace(/\bslv\s+/, "std_logic_vector(")
+    type = type.replace(/\bslv\b/, "std_logic_vector")
     type = type.replace(/\bsl\b/, "std_logic")
     type = type.replace(/\bint\b/, "integer")
     type = type.replace(/\bsig\s+/, "signed(")
+    type = type.replace(/\bsig\b/, "signed")
     type = type.replace(/\busig\s+/, "unsigned(")
+    type = type.replace(/\busig\b/, "unsigned")
     type = type.replace(/\bbool\b/, "boolean")
-    const matches = [...type.matchAll(/([0-9]+)/gi)]
+    type = type.replace(/\bo0\b/, "(others => '0')")
+    type = type.replace(/\bo1\b/, "(others => '1')")
+    if (type.trim().slice(-1)=="(") type = type.slice(0,-1)
+    let matches = [...type.matchAll(/([0-9]+)/gi)]
     if (matches.length > 0){
         if (matches.length >= 2){
             const f = parseInt( matches[0][1],10)
@@ -358,7 +363,7 @@ function expandType(type){
                     type = type.replace(/([0-9]+)\s+([0-9]+)/, "range $1 to $2")            
                 }
                 else {// assume vectors
-                    type = type.replace(/([0-9]+)\s+([0-9]+)/, "$1 to $2$")
+                    type = type.replace(/([0-9]+)\s+([0-9]+)/, "$1 to $2")
                 }
             }
             else{
@@ -366,7 +371,7 @@ function expandType(type){
                     type = type.replace(/([0-9]+)\s+([0-9]+)/, "range $1 downto $2")            
                 }
                 else {// assume vectors
-                    type = type.replace(/([0-9]+)\s+([0-9]+)/, "$1 downto $2$")
+                    type = type.replace(/([0-9]+)\s+([0-9]+)/, "$1 downto $2")
                 }
             }
             
@@ -376,14 +381,98 @@ function expandType(type){
             type = type.replace(/([0-9]+)/, ":= $1")
         }
     }
-    type = type.replace(/\$/, ")") 
-    /*type = type.replace(/\s*([a-zA-Z_0-9']+)\s*([a-zA-Z_0-9']+)\s+([a-zA-Z_0-9']+)/, "$1 range $2 to $3")
-    type = type.replace(/\s*([a-zA-Z_0-9']+)\s+d\s+([a-zA-Z_0-9']+)/, "($1 downto $2)")
-    type = type.replace(/\s*([a-zA-Z_0-9']+)\s+t\s+([a-zA-Z_0-9']+)/, "($1 to $2)")
-    */
+    matches = [...type.matchAll(/\(/gi)]
+    let openbr = matches.length
+    matches = [...type.matchAll(/\)/gi)]
+    let closebr = matches.length
+    if (openbr === closebr+1){
+        if (type.search(":=")> -1) {
+            // default value defined
+            const s = type.split(":=")
+            type = s[0].trim() + ") :="+s[1]
+        }
+        else{
+            type = type.trim() + ")"
+        }
+    }
+
     return type
 }
 exports.expandType=expandType
+
+function to_vhdl(text){
+    let generics = ""
+    let module_name = ""
+    let ports
+    text = text.replace(/\/\//g, "--")
+
+    let m = text.match(/module\s(.*?)[\s\r\n]*#\s*/)
+    if (m){
+        module_name = m[1]
+        text = text.substr(text.match(/module\s(.*?)[\s\r\n]*#\s*/)[0].length)
+    } 
+
+    let tmptext = text.replace(/--.*/g, "")
+    if(tmptext.search(/\([\s\S\n]*\)\s*\(/)>-1){
+        // module with generics
+        m = text.match(/\(([\s\S\n]*?\))[\n\r\s]*\(/)
+        generics = m[1]
+        text= text.substr(m[0].length)
+
+    }
+    ports = text
+
+    generics = generics.replace(/parameter\s*/g, "")
+    generics = generics.replace(/\s*=([^,]*)(,*)(.*)/g, " => $2 --$1$2")
+    if (generics[0]==='\n') generics = generics.substr(1)
+    //generics = generics.replace(/\s*=([^>]*)/g, " =>  --$1")
+
+    if (ports.trim()[0]==='(') ports=ports.substr(1)
+    if (ports[0]==='\n') ports=ports.substr(1)
+    ports = ports.replace(/wire/g, "")
+    ports = ports.replace(/reg/g, "")
+    ports = ports.replace(/(in|out)put/g, "$1")
+    ports = ports.replace(/(in|out){1}\s+([a-zA-Z0-9_, ]*)\s*,/g, "$2    => ,-- $1 std_logic")
+    ports = ports.replace(/(in|out){1}\s*\[\s*(.*)\s*:\s*(.*)\s*\]\s*([a-zA-Z0-9_]*)\s*(,*)/g, "$4    => $5-- $1 std_logic_vector($2 downto $3)")
+
+    let entity = ""
+    let in_comment = false
+    if (module_name !== "") entity = `u_${module_name} : entity work.${module_name}`
+    if (generics !== ""){
+        entity += "\ngeneric map(\n"
+        for (const g of generics.split('\n')){
+            if (g.trim().search(/^\/\*/) > -1) in_comment = true
+            if (in_comment) entity += "   --"+g.trim()+"\n"
+            else entity += "   "+g.trim()+"\n"
+            if (g.trim().search(/^\*\//) > -1) in_comment = false
+            
+        }
+    } 
+    else entity += "\n"
+    entity += "port map(\n"
+    for (const g of ports.split('\n')){
+        if (g.trim().search(/^\/\*/) > -1) in_comment = true
+        
+        if (g.split(",").length > 2){
+            let indent = g.split(",")[0].match(/\s+/)[0]
+            let end = g.split(",").slice(-1)
+            for (const p of g.split(",").slice(0, -1)){
+                let assign = p.indexOf("=>") >-1? "": "   =>"
+                if (in_comment) entity += indent+"--"+ p.trim() + assign+" , " + end+"\n"
+                else entity += "   "+p.trim() + assign+" , " + end+"\n"
+            }
+        }
+        else{
+            if (in_comment) entity += "   --"+ g.trim() +"\n"
+            else entity += "   "+g.trim() +"\n"
+        }
+        if (g.trim().search(/^\*\//) > -1) in_comment = false
+    }
+    if (entity.trim().slice(-1) !== ";") entity += "\n);"
+return entity
+
+}
+exports.to_vhdl=to_vhdl
 
 function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
 
@@ -398,8 +487,10 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
     if (!editor) {
         return;
     }
-    const start = editor.document.offsetAt(new vscode_1.Position(pos.start, 0))
-    const end = editor.document.offsetAt(new vscode_1.Position(pos.end+1, 0))
+    if (pos !==0){
+        const start = editor.document.offsetAt(new vscode_1.Position(pos.start, 0))
+        const end = editor.document.offsetAt(new vscode_1.Position(pos.end+1, 0))    
+    }
 
 
     if (objType == "signal"){
@@ -422,7 +513,7 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
         [before, noSpace, after] = findStartOfConstants(old_text, start)
         sigvar = "constant" 
         space_before = " ".repeat(noSpace)
-        space_after = " ".repeat(noSpace)  
+        space_after = "" //" ".repeat(noSpace)  
         if (type.indexOf(":=")===-1){
             comment = "--TODO give a default value" 
             type += ":="    
@@ -451,7 +542,11 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
     if ((objType === "var")||(objType === "const")){
         text = pos.text
     }
-    if (text.search(new RegExp(`\\n\\s*${sigvar}\\s+${name}\\s*:\\s*${type.replace(/ /, "\\s+")}\\s*;`, "i"))>-1){
+    
+    let cond = type.replace(/ /g, "\\s+")
+    cond = cond.replace(/\(/g, "\\(")
+    cond = cond.replace(/\)/g, "\\)")
+    if (text.search(new RegExp(`\\n\\s*${sigvar}\\s+${name}\\s*:\\s*${cond}\\s*;`, "i"))>-1){
         vscode_1.window.showInformationMessage(`A declaration for ${objType} ${name} already exists. Nothing added.`)
         return old_text
     }

@@ -12,20 +12,36 @@ const vhdl_utils_1 = require("./vhdl-utils")
 /**
  * Shows a pick list using window.showQuickPick().
  */
-async function showQuickPick(list) {
+
+ function enterText(text, indent) {
+    const editor = vscode_1.window.activeTextEditor;
+    let new_text = text.split('\n')[0]+"\n"
+    for (const t of text.split('\n').slice(1)){
+        new_text += (indent+t+'\n')
+    }
+    if (editor) {
+        editor.edit(editBuilder => {
+            editBuilder.insert(editor.selection.active, new_text);
+        });
+    }
+}
+
+async function showQuickPick(list, client) {
     let i = 0;
     list = JSON.parse(list)
     const result = await vscode_1.window.showQuickPick(list, {
         //placeHolder: 'eins, zwei or drei',
         //onDidSelectItem: item => vscode_1.window.showInformationMessage(`Focus ${++i}: ${item}`)
     });
-
     const editor = vscode_1.window.activeTextEditor;
+    let indent = editor.document.lineAt(editor.selection.active.line).text.match(/^\s*/)[0]
+    client.sendRequest("custom/getEntity", JSON.stringify({signal:result,instance:true})).then(data => enterText(data, indent));
+    /*const editor = vscode_1.window.activeTextEditor;
     if (editor) {
         editor.edit(editBuilder => {
             editBuilder.insert(editor.selection.active, result);
         });
-    }
+    }*/
 }
 exports.showQuickPick = showQuickPick;
 /**
@@ -163,7 +179,7 @@ function addAttribute(attribute, signal, old_text) {
 
     [before, noSpace, after] = vhdl_utils_1.findStartOfAttributes(old_text, attribute)
     space_before = " ".repeat(noSpace)
-    space_after = " ".repeat(noSpace)    
+    space_after = "" //" ".repeat(noSpace)    
 
     declaration = `${space_before}${declaration}\n${space_after}`
     let new_text = before + declaration + after;
@@ -226,7 +242,7 @@ async function addsignal(args, client) {
 
     const path = vscode_1.window.activeTextEditor.document.uri.fsPath
     const isVar = (objType ==="var")
-    if (objType ==="var" || objType ==="sig"||objType ==="const"){
+    if (objType ==="var"){
         client.sendRequest("custom/getScopeRange", JSON.stringify({pos, signal, path, isVar}) ).then(posi => declare_signal(type, signal, objType, JSON.parse(posi)));
     }
     else{

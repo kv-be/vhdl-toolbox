@@ -296,6 +296,9 @@ async function handleOnDocumentSymbol(params) {
         //returnValue.push(...parseFile(linter.tree, linter));
         returnValue.push(...parseArchitecture1(linter.tree.architecture, linter));
     }
+    for (const c of returnValue.filter(m=> typeof(m.children)!=="undefined")){
+        if (c.children.length === 0) delete c.children
+    }
     return returnValue;
 }
 exports.handleOnDocumentSymbol = handleOnDocumentSymbol;

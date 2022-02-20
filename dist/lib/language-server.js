@@ -28,8 +28,9 @@ let hasWorkspaceFolderCapability = false;
 let hasConfigurationCapability = false;
 let rootUri;
 
-function instanceTemplate(entity) {
+function instanceTemplate(entity, instanceNeeded=false) {
     let text = ""//`u_${entity.name} : entity work.${entity.name}`;
+    if (instanceNeeded) text = `u_${entity.name} : entity work.${entity.name}`;
     const indentString = '   ';
     if (entity.generics.length > 0) {
         text += `\ngeneric map (\n`;
@@ -53,9 +54,15 @@ function instanceTemplate(entity) {
     }
     text += `;\n`;
     // strip last comma of generic and port maps
-    text = text.replace(/=> ,(.*\r*\n\s*\);)/i, "=> $1")
     text = text.replace(/=> ,(.*\r*\n\s*\)\s*\r*\n\s*port map)/i, "=> $1")
-    return text;
+    let tmp  = text.split('\n')
+    let index = tmp.length
+    do{
+        index = index -1
+        
+    } while (!tmp[index].includes("=>"))
+    tmp[index] = tmp[index].replace(/=> ,(.*)/i, "=> $1")
+    return tmp.join("\n");
 }
 
 function longestinArray(array) {
@@ -142,8 +149,9 @@ exports.initialization = new Promise(resolve => {
         });
         exports.connection.onRequest("custom/getEntity",  async (params) => {
             //console.log("received parameter '" + params + "'");
-            let entity = exports.projectParser.getEntities().filter(m=>m.name===params.toLowerCase())
-            let instance = instanceTemplate(entity[0])
+            let p = JSON.parse(params)
+            let entity = exports.projectParser.getEntities().filter(m=>m.name===p.signal.toLowerCase())
+            let instance = instanceTemplate(entity[0], p.instance)
             return instance
         })
         exports.connection.onRequest("custom/getEntities",  async (params) => {
@@ -203,7 +211,7 @@ async function validateTextDocument(textDocument) {
         exports.projectParser.updateFile(vscode_uri_1.URI.parse(textDocument.uri).fsPath, textDocument.getText(), vhdlLinter)        
         exports.connection.sendNotification("custom/hierarchyUpdate", [exports.projectParser.getHierarchy()]);
         const errors = exports.projectParser.getMessages()
-        for (const e of errors.filter(m => m)){
+        for (const e of errors.filter(m => !m.file.path.includes(vscode_uri_1.URI.parse(textDocument.uri).fsPath))){
             exports.connection.sendDiagnostics({ uri:e.file.toString(), diagnostics : e.diagnostic});        
         }    
     }

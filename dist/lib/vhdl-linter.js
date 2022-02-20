@@ -1286,6 +1286,7 @@ class VhdlLinter {
         if (((this.tree instanceof objects_1.OFileWithEntityAndArchitecture)==false) || (!this.options.CheckProcessReset)){
             return;
         }
+        if (!this.tree.architecture) return
         let signalLike = this.tree.architecture.signals;
         if (this.tree.entity){
             signalLike = signalLike.concat(this.tree.entity.ports);

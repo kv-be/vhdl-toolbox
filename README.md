@@ -58,11 +58,14 @@ When the parsing is done, click on any VHDL file to see the results. At that mom
 ## Handy extras
 
 - semi-automatic declaration for anything which respects the coding rules (types, signals, variables, ports, generics). The declaration is automatically inserted at the correct place (certainly if the DT coding rules are followed).
-- semi-automatic instantiation of an entity. Type the name of the entity to instantiate and press `Ctrl+Alt+d` followed by `Ctrl+Alt+i`. It will insert an instantiation template of the entity which can be easily completed.
-- List of all entities in the project (`Ctrl+Alt+d`, `Ctrl+Alt+l`)
+![Demo](https://github.com/kv-be/text_utils/raw/master/resources/declare.gif)
+- semi-automatic instantiation of an entity. Type the name of the entity to instantiate and press `Ctrl+Alt+v` followed by `i`. It will insert an instantiation template of the entity which can be easily completed.
+![Demo](https://github.com/kv-be/text_utils/raw/master/resources/instantiate.gif)
 - automatic listing of TODOs bases on a comment starting with TODO
 - command to insert "mark_debug" and "keep" attributes of any signal. If the attribute is not yet defined, the definition will be added automatically. If one tries to add twice the same attribute on a signal, it is detected.
+![Demo](https://github.com/kv-be/text_utils/raw/master/resources/attributes.gif)
 - command to extract an enumerated type based on a case statement. This command will define the enumerated type and declare the signal used in the case statement being of this type. All of this only works if the DT coding rules are followed ;-)!
+![Demo](https://github.com/kv-be/text_utils/raw/master/resources/case.gif)
 - There is a hierarchical view of the code available in the hierarchy view. This view detects automatically all roots in the code base and shows the complete hierarchy of each root in a foldable view. On any member in this view, right clicking will allow to :
 
   - copy the full hierarchical path to the clipboard (handy for putting constraints!)
@@ -70,6 +73,9 @@ When the parsing is done, click on any VHDL file to see the results. At that mom
 
   The hierarchical view is handy to detect code which is no longer used (listed as root)
 - VHDL2008 support
+- verilog to vhdl conversion for module declarations
+![Demo](https://github.com/kv-be/text_utils/raw/master/resources/case.gif)
+
 - the linter also provides Deltatec coding style compliant VHDL templates with the following shortcuts:
 
   | shortcut  | Description
@@ -111,8 +117,7 @@ All shortcuts for this extension start with `Ctrl+Alt+v` followed by the followi
 |  `m`      | inserts attribute 'mark_debug' for whatever is under the cursor              |
 |  `k`      | inserts attribute 'keep' for whatever is under the cursor              |
 |  `e`      | detects a case statement in the selected text and <ul><li>defines a type based on the case signal containing all enums in the case</li><li>defined the case signal as a signal of the type above</li></ul>|
-|  `i`      | inserts an instantiation (generic and port maps) of the entity just before the cursor           |
-|  `l`      | shows a list of all entities in the project. Pressing enter on any of them inserts the name into the editor   |
+|  `i`      | inserts an instantiation (generic and port maps) of the entity just before the cursor or shows a list of entities when applied on an empty line           |
 
 ## Configuration
 

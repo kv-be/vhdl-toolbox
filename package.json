@@ -66,11 +66,6 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
-				"key": "ctrl+alt+v l",
-				"command": "vhdl-toolbox:instantiateFromList",
-				"when": "editorLangId == vhdl"
-			},
-			{
 				"key": "ctrl+alt+i",
 				"command": "vhdl-toolbox:copy-as-instance",
 				"when": "editorLangId == vhdl"
@@ -101,6 +96,11 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
+				"key": "ctrl+alt+v v",
+				"command": "vhdl-toolbox:verilog2vhdl",
+				"when": "editorLangId == vhdl"
+			},
+			{
 				"key": "ctrl+alt+v e",
 				"command": "vhdl-toolbox:declare-enum-type",
 				"when": "editorLangId == vhdl"
@@ -122,6 +122,11 @@
 					"command": "vhdl-toolbox:add-keep",
 					"when": "editorLangId == vhdl",
 					"group": "vhdl_toolbox@1"
+				},
+				{
+					"command": "vhdl-toolbox:verilog2vhdl",
+					"group": "vhdl_toolbox@1",
+					"when": "editorHasSelection && editorLangId == vhdl"
 				},
 				{
 					"command": "vhdl-toolbox:declare-enum-type",
@@ -160,10 +165,6 @@
 					"when": "editorLangId == vhdl"
 				},
 				{
-					"command": "vhdl-toolbox:instantiateFromList",
-					"when": "editorLangId == vhdl"
-				},
-				{
 					"command": "vhdl-toolbox:copy-tree",
 					"when": "editorLangId == vhdl"
 				},
@@ -181,6 +182,10 @@
 				},
 				{
 					"command": "vhdl-toolbox:add-keep",
+					"when": "editorLangId == vhdl"
+				},
+				{
+					"command": "vhdl-toolbox:verilog2vhdl",
 					"when": "editorLangId == vhdl"
 				},
 				{
@@ -217,10 +222,6 @@
 				"title": "Instantiate an entity"
 			},
 			{
-				"command": "vhdl-toolbox:instantiateFromList",
-				"title": "Instantiate an entity selected from a list"
-			},
-			{
 				"command": "vhdl-toolbox:copy-tree",
 				"title": "Copy Vhdl Tree"
 			},
@@ -239,6 +240,10 @@
 			{
 				"command": "vhdl-toolbox:declare-enum-type",
 				"title": "Declare an enum type based on a case"
+			},
+			{
+				"command": "vhdl-toolbox:verilog2vhdl",
+				"title": "Convert verilog module to VHDL instantiation"
 			},
 			{
 				"command": "vhdl-toolbox:add-signal",

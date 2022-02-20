@@ -119,6 +119,25 @@ function activate(context) {
 
     }));
 
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:verilog2vhdl', async (args) => {
+
+        const editor = vscode_1.window.activeTextEditor;
+        if (!editor) {
+            return;
+        }
+        let casestat = editor.document.getText(editor.selection);
+        if (!casestat){
+            vscode_1.window.showInformationMessage("Please first select the complete case statement to extract the type from.")
+            return
+        }        
+        
+        let text = vhdl_utils_1.to_vhdl(casestat)
+        editor.edit(builder => {
+            builder.replace(editor.selection, text);
+        });
+    }))
+        
+
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:declare-enum-type', async (args) => {
 
         const editor = vscode_1.window.activeTextEditor;
@@ -231,15 +250,19 @@ function activate(context) {
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:instantiate', (args) => {
         const editor = vscode_1.window.activeTextEditor;
         let signal = editor.document.getText(editor.document.getWordRangeAtPosition(editor.selection.active));
-        let indent = editor.document.lineAt(editor.selection.active.line).text.match(/^\s*/)[0]
-        client.sendRequest("custom/getEntity", signal).then(data => enterText(data, indent));
-    }));
-    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:instantiateFromList', (args) => {
-        let entity
-        client.sendRequest("custom/getEntities", "").then(data => entity = basicInput_1.showQuickPick(data));
+        if (signal.split("\n").length > 1){
+            client.sendRequest("custom/getEntities", "").then(data => instantiateFromList(data));
+        }
+        else{
+            let indent = editor.document.lineAt(editor.selection.active.line).text.match(/^\s*/)[0]
+            client.sendRequest("custom/getEntity", JSON.stringify({"signal":signal, "instance":false})).then(data => enterText(data, indent));    
+        }
     }));
 
-    
+    async function instantiateFromList(data){
+        entity = await basicInput_1.showQuickPick(data, client)
+    }
+
 
     function enterText(text, indent) {
         const editor = vscode_1.window.activeTextEditor;
