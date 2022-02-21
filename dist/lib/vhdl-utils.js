@@ -404,7 +404,6 @@ function to_vhdl(text){
     let generics = ""
     let module_name = ""
     let ports
-    text = text.replace(/\/\//g, "--")
 
     let m = text.match(/module\s(.*?)[\s\r\n]*#\s*/)
     if (m){
@@ -412,7 +411,7 @@ function to_vhdl(text){
         text = text.substr(text.match(/module\s(.*?)[\s\r\n]*#\s*/)[0].length)
     } 
 
-    let tmptext = text.replace(/--.*/g, "")
+    let tmptext = text.replace(/\/\/.*/g, "")
     if(tmptext.search(/\([\s\S\n]*\)\s*\(/)>-1){
         // module with generics
         m = text.match(/\(([\s\S\n]*?\))[\n\r\s]*\(/)
@@ -428,12 +427,13 @@ function to_vhdl(text){
     //generics = generics.replace(/\s*=([^>]*)/g, " =>  --$1")
 
     if (ports.trim()[0]==='(') ports=ports.substr(1)
-    if (ports[0]==='\n') ports=ports.substr(1)
     ports = ports.replace(/wire/g, "")
     ports = ports.replace(/reg/g, "")
-    ports = ports.replace(/(in|out)put/g, "$1")
-    ports = ports.replace(/(in|out){1}\s+([a-zA-Z0-9_, ]*)\s*,/g, "$2    => ,-- $1 std_logic")
-    ports = ports.replace(/(in|out){1}\s*\[\s*(.*)\s*:\s*(.*)\s*\]\s*([a-zA-Z0-9_]*)\s*(,*)/g, "$4    => $5-- $1 std_logic_vector($2 downto $3)")
+    ports = ports.replace(/(\n\s*)(in|out)put/g, "$1$2")
+    ports = ports.replace(/(\n\s*)(in|out){1}\s+([a-zA-Z0-9_, ]*)\s*,/g, "$1$3    => ,-- $2 std_logic")
+    ports = ports.replace(/(\n\s*)(in|out){1}\s*\[\s*(.*)\s*:\s*(.*)\s*\]\s*([a-zA-Z0-9_]*)\s*(,*)/g, "$1$5    => $6-- $2 std_logic_vector($3 downto $4)")
+    ports = ports.replace(/(\n\s*)(in|out){1}\s+([a-zA-Z0-9_, ]*)/g, "$1$3    => -- $2 std_logic")
+    if (ports[0]==='\n') ports=ports.substr(1)
 
     let entity = ""
     let in_comment = false
@@ -458,21 +458,64 @@ function to_vhdl(text){
             let end = g.split(",").slice(-1)
             for (const p of g.split(",").slice(0, -1)){
                 let assign = p.indexOf("=>") >-1? "": "   =>"
-                if (in_comment) entity += indent+"--"+ p.trim() + assign+" , " + end+"\n"
+                if (in_comment) entity += indent+"##"+ p.trim() + assign+" , " + end+"\n"
                 else entity += "   "+p.trim() + assign+" , " + end+"\n"
             }
         }
         else{
-            if (in_comment) entity += "   --"+ g.trim() +"\n"
+            if (in_comment) entity += "   ##"+ g.trim() +"\n"
             else entity += "   "+g.trim() +"\n"
         }
         if (g.trim().search(/^\*\//) > -1) in_comment = false
     }
     if (entity.trim().slice(-1) !== ";") entity += "\n);"
-return entity
+    let dollar = "##"
+    entity = entity.replace(/(\n\s*)\/\//g, "$1"+dollar)
+    entity = allign_whatever("=>", entity)
+    entity = allign_whatever("--", entity)
+    entity = allign_whatever("//", entity)
+    entity = entity.replace(/\/\//g, " --")
+    entity = entity.replace(/##/g, "--")
+    return entity
 
 }
 exports.to_vhdl=to_vhdl
+
+function allign_whatever(pattern, text){
+	let max = 0
+	let pos = 0
+    pattern = pattern.replace("(", "\\(")
+    pattern = pattern.replace(")", "\\)")
+    pattern = pattern.replace(".", "\\.")
+    pattern = pattern.replace("[", "\\[")
+    pattern = pattern.replace("]", "\\]")
+    pattern = pattern.replace("?", "\\?")
+    pattern = pattern.replace("{", "\\{")
+    pattern = pattern.replace("}", "\\}")
+    pattern = pattern.replace("^", "\\^")
+    pattern = pattern.replace("$", "\\$")
+    pattern = pattern.replace("+", "\\+")
+    pattern = pattern.replace("*", "\\*")
+    pattern = pattern.replace("|", "\\|")
+    for (const l of text.split("\n")){
+        pos = l.search(pattern)
+        if (max < pos) max = pos
+    }	
+	let nt = ""
+	for (const l of text.split("\n")){
+		let start = l.search(pattern)
+		if (start > 0){
+			nt += (l.substring(0, start)+" ".repeat(max-start)+l.substring(start)+"\n")
+		}
+		else if (start === 0){
+			nt += (" ".repeat(max-l.length)+l.substring(start)+"\n")
+		}else{
+			nt+=(l+"\n")
+		}
+	}
+	return nt
+}
+
 
 function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
 
