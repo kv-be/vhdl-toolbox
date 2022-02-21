@@ -58,14 +58,14 @@ When the parsing is done, click on any VHDL file to see the results. At that mom
 ## Handy extras
 
 - semi-automatic declaration for anything which respects the coding rules (types, signals, variables, ports, generics). The declaration is automatically inserted at the correct place (certainly if the DT coding rules are followed).
-![Demo](https://github.com/kv-be/text_utils/raw/master/resources/declare.gif)
+![Demo](https://raw.githubusercontent.com/kv-be/vhdl-toolbox/main/resources/declare.gif)
 - semi-automatic instantiation of an entity. Type the name of the entity to instantiate and press `Ctrl+Alt+v` followed by `i`. It will insert an instantiation template of the entity which can be easily completed.
-![Demo](https://github.com/kv-be/text_utils/raw/master/resources/instantiate.gif)
+![Demo](https://raw.githubusercontent.com/kv-be/vhdl-toolbox/main/resources/instantiate.gif)
 - automatic listing of TODOs bases on a comment starting with TODO
 - command to insert "mark_debug" and "keep" attributes of any signal. If the attribute is not yet defined, the definition will be added automatically. If one tries to add twice the same attribute on a signal, it is detected.
-![Demo](https://github.com/kv-be/text_utils/raw/master/resources/attributes.gif)
+![Demo](https://raw.githubusercontent.com/kv-be/vhdl-toolbox/main/resources/attributes.gif)
 - command to extract an enumerated type based on a case statement. This command will define the enumerated type and declare the signal used in the case statement being of this type. All of this only works if the DT coding rules are followed ;-)!
-![Demo](https://github.com/kv-be/text_utils/raw/master/resources/case.gif)
+![Demo](https://raw.githubusercontent.com/kv-be/vhdl-toolbox/main/resources/case.gif)
 - There is a hierarchical view of the code available in the hierarchy view. This view detects automatically all roots in the code base and shows the complete hierarchy of each root in a foldable view. On any member in this view, right clicking will allow to :
 
   - copy the full hierarchical path to the clipboard (handy for putting constraints!)
@@ -74,7 +74,7 @@ When the parsing is done, click on any VHDL file to see the results. At that mom
   The hierarchical view is handy to detect code which is no longer used (listed as root)
 - VHDL2008 support
 - verilog to vhdl conversion for module declarations
-![Demo](https://github.com/kv-be/text_utils/raw/master/resources/case.gif)
+![Demo](https://raw.githubusercontent.com/kv-be/vhdl-toolbox/main/resources/case.gif)
 
 - the linter also provides Deltatec coding style compliant VHDL templates with the following shortcuts:
 
@@ -131,7 +131,7 @@ The following checks can be enabled/disabled
 - checks on the DT coding style can be disabled (enabled by default)
 - checks on the use of std_logic_arith variants can be disabled (enabled by default)
 To offer full flexibility, these checks can also be enabled/disabled in the code. This can be practical in project having both legacy code and fully DT coding rules compliant code. To do this, add the following comment anywhere in the file:
---vhdl_toolbox_\<switch\> \<true/false\>
+--vhdl-toolbox_\<switch\> \<true/false\>
 
 The table below shows which \<switches\> are supported.
 
@@ -144,7 +144,7 @@ The table below shows which \<switches\> are supported.
 So
 
 ```vhdl
---vhdl_toolbox_check_coding_rules false 
+--vhdl-toolbox_check_coding_rules false 
 ```
 
 will disable the coding rules checker for each file containing this comment
@@ -152,13 +152,13 @@ will disable the coding rules checker for each file containing this comment
 In a similar way, the clock crossing checks can be disabled (in a part of the file). The concept is the same as above.
 
 ```vhdl
---vhdl_toolbox_check_clock_crossing false
+--vhdl-toolbox_check_clock_crossing false
 ```
 
 will disable all clock crossing checks which comes after this line until
 
 ```vhdl
---vhdl_toolbox_check_clock_crossing true
+--vhdl-toolbox_check_clock_crossing true
 ```
 
 is deteced. If the last comment is not added in the file, the checks are cancelled till the end of the file.
