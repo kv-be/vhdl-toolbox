@@ -74,7 +74,7 @@ When the parsing is done, click on any VHDL file to see the results. At that mom
   The hierarchical view is handy to detect code which is no longer used (listed as root)
 - VHDL2008 support
 - verilog to vhdl conversion for module declarations
-![Demo](https://raw.githubusercontent.com/kv-be/vhdl-toolbox/main/resources/case.gif)
+![Demo](https://raw.githubusercontent.com/kv-be/vhdl-toolbox/main/resources/verilog2vhdl.gif)
 
 - the linter also provides Deltatec coding style compliant VHDL templates with the following shortcuts:
 
