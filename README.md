@@ -180,7 +180,6 @@ The 'Toplevel Select Pattern' allows entering a filter for the toplevels shown i
 - a file is only taken into account in other design files when saved to disk. Changes in one file are instantaneously taken into account within that file.
 - multiple architectures for the same entity are not supported (and generate a parsing error)
 - file containing a package and an entity declaration are not supported
-- when a custom type is added (typed) and afterwards a signal of this type is defined, the tool doesn't know about the freshly defined type (and it can't be fixed otherwize than restarting VS Code)
 
 # Debug support
 
