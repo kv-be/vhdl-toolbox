@@ -34,7 +34,13 @@ async function showQuickPick(list, client) {
         //onDidSelectItem: item => vscode_1.window.showInformationMessage(`Focus ${++i}: ${item}`)
     });
     const editor = vscode_1.window.activeTextEditor;
-    let indent = editor.document.lineAt(editor.selection.active.line).text.match(/^\s*/)[0]
+    let indent
+    if (editor.document.lineAt(editor.selection.active.line).text.trim().length === 0){
+        indent = " ".repeat(editor.selection.active.character)
+    }
+    else{
+        indent = editor.document.lineAt(editor.selection.active.line).text.match(/^\s*/)[0]
+    }
     client.sendRequest("custom/getEntity", JSON.stringify({signal:result,instance:true})).then(data => enterText(data, indent));
     /*const editor = vscode_1.window.activeTextEditor;
     if (editor) {

@@ -587,7 +587,7 @@ class VhdlLinter {
                     this.addMessage({
                         range: r,//this.tree.packages[0].range,
                         severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                        message: `The package has not the same name as the file.`
+                        message: `Coding rule: The package has not the same name as the file.`
                     });
                 }            
             }    
@@ -888,14 +888,14 @@ class VhdlLinter {
                         this.addMessage({
                             range: variable.range,
                             severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                            message: `variable '${variable.name}' should be v_<lowercase>`
+                            message: `Coding rule: Variable '${variable.name}' should be v_<lowercase>`
                         });
                     }
                     if (((variable.name.text.match(/^C_[A-Z0-9_]+/) === null) || (variable.name.text.match(/[a-z]+/) !== null)) && (variable.constant) ) {
                         this.addMessage({
                             range: variable.range,
                             severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                            message: `constant '${variable.name}' should be C_<upppercase>`
+                            message: `Coding rule: Constant '${variable.name}' should be C_<upppercase>`
                         });
                     }
                 }
@@ -908,7 +908,7 @@ class VhdlLinter {
                         this.addMessage({
                             range: range,
                             severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                            message: `clock signal '${process.clock}' should  end in clk`
+                            message: `Coding rule: Clock signal '${process.clock}' should  end in clk`
                         });
                     }
                     if (process.reset_signal){
@@ -916,7 +916,7 @@ class VhdlLinter {
                         for (const r of process.reset_signal){
                             if (r.match(/[A-Za-z_0-9]*rst/i) !== null) ok = true
                         }
-                        if (!ok) {
+                        if ((!ok) &&(CheckProcessReset)) {
                             let rst = ""
                             if (process.reset_signal) {
                                 rst = `'${process.reset_signal.join(', ')}'`
@@ -924,7 +924,7 @@ class VhdlLinter {
                             this.addMessage({
                                 range: range,
                                 severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                                message: 'at least one reset signal of ' + rst + ' should  end in rst'
+                                message: 'Coding rule: at least one reset signal of ' + rst + ' should  end in rst'
                             });
                         }        
                     }
@@ -1110,7 +1110,7 @@ class VhdlLinter {
                                     this.addMessage({
                                         range: state.range,
                                         severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                                        message: `States of a FSM should start with S_`
+                                        message: `Coding rule: States of a FSM should start with S_`
                                     });        
                                 }    
                             }
@@ -1458,7 +1458,7 @@ class VhdlLinter {
                         this.addMessage({
                             range: signal.range,
                             severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                            message: `Constant name ${signal.name} should be C_<uppercase>.`
+                            message: `Coding rule: Constant name ${signal.name} should be C_<uppercase>.`
                         });
                     }
                 }
@@ -1476,7 +1476,7 @@ class VhdlLinter {
                         this.addMessage({
                             range: signal.range,
                             severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                            message: `Signal name ${signal.name} should be <lowercase>.`
+                            message: `Coding rule: Signal name ${signal.name} should be <lowercase>.`
                         });
                     }
                 }
@@ -1496,7 +1496,7 @@ class VhdlLinter {
                     this.addMessage({
                         range: port.range,
                         severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                        message: `port '${port.name}' should be in uppercase`,
+                        message: `Coding rule: Port '${port.name}' should be in uppercase`,
                     });
                 }
             //}
@@ -1725,7 +1725,7 @@ class VhdlLinter {
                         this.addMessage({
                             range: signal.range,
                             severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                            message: `Constant name ${signal.name} should be C_<uppercase>.`,
+                            message: `Coding rule: Constant name ${signal.name} should be C_<uppercase>.`,
                             code
                         });    
                     }
@@ -1757,7 +1757,7 @@ class VhdlLinter {
                     this.addMessage({
                         range: type.range,
                         severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                        message: `type name ${type.name} should be t_<lowercase>.`,
+                        message: `Coding rule: Type name ${type.name} should be t_<lowercase>.`,
                         code
                     });
                 }
