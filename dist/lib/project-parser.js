@@ -158,6 +158,10 @@ class ProjectParser {
         return {start, end, text}
     }    
 
+    objcopy(what){
+        return JSON.parse(JSON.stringify(what))
+    }
+
     fetchEntitesAndPackages() {
         //     console.log(this.cachedFiles);
         this.packages = []
@@ -181,13 +185,24 @@ class ProjectParser {
         }
       this.list = this.buildList(this.cachedFiles)
       // now parse the list and make it a hierarchy: for each child, find the children, build the path and indicate the parent
-      for (const l of this.list){
-          l.children = this.getChildren(l, "",l.name, l.children)
-          if (!l.parent) l.parent = ""
-          if (!l.path) l.path = ""
-          if (!l.path) l.hierPath = l.name
+      this.tmptoplevels = []
+      for (let l of this.list){
+        l.children =  (this.getChildren(l, "",l.name, l.children, false))
+        if (!l.parent) l.parent = ""
+        if (!l.path) l.path = ""
+        if (!l.path) l.hierPath = l.name
       }
       this.toplevels = this.list.filter(m=> m.instance ==="")
+      for (let l of this.toplevels){
+          let ll = this.objcopy(l)
+          ll.children =  (this.getChildren(ll, "",ll.name, ll.children, true))
+          if (!ll.parent) ll.parent = ""
+          if (!ll.path) ll.path = ""
+          if (!ll.path) ll.hierPath = ll.name
+          l = ll
+          this.tmptoplevels.push(ll)
+      }
+      this.toplevels = this.tmptoplevels
       if (this.options.ToplevelSelectPattern){
           let re = this.options.ToplevelSelectPattern.split(',').join("|").replace(" ", "")
           re = new RegExp(re)
@@ -206,31 +221,37 @@ class ProjectParser {
     getContexts(){
         return this.contexts
     }
-    getChildren(parent, instance, hierPath,  list){
+    getChildren(parent, instance, hierPath,  list, copy = true){
         if (list.length > 0){
-            for (const c of list){
+            let resultlist = []
+            for (let c of list){
+                let cc
+                if (copy) cc = this.objcopy(c)
+                else cc = c
                 // for each child, find the definition in the base list (to get the childs of the child)
-                const def = this.list.filter(m => m.name === c.name)
-                c.children = []
-                if (!c.path) c.path = instance
-                c.path += ("/"+c.instance)
-                c.hierPath = hierPath+("/"+c.name)
+                let def
+                if (copy) def = this.objcopy(this.list.filter(m => m.name === cc.name))
+                else def = this.list.filter(m => m.name === cc.name)
+                cc.children = []
+                cc.path = instance + ("/"+cc.instance)
+                cc.hierPath = hierPath+("/"+cc.name)
                                 
                 if (def.length > 0){
-                    c.file = def[0].file
+                    cc.file = def[0].file
                     def[0].parent = parent.name
-                    def[0].instance = c.instance
-                    def[0].hierPath = c.hierPath
+                    def[0].instance = cc.path
+                    def[0].hierPath = cc.hierPath
                     if (def[0].children.length > 0){
-                        c.children = this.getChildren(def[0], c.path, c.hierPath, def[0].children)
+                        cc.children = this.getChildren(def[0], cc.path, cc.hierPath, def[0].children, copy)
                     }
                 }
                 else{
-                    c.file = ""
+                    cc.file = ""
                 }
-                c.parent = parent.name
+                cc.parent = parent.name
+                resultlist.push(cc)
             }
-            return list
+            return resultlist
         }
         else return []
     }
