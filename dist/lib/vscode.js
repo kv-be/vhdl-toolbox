@@ -85,7 +85,7 @@ function activate(context) {
     }));
 
     context.subscriptions.push(vscode_1.commands.registerCommand('HierarchyView.getPath', async (args) => {
-        vscode_1.env.clipboard.writeText(args.path);
+        vscode_1.env.clipboard.writeText(args.path.replace(" : ", "/"));
         vscode_1.window.showInformationMessage(`Path copied to clipboard`);
     }));
     //context.subscriptions.push(vscode_1.commands.registerCommand('HierarchyView.whereUsedLocal', async (args) => {

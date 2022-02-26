@@ -72,7 +72,7 @@ class StatementParser extends parser_base_1.ParserBase {
             let start = this.advancePast(/\b(to|downto|range|reverse_range)\b/i);
             let end = this.advancePast(/\bgenerate\b/i);
             const subarchitecture = new architecture_parser_1.ArchitectureParser(this.text, this.pos, this.file, this.parent, label);
-            const generate = subarchitecture.parse(true, 'generate', { variable, start, end, startPosI: startI });
+            const generate = subarchitecture.parse(true, 'generate', { variable, start, end, startPosI: startI }, label);
             generate.range.start.i = savedI;
             this.reverseWhitespace();
             generate.range.end.i = this.pos.i;

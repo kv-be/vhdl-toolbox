@@ -9,9 +9,7 @@ class ArchitectureParser extends parser_base_1.ParserBase {
         super(text, pos, file);
         this.parent = parent;
         this.debug('start');
-        if (name) {
-            this.name = name;
-        }
+        this.name = name //new objects_1.OName(this.parent, pos.i, pos.i+name.length, name);
     }
     parse(skipStart = false, structureName = 'architecture', forGenerateDetails, generate_name) {
         this.debug(`parse`);
@@ -33,6 +31,7 @@ class ArchitectureParser extends parser_base_1.ParserBase {
                 const { variable, start, end, startPosI } = forGenerateDetails;
                 this.architecture = new objects_1.OForGenerate(this.parent, this.pos.i, this.getEndOfLineI(), start, end);
                 const variableObject = new objects_1.OVariable(this.architecture, startPosI, startPosI + variable.length);
+                this.architecture.name = this.name
                 variableObject.type = [];
                 variableObject.name = new objects_1.OName(variableObject, startPosI, startPosI + variable.length);
                 variableObject.name.text = variable;

@@ -269,7 +269,14 @@ class ProjectParser {
             if (f.entity){
                 let childs = []
                 if (f.linter.tree.objectList){
-                    for (const c of f.instances) childs.push({"name": c.componentName, "instance" : c.label , "line" : c.range.start.line})
+                    for (const c of f.instances) {
+                        if ((c.parent instanceof objects_1.OIfGenerateClause) || (c.parent instanceof objects_1.OForGenerate)){
+                            childs.push({"name": c.componentName, "instance" : c.parent.name + " : "+c.label , "line" : c.range.start.line})
+                        }
+                        else{
+                            childs.push({"name": c.componentName, "instance" : c.label , "line" : c.range.start.line})
+                        }
+                    }
                 }
                 ret.push({"name" : f.entity.name, "instance": "", "file": f.path, "children": childs})
             }

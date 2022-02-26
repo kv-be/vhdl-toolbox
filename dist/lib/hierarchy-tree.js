@@ -58,9 +58,9 @@ class HierarchyDataProvider {
       for (const u of used){
         if (!res.includes(u[0])) res +=`* [${u[0]}](${vscode.Uri.file(u[1])})\n`
       }
-      if ((res !== "") && (element.file !== "")) element.tooltip = new vscode.MarkdownString(`Open [${element.name}](${uri})\n\nUsed in :\n\n${res}\n\n${element.path}`, true);  
-      else if (element.file !== "") element.tooltip = new vscode.MarkdownString(`Open [${element.label}](${uri})\n\n${element.path}`, true);  
-      else element.tooltip = new vscode.MarkdownString(`Used in :\n\n${res}\n\n${element.path}`, true);  
+      if ((res !== "") && (element.file !== "")) element.tooltip = new vscode.MarkdownString(`Open [${element.name}](${uri})\n\nUsed in :\n\n${res}\n\n${element.path.replace(" : ", "/")}`, true);  
+      else if (element.file !== "") element.tooltip = new vscode.MarkdownString(`Open [${element.label}](${uri})\n\n${element.path.replace(" : ", "/")}`, true);  
+      else element.tooltip = new vscode.MarkdownString(`Used in :\n\n${res}\n\n${element.path.replace(" : ", "/")}`, true);  
     }
     return element;
   }
