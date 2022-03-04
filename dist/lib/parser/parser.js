@@ -5,6 +5,7 @@ const architecture_parser_1 = require("./architecture-parser");
 const parser_base_1 = require("./parser-base");
 const objects_1 = require("./objects");
 const package_parser_1 = require("./package-parser");
+const config_parser_1 = require("./config_parser");
 
 class Parser extends parser_base_1.ParserBase {
     constructor(text, file, onlyDeclarations = false) {
@@ -135,6 +136,10 @@ class Parser extends parser_base_1.ParserBase {
                 const packageParser = new package_parser_1.PackageParser(this.text, this.pos, this.file, this.onlyDeclarations);
                 const pack = packageParser.parse(file)
                 if (pack) packages.push(pack);
+            }
+            else if (nextWord === 'configuration') {
+                const configParser = new config_parser_1.ConfigParser(this.text, this.pos, this.file, architecture);
+                const pack = configParser.parse(file)
             }
             else if (nextWord === 'context') {
                 let name = this.getNextWord();

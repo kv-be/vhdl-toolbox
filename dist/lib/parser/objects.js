@@ -833,6 +833,15 @@ class OEntity extends ObjectBase {
     }
 }
 exports.OEntity = OEntity;
+
+class OConfig extends ObjectBase {
+        constructor() {
+            super(...arguments);
+            this.config = [];
+            this.entity = [];
+            }
+}
+exports.OConfig = OConfig;
 class OPort extends OSignalBase {
 }
 exports.OPort = OPort;

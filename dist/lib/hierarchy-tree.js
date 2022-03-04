@@ -51,6 +51,7 @@ class HierarchyDataProvider {
     if (element.children.length > 0) element.iconPath = new vscode.ThemeIcon("symbol-class")
     else element.iconPath = new vscode.ThemeIcon("symbol-method")
     if (element.file === "") element.iconPath = new vscode.ThemeIcon("symbol-module")
+    if (element.path.split("/").slice(-1)[0].includes(":")) element.iconPath = new vscode.ThemeIcon("symbol-enum")
     if (element.label){
       const uri = vscode.Uri.file(element.file);
       const used= this.find(element.name, this.data)
@@ -58,9 +59,9 @@ class HierarchyDataProvider {
       for (const u of used){
         if (!res.includes(u[0])) res +=`* [${u[0]}](${vscode.Uri.file(u[1])})\n`
       }
-      if ((res !== "") && (element.file !== "")) element.tooltip = new vscode.MarkdownString(`Open [${element.name}](${uri})\n\nUsed in :\n\n${res}\n\n${element.path.replace(" : ", "/")}`, true);  
-      else if (element.file !== "") element.tooltip = new vscode.MarkdownString(`Open [${element.label}](${uri})\n\n${element.path.replace(" : ", "/")}`, true);  
-      else element.tooltip = new vscode.MarkdownString(`Used in :\n\n${res}\n\n${element.path.replace(" : ", "/")}`, true);  
+      if ((res !== "") && (element.file !== "")) element.tooltip = new vscode.MarkdownString(`Open [${element.name}](${uri})\n\nUsed in :\n\n${res}\n\n${element.path.replace(/ : /g, "/")}`, true);  
+      else if (element.file !== "") element.tooltip = new vscode.MarkdownString(`Open [${element.label}](${uri})\n\n${element.path.replace(/ : /g, "/")}`, true);  
+      else element.tooltip = new vscode.MarkdownString(`Used in :\n\n${res}\n\n${element.path.replace(/ : /g, "/")}`, true);  
     }
     return element;
   }
