@@ -916,7 +916,7 @@ class VhdlLinter {
                         for (const r of process.reset_signal){
                             if (r.match(/[A-Za-z_0-9]*rst/i) !== null) ok = true
                         }
-                        if ((!ok) &&(CheckProcessReset)) {
+                        if ((!ok) &&(this.options.CheckProcessReset)) {
                             let rst = ""
                             if (process.reset_signal) {
                                 rst = `'${process.reset_signal.join(', ')}'`

@@ -211,7 +211,7 @@ class ProjectParser {
     }
 
     getMessages(){
-        return this.messages
+        return this.messages.filter(m => m)
     }
 
     getHierarchy(){
