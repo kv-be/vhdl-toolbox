@@ -11,6 +11,7 @@ const { throws } = require("assert");
 const { getFips } = require("crypto");
 const { runInThisContext } = require("vm");
 const vscode_uri_1 = require("vscode-uri");
+const os = require("os")
 class ProjectParser {
     constructor(workspaces, settings) {
         this.workspaces = workspaces;
@@ -309,8 +310,15 @@ class ProjectParser {
     }
 
     updateFile(file, text, linter){
+        let op_sys = os.platform()
         for (let f in this.cachedFiles){
-            if (this.cachedFiles[f].path === file){
+            let patha = path_1.normalize(this.cachedFiles[f].path)
+            let pathb = path_1.normalize(file)
+            if (op_sys === "win32"){
+                patha = patha.toLowerCase()
+                pathb = pathb.toLowerCase()
+            }
+            if (patha  === pathb){
                 delete this.cachedFiles[f]
                 const tmpfile = new OFileCache(file, this, text, linter);
                 this.cachedFiles[f] = tmpfile

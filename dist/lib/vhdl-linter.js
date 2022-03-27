@@ -1666,7 +1666,8 @@ class VhdlLinter {
                         }
                     }
                     for (const port of entity.ports) {
-                        if (port.direction === 'in' && typeof port.defaultValue === 'undefined' && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
+                        if(!port.defaultValue) port.defaultValue = '' // ports without default value return "" (in win)
+                        if (port.direction === 'in' && (typeof port.defaultValue === 'undefined' ||port.defaultValue === '') && typeof foundPorts.find(portSearch => portSearch === port) === 'undefined') {
                             this.addMessage({
                                 range: new objects_1.OIRange(instantiation, instantiation.range.start.i,instantiation.range.start.i+instantiation.text.indexOf('\n')),
                                 severity: vscode_languageserver_1.DiagnosticSeverity.Error,
@@ -1680,6 +1681,7 @@ class VhdlLinter {
                                 message: `port ${port.name} is missing on entity ${instantiation.componentName}`
                             });
                         }
+
                     }
                 }
             }
