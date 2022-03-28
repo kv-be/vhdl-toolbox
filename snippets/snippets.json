@@ -35,25 +35,25 @@
 	},
 
 	"cas": {
-		"prefix": "case",
+		"prefix": "cas",
 		"body": "\ncase ${1:signalname} is\n   when $0 =>\n\n   when =>\n\n   when =>\n\n   when others =>\nend case;\n",
 		"description": "case",
 		"scope": "source.vhdl"
 	},
 	"rec": {
-		"prefix": "record template",
+		"prefix": "rec",
 		"body": "type ${1:recordname} is record\n   $0\nend record;",
 		"description": "recprd",
 		"scope": "source.vhdl"
 	},
 	"forl": {
-		"prefix": "for loop",
+		"prefix": "forl",
 		"body": "for ${1:i} in ${2:range} loop\n   $0\nend loop; \n",
 		"description": "for loop",
 		"scope": "source.vhdl"
 	},
 	"forg": {
-		"prefix": "for generate",
+		"prefix": "forg",
 		"body": "${1:identifier} : for ${2:i} in ${3:range} generate\n   $0\nend generate; -- ${1:identifier}\n",
 		"description": "for generate",
 		"scope": "source.vhdl"
@@ -65,96 +65,120 @@
 		"scope": "source.vhdl"
 	},
 	"ife": {
-		"prefix": "if else",
+		"prefix": "ife",
 		"body": "if ${1:expression} then\n   $0\nelse\n   \nend if;\n",
-		"description": "if",
+		"description": "if else",
 		"scope": "source.vhdl"
 	},
 	"ifg": {
-		"prefix": "if generate",
+		"prefix": "ifg",
 		"body": "${1:identifier} : if ${2:expression} generate\n   $0\nend generate; -- ${1:identifier}\n",
-		"description": "for generate",
+		"description": "if generate",
 		"scope": "source.vhdl"
 	},
 	"ifeg": {
-		"prefix": "if else generate",
+		"prefix": "ifeg",
 		"body": "${1:identifier} : if ${2:expression} generate\n   $0\nelse\n   \nend generate; -- ${1:identifier}\n",
-		"description": "for generate",
+		"description": "if else generate",
 		"scope": "source.vhdl"
 	},
 	"func": {
 		"prefix": "function",
 		"body": "function ${1:function_name}(${2:arguments}) return ${3:return type} is\nbegin\n   $0\nend function;\n",
-		"description": "if",
+		"description": "function",
 		"scope": "source.vhdl"
 	},
 	"proc": {
-		"prefix": "procedure",
+		"prefix": "proc",
 		"body": "procedure ${1:procedure_name}(${2:arguments}) is\nbegin\n   $0\nend procedure;\n",
-		"description": "if",
+		"description": "procedure",
 		"scope": "source.vhdl"
 	},
 	"slv": {
-		"prefix": "std_logic_vector",
+		"prefix": "slv",
 		"body": "std_logic_vector",
 		"description": "std_logic_vector",
 		"scope": "source.vhdl"
 	},
+	"sl": {
+		"prefix": "sl",
+		"body": "std_logic",
+		"description": "std_logic",
+		"scope": "source.vhdl"
+	},
+	"ei": {
+		"prefix": "ei",
+		"body": "end if;",
+		"description": "end if;",
+		"scope": "source.vhdl"
+	},
+	"el": {
+		"prefix": "el",
+		"body": "end loop;",
+		"description": "end loop;",
+		"scope": "source.vhdl"
+	},
+	"eg": {
+		"prefix": "eg",
+		"body": "end generate;",
+		"description": "end generate;",
+		"scope": "source.vhdl"
+	},
 
 	"uns": {
-		"prefix": "unsigned",
+		"prefix": "uns",
 		"body": "unsigned",
 		"description": "unsigned",
 		"scope": "source.vhdl"
 	},
 	"var": {
-		"prefix": "variable",
+		"prefix": "var",
 		"body": "variable",
 		"description": "variable",
 		"scope": "source.vhdl"
 	},
 	"int": {
-		"prefix": "integer",
+		"prefix": "int",
 		"body": "integer",
 		"description": "integer",
 		"scope": "source.vhdl"
 	},
 	"o0": {
-		"prefix": "(others => '0')",
+		"prefix": "o0",
 		"body": "(others => '0')",
 		"description": "(others <= 0)",
 		"scope": "source.vhdl"
 	},
 	"o1": {
-		"prefix": "(others => '1')",
+		"prefix": "o1",
 		"body": "(others => '1')",
 		"description": "(others <= 0)",
 		"scope": "source.vhdl"
 	},
 
 	"dt0": {
-		"prefix": "downto 0",
+		"prefix": "dt0",
 		"body": "downto 0",
 		"description": "downto 0",
 		"scope": "source.vhdl"
 	},
 
 	"dt": {
-		"prefix": "downto ",
+		"prefix": "dt",
 		"body": "downto ",
 		"description": "downto ",
 		"scope": "source.vhdl"
 	},
 
 	"sig": {
-		"prefix": "signal ",
+		"prefix": "sig",
 		"body": "signal ",
 		"description": "signal ",
 		"scope": "source.vhdl"
 	},
 
 	"pack": {
-		"prefix": "package template",
+		"prefix": "pack",
 		"body": "-------------------------------------------------------------------------------\n--! \\file          ${1:${TM_FILENAME}}\n--!               \n--! \\section       General\n--!                \n--! \\copyright     Deltatec (www.deltatec.be) - 2017 \n--!                This file is provided without any express or implied warranties, including,\n--!                but not limited to, the implied warranties of merchantability and fitness\n--!                for a particular purpose. It is not intended for use in life support\n--!                appliances, devices, or systems. Use in such applications is expressly\n--!                prohibited.\n--!\n--! \\author        ${2:author} \n--!\n--! \\creation      ${3:$CURRENT_DATE/$CURRENT_MONTH/$CURRENT_YEAR}      \n--! \n--! \\brief\n--!     This section must describe the entity's functionality\\n\n--!     The description can contain multiple lines. If you want to force a carriage\\n \n--!     return, you need to use the \\\\n escape character.\n--! \n--! \n-----------------------------------------------------------------------------------------\n-------------\n-- LIBRARY --\n-------------\n\nlibrary ieee;\nuse ieee.std_logic_1164.all;\nuse ieee.numeric_std.all;\n\npackage ${4:pkg} is\n   $0\nend package ;\n\npackage body ${4:pkg} is\n\n\nend package body;\n",
 		"description": "package",
 		"scope": "source.vhdl"

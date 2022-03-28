@@ -261,6 +261,17 @@ class ProjectParser {
         this.watcher.add(folders.map(folder => folder.replace(path_1.sep, '/') + '/**/*.vhd[l]'));
     }
 
+    compare_paths(patha, pathb){
+        let op_sys = os.platform()
+        let a = path_1.normalize(patha)
+        let b = path_1.normalize(pathb)
+        if (op_sys === "win32"){
+            a = a.toLowerCase()
+            b = b.toLowerCase()
+        }
+        return (a === b)
+    }
+
     buildList(list){
         let ret = []
 //        let childs = f.linter.tree.objectList.filter(m=>m instanceof objects_1.OInstantiation)
@@ -288,7 +299,7 @@ class ProjectParser {
     deleteFile(file){
         let index = -1
         for (const f in this.cachedFiles){
-            if (this.cachedFiles[f].path === file){
+            if (this.compare_paths(this.cachedFiles[f].path , file)){
                 index = f
                 break
             }
@@ -301,7 +312,7 @@ class ProjectParser {
 
     
     addFile(file){
-        let f = this.cachedFiles.filter(f => f.path === file)
+        let f = this.cachedFiles.filter(f => this.compare_paths(f.path, file))
         if (f.length ===0){
             const tmpfile = new OFileCache(file, this);
             this.cachedFiles.push(tmpfile)
@@ -310,15 +321,15 @@ class ProjectParser {
     }
 
     updateFile(file, text, linter){
-        let op_sys = os.platform()
+
         for (let f in this.cachedFiles){
-            let patha = path_1.normalize(this.cachedFiles[f].path)
+            /*let patha = path_1.normalize(this.cachedFiles[f].path)
             let pathb = path_1.normalize(file)
             if (op_sys === "win32"){
                 patha = patha.toLowerCase()
                 pathb = pathb.toLowerCase()
-            }
-            if (patha  === pathb){
+            }*/
+            if (this.compare_paths(this.cachedFiles[f].path, file)){
                 delete this.cachedFiles[f]
                 const tmpfile = new OFileCache(file, this, text, linter);
                 this.cachedFiles[f] = tmpfile
@@ -347,11 +358,12 @@ class OFileCache {
         else{
             text = newtext
         }
+        this.path = file;
         if (!text) {
             return;
         }    
         this.text = text;
-        this.path = file;
+
         utils.message("parsing of "+file)
 
         if (linter === null){

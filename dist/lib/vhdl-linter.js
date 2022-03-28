@@ -671,7 +671,8 @@ class VhdlLinter {
 
     checkHeader(){
         //TODOs
-        let a = this.text.match(/-{40}.*\n-{2}!\s*\\file.*[\s\S]+[--]!\s*\\section[\s\S]+[--]!\s*\\copyright[\s\S]+[--]!\s*\\author\s*([a-zA-Z]*)[\s\S]+[--]!\s*\\creation\s*([0-9a-z/]*)[\s\S]+[--]! \\brief([\s\S]+)-{40}/i)
+        let b = [... this.text.matchAll(/-{40}.*\r*\n-{2}!\s*\\file.*[\s\S]+[--]!\s*\\section[\s\S]+[--]!\s*\\copyright[\s\S]+[--]!\s*\\author\s*([a-zA-Z]*)[\s\S]+[--]!\s*\\creation\s*([0-9a-z/]*)[\s\S]+[--]! \\brief([\s\S]+)-{40}.*/gi)]
+        let a = b[0]
         if (!a) a = []
         if (a.length !== 4){
             this.addMessage({
