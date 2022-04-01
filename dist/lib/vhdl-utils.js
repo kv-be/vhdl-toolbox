@@ -553,7 +553,7 @@ function getDeclaration(old_text, type, name, comment = "", objType , pos=0){
     } 
 
     if (objType === "const"){
-        [before, noSpace, after] = findStartOfConstants(old_text, start)
+        [before, noSpace, after] = findStartOfConstants(old_text, pos.start)
         sigvar = "constant" 
         space_before = " ".repeat(noSpace)
         space_after = "" //" ".repeat(noSpace)  

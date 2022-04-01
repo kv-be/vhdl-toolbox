@@ -9,6 +9,7 @@ const { threadId } = require("worker_threads");
 const { thenable } = require("vscode-languageserver/lib/utils/is");
 const { isThisTypeNode, textChangeRangeIsUnchanged } = require("typescript");
 const { throws } = require("assert");
+const path_1 = require("path");
 var LinterRules;
 (function (LinterRules) {
     LinterRules[LinterRules["Reset"] = 0] = "Reset";
@@ -551,13 +552,7 @@ class VhdlLinter {
         //utils.debuglog("Checking entity")
         if ((this.tree instanceof objects_1.OFileWithEntity) && (this.tree.entity) ){
             if (this.options.CheckCodingRules) {
-                let name
-                if (this.tree.file.includes('/')) {
-                    name = this.tree.file.split('/')
-                }
-                else{
-                    name = this.tree.file.split('\\')
-                }
+                let name = this.tree.file.split(path_1.sep)
                 name = name[name.length-1].split('.')[0]
                 //utils.debuglog("file name "+ name+ ", "+this.tree.entity.name)
                 let r = this.tree.entity.range
@@ -577,7 +572,7 @@ class VhdlLinter {
         }
         if (this.tree instanceof objects_1.OFileWithPackages){
             if (this.options.CheckCodingRules) {
-                let name = this.tree.file.split('/')
+                let name = this.tree.file.split(path_1.sep)
                 name = name[name.length-1].split('.')[0]
                 //utils.debuglog("file name "+ name+ ", "+this.tree.packages[0].name)
                 if (name !== this.tree.packages[0].name){
