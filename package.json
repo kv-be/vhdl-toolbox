@@ -66,6 +66,11 @@
 				"when": "editorLangId == vhdl"
 			},
 			{
+				"key": "ctrl+alt+v -",
+				"command": "vhdl-toolbox:delete-comments",
+				"when": "editorLangId == vhdl"
+			},
+			{
 				"key": "ctrl+alt+i",
 				"command": "vhdl-toolbox:copy-as-instance",
 				"when": "editorLangId == vhdl"
@@ -161,6 +166,10 @@
 					"when": "editorLangId == vhdl"
 				},
 				{
+					"command": "vhdl-toolbox:delete-comments",
+					"when": "editorLangId == vhdl"
+				},
+				{
 					"command": "vhdl-toolbox:instantiate",
 					"when": "editorLangId == vhdl"
 				},
@@ -216,6 +225,10 @@
 			{
 				"command": "vhdl-toolbox:copy-as-signals",
 				"title": "Copy as Signals"
+			},
+			{
+				"command": "vhdl-toolbox:delete-comments",
+				"title": "delete all comments on a line/selection"
 			},
 			{
 				"command": "vhdl-toolbox:instantiate",

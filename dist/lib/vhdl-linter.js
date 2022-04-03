@@ -117,18 +117,21 @@ class VhdlLinter {
     }
     checkMagicComments(diagnostic, rule, parameter) {
         const range = diagnostic.range
-        const matchingMagiComments = this.tree.magicComments.filter(magicComment => (magicComment.range.start.character <= range.start.character && magicComment.range.start.line <= range.start.line &&
-            magicComment.range.end.character >= range.start.character && magicComment.range.end.line >= range.start.line) || (magicComment.range.start.character <= range.end.character && magicComment.range.start.line <= range.end.line &&
-                magicComment.range.end.character >= range.end.character && magicComment.range.end.line >= range.end.line)).filter(magicComment => {
-                    if (magicComment.commentType === objects_1.MagicCommentType.Disable) {
-                        return true;
-                    }
-                    if (magicComment.commentType === objects_1.MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
-                        return true;
-                    }
-                    return false;
-                });
-        return matchingMagiComments.length === 0;
+        if (range){
+            const matchingMagiComments = this.tree.magicComments.filter(magicComment => (magicComment.range.start.character <= range.start.character && magicComment.range.start.line <= range.start.line &&
+                magicComment.range.end.character >= range.start.character && magicComment.range.end.line >= range.start.line) || (magicComment.range.start.character <= range.end.character && magicComment.range.start.line <= range.end.line &&
+                    magicComment.range.end.character >= range.end.character && magicComment.range.end.line >= range.end.line)).filter(magicComment => {
+                        if (magicComment.commentType === objects_1.MagicCommentType.Disable) {
+                            return true;
+                        }
+                        if (magicComment.commentType === objects_1.MagicCommentType.Parameter && rule === LinterRules.Reset && typeof parameter !== 'undefined' && magicComment.parameter.find(parameterFind => parameterFind.toLowerCase() === parameter.toLowerCase())) {
+                            return true;
+                        }
+                        return false;
+                    });                
+            return matchingMagiComments.length === 0;
+        }
+        else return false
     }
     checkTodos() {
         this.tree.magicComments.forEach(magicComment => {
