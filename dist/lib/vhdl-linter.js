@@ -1289,7 +1289,7 @@ class VhdlLinter {
         }
         const processes = this.tree.objectList.filter(object => object instanceof objects_1.OProcess);
 
-        for (const signal of signalLike.filter(s => (s.isRegister()===true))) {
+        for (const signal of signalLike.filter(s => !(s instanceof objects_1.OVariable)).filter(s => (s.isRegister()===true))) {
             /*if (signal.isRegister() === false) {
                 continue;
             }*/
