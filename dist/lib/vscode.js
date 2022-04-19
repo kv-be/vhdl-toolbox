@@ -5,6 +5,7 @@ const vscode_languageclient_1 = require("vscode-languageclient");
 const vhdl_entity_converter_1 = require("./vhdl-entity-converter");
 const vhdl_linter_1 = require("./vhdl-linter");
 const project_parser_1 = require("./project-parser");
+const parser_1 = require("./parser/parser");
 const vhdl_utils_1 = require("./vhdl-utils")
 const hierarchyTree_1 = require("./hierarchy-tree")
 var config_1 = require("./config");
@@ -247,6 +248,17 @@ function activate(context) {
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-as-instance', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Instance)));
     //context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-as-sysverilog', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Sysverilog)));
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-as-signals', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Signals)));
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:delete-comments', (args) => {
+        const editor = vscode_1.window.activeTextEditor;
+        let text = editor.document.getText(editor.selection)
+
+        text = parser_1.removeComments(text) 
+        text = text.replace(/\s*(\r*\n)/gi, "$1")
+        editor.edit(editBuilder => {
+            editBuilder.replace(editor.selection, text);
+        })
+    }));
+
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:instantiate', (args) => {
         const editor = vscode_1.window.activeTextEditor;
         let signal = editor.document.getText(editor.document.getWordRangeAtPosition(editor.selection.active));

@@ -7,12 +7,33 @@ const objects_1 = require("./objects");
 const package_parser_1 = require("./package-parser");
 const config_parser_1 = require("./config_parser");
 
+function removeComments(text) {
+    text = "\n"+text
+    // remove all start of line comments
+    text = text.replace(/(?<=\n\s*)--.*/g, match => ' '.repeat(match.length));
+    text = text.substring(1)
+    // the line below removes everything between a -- and a \n IF there is no ; or " in it
+    text = text.replace(/--(?<!;)[^"]*?(?=\n)/g, match => ' '.repeat(match.length));
+    // in 99% of the cases, all the comments are removed. This is checked by the following line
+    if (!text.includes("--")) return text
+    // if there is still a -- sequence detected, it can be something like if a = "0--111" or a string with -- in it
+    // to get these out, we first replace all string content by S, replace --.* 
+    let tmp_text = text
+    tmp_text = tmp_text.replace(/"(.*?)"/g, match => "S".repeat(match.length))
+    const matches = tmp_text.matchAll(/--.*/g)
+    for (const match of matches){
+        text = text.substr(0, match.index)+" ".repeat(match[0].length)+ text.substring(match.index+match[0].length)
+    }
+    return text
+}
+exports.removeComments = removeComments
+
 class Parser extends parser_base_1.ParserBase {
     constructor(text, file, onlyDeclarations = false) {
         super(text, {}, file);
         this.onlyDeclarations = onlyDeclarations;
         this.originalText = text;
-        this.removeComments();
+        this.text = removeComments(this.text);
     }
     parse(end = null, parent=null) {
         let file 
@@ -192,25 +213,6 @@ class Parser extends parser_base_1.ParserBase {
         return file;
     }
 
-    removeComments() {
-        this.text = "\n"+this.text
-        // remove all start of line comments
-        this.text = this.text.replace(/(?<=\n\s*)--.*/g, match => ' '.repeat(match.length));
-        this.text = this.text.substring(1)
-        // the line below removes everything between a -- and a \n IF there is no ; or " in it
-        this.text = this.text.replace(/--(?<!;)[^"]*?(?=\n)/g, match => ' '.repeat(match.length));
-        // in 99% of the cases, all the comments are removed. This is checked by the following line
-        if (!this.text.includes("--")) return
-        // if there is still a -- sequence detected, it can be something like if a = "0--111" or a string with -- in it
-        // to get these out, we first replace all string content by S, replace --.* 
-        let tmp_text = this.text
-        tmp_text = tmp_text.replace(/"(.*?)"/g, match => "S".repeat(match.length))
-        const matches = tmp_text.matchAll(/--.*/g)
-        for (const match of matches){
-            this.text = this.text.substr(0, match.index)+" ".repeat(match[0].length)+ this.text.substring(match.index+match[0].length)
-        }
-
-    }
     getUseStatement(file) {
         let useStatement = new objects_1.OUseStatement(file, this.pos.i, this.getEndOfLineI());
         useStatement.begin = this.pos.i;

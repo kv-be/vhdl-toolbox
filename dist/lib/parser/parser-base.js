@@ -518,7 +518,9 @@ class ParserBase {
         for (const k of keywords){
             if (text.search(new RegExp(k, "gi"))>-1){
                 //console.log("Found :"+k)
-                throw new objects_1.ParserError(`could not find ending ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+text.search(/\n/g)));                                            
+                if (!(text.search(/<=.*\bwhen\b[\s\S\n]*?else/)>-1)){
+                    throw new objects_1.ParserError(`could not find ending ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+text.search(/\n/g)));                                            
+                }
                 break;    
             }
         }        
