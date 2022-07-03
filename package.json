@@ -2,7 +2,7 @@
 	"name": "vhdl-toolbox",
 	"publisher": "kv-be",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"description": "A toolbox for VHDL designers",
 	"keywords": [],
 	"engines": {
