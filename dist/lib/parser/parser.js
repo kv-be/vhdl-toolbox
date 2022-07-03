@@ -15,15 +15,54 @@ function removeComments(text) {
     // the line below removes everything between a -- and a \n IF there is no ; or " in it
     text = text.replace(/--(?<!;)[^"]*?(?=\n)/g, match => ' '.repeat(match.length));
     // in 99% of the cases, all the comments are removed. This is checked by the following line
-    if (!text.includes("--")) return text
+    if (!text.includes("--")) {
+        if (!text.includes("/*")) {
+            return text
+        }
+    }
+
     // if there is still a -- sequence detected, it can be something like if a = "0--111" or a string with -- in it
     // to get these out, we first replace all string content by S, replace --.* 
     let tmp_text = text
     tmp_text = tmp_text.replace(/"(.*?)"/g, match => "S".repeat(match.length))
-    const matches = tmp_text.matchAll(/--.*/g)
-    for (const match of matches){
-        text = text.substr(0, match.index)+" ".repeat(match[0].length)+ text.substring(match.index+match[0].length)
+    if (tmp_text.includes("--")) {
+        const matches = tmp_text.matchAll(/--.*/g)
+        for (const match of matches){
+            text = text.substr(0, match.index)+" ".repeat(match[0].length)+ text.substring(match.index+match[0].length)
+        }
     }
+    if (tmp_text.includes("/*")) {
+        let tmp_lines = tmp_text.split("\n")
+        let i = 0;
+        let l
+        let comment_start = -1
+        let in_comment = false
+        let lines = text.split("\n")
+        for ([i, l] of tmp_lines.entries()){
+            if (l.includes("*/") && (in_comment)){
+                in_comment = false
+                lines[i] = lines[i].replace(/.*?\*\//g, match => ' '.repeat(match.length))
+            }
+
+            if (in_comment){
+                lines[i] = lines[i].replace(/.*/g, match => ' '.repeat(match.length))
+            }
+
+            if (l.includes("/*") && !(in_comment)){
+                if (l.includes("*/")){ // in line block comment
+                    lines[i] = lines[i].replace(/(?<=.*?)\/\*.*?\*\//g, match => ' '.repeat(match.length))
+                }
+                else{ // start of a real block commnet
+                    in_comment = true
+                    lines[i] = lines[i].replace(/(?<=.*?)\/\*.*/g, match => ' '.repeat(match.length))
+                }
+            }
+        }
+        text = lines.join("\n")
+    }
+    // remove block comments
+
+
     return text
 }
 exports.removeComments = removeComments
