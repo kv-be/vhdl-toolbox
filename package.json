@@ -2,7 +2,7 @@
 	"name": "vhdl-toolbox",
 	"publisher": "kv-be",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"description": "A toolbox for VHDL designers",
 	"keywords": [],
 	"engines": {
@@ -35,12 +35,6 @@
 				"language": "vhdl",
 				"scopeName": "source.vhdl",
 				"path": "./syntaxes/vhdl.tmLanguage.json"
-			}
-		],
-		"snippets": [
-			{
-				"language": "vhdl",
-				"path": "./snippets/snippets.json"
 			}
 		],
 		"views": {
