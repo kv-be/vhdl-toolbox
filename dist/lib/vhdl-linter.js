@@ -1453,7 +1453,7 @@ class VhdlLinter {
 
             if (signal.constant) {
                 if (this.options.CheckCodingRules){
-                    if ((signal.name.text.match(/^C_[0-9A-Z_]+/) === null)|| (signal.name.text.match(/[a-z]+/) !== null)) {
+                    if (((signal.name.text.match(/^C_[0-9A-Z_]+/) === null)&& (signal.name.text.match(/^S_[0-9A-Z_]+/) === null))|| (signal.name.text.match(/[a-z]+/) !== null)) {
                         this.addMessage({
                             range: signal.range,
                             severity: vscode_languageserver_1.DiagnosticSeverity.Error,
