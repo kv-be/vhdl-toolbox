@@ -43,7 +43,7 @@ class ProcedureParser extends process_like_parse_1.ProcessLikeParser {
 
         let nextWord = this.getNextWord({ consume: false });
         procedure.range.end.i = this.pos.i;
-        if (nextWord === 'is') {
+        if (nextWord.toLowerCase() === 'is') {
             this.expect('is');
             // debugger;
             nextWord = this.getNextWord({ consume: false }).toLowerCase();
