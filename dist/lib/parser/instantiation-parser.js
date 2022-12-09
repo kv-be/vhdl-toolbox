@@ -22,6 +22,12 @@ class InstantiationParser extends parser_base_1.ParserBase {
             }
             instantiation.library = libraryMatch[1];
         }
+        else{
+            if (nextWord.toLowerCase() === "component"){
+                this.maybeWord("component")
+                nextWord = this.getNextWord()
+            }
+        }
         instantiation.componentName = nextWord.replace(/^.*\./, '');
         let hasPortMap = false;
         let lastI;
@@ -68,7 +74,10 @@ class InstantiationParser extends parser_base_1.ParserBase {
         while (this.pos.i < this.text.length) {
             const mapping = new objects_1.OMapping(map, this.pos.i, this.getEndOfLineI());
             const mappingNameI = this.pos.i;
-            let line = mapping.text.substring(0, mapping.text.search(/\n/))
+            //let line = mapping.text.substring(0, mapping.text.search(/\n/))
+            //let line = mapping.text.substring(0, mapping.text.search(/(\w\W)*\s*,( *|--)/))
+            let line = mapping.text.substring(0, mapping.text.search(/(~,)+, */))
+
             if (!line) line = mapping.text.substring(0)
             if (line.search(/[\w\s*\(\)']+\s*=>/)===-1){
                 throw new objects_1.ParserError(`Expected '=>' in this port map`, new objects_1.OIRange(this.parent, mappingNameI, this.getEndOfLineI(mappingNameI)));
@@ -103,7 +112,7 @@ class InstantiationParser extends parser_base_1.ParserBase {
                 throw new objects_1.ParserError(`Looks like a missing ')' at the end of the port/generics map`,this.pos.getRangeToEndLine())
             }
             // mapping.name = mapping.name.trim();
-            if (mappingString.search(/\w+?\W*[\n;]+\W+\w+/gi)>-1){//if 
+            if (mappingString.search(/\w+?\W*[\n;]+\W+\w+=>/gi)>-1){//if 
                      throw new objects_1.ParserError(`Expected ',' after this port map`, new objects_1.OIRange(this.parent, start, this.getEndOfLineI(start)));
             }
             if (mappingString.trim().toLowerCase() !== 'open') {
