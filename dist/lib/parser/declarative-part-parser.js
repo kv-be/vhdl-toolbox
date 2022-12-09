@@ -18,6 +18,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         if ((this.parent instanceof objects_1.OArchitecture)||(this.parent instanceof objects_1.OPackage)){
             this.allowComponents = true
             this.allowSignals = true
+            this.allowPackage = true // support for generic package instantiations
         } 
         if (this.parent instanceof objects_1.OEntity){
             this.allowComponents = false
@@ -70,7 +71,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
     }
 
     check_semicolon(check){
-        const keywords = ['signal', 'constant', 'shared', 'variable', 'impure', 'pure', 'function', 'procedure', 'file', 'type', 'begin', 'attribute', 'subtype', 'alias', 'component', 'package']
+        const keywords = ['end', 'signal', 'constant', 'shared', 'variable', 'impure', 'pure', 'function', 'procedure', 'file', 'type', 'begin', 'attribute', 'subtype', 'alias', 'component', 'package']
         let hits = 0
         for (const k of keywords){
             if (check.match(new RegExp(`\\n\\s*${k}\\b`, "g")) ){
@@ -89,6 +90,10 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
 
         
         while (true){ 
+            if (this.pos.i >= this.pos.parent.text.length){
+//                throw new objects_1.ParserError("Something strange happened !")
+                break;
+            }
             let check = this.text.substr(this.pos.i, this.text.substr(this.pos.i).search(/;|return\b.*?\bis\b|\bis\s+protected\b/i)+1)
             // stop conditions: or a word, or a single letter (e.g. ')' for generic parts)
             if (lastWord.length >1) {
@@ -232,7 +237,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                     }
                     this.parent.packages.push(pack)
                 }
-                this.advanceSemicolon();
+                //this.advanceSemicolon();
             }
             else if (nextWord === 'file') {
                 this.check_semicolon(check) 
