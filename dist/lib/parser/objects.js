@@ -952,7 +952,7 @@ class OProcess extends ObjectBase {
 
     getSensitivityList(){
         if (this.sensitivity_list !== ""){
-            return this.sensitivity_list
+            return this.sensitivity_list.replace("(", "")
         }
         else{
             this.sensitivity_list = " "
@@ -1065,7 +1065,7 @@ class OProcess extends ObjectBase {
             // - construct if (rst) else if (rising edge) => here we have a if.else
             // - construct if (rst) elsif (rising edge) => here we have 2 if.clauses
             reset_start = ifs[0].clauses[0].range.start.i
-            this.reset_signal = ifs[0].clauses[0].condition.replace(/[0-9]+|'|"|or|and|=|>|<|\(|\)/g, "").split(" ").filter(s=> s!== "")
+            this.reset_signal = ifs[0].clauses[0].condition.replace(/[0-9]+|'|"|or|and|=|>|<|\(|\)|\//g, "").split(" ").filter(s=> s!== "")
     
             if (ifs[0].else){
                 // construct if (rst) else if (rising edge)
