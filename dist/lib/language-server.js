@@ -12,7 +12,6 @@ const workspaceSymbols_1 = require("./languageFeatures/workspaceSymbols");
 const completion_1 = require("./languageFeatures/completion");
 const references_1 = require("./languageFeatures/references");
 const codeLens_1 = require("./languageFeatures/codeLens");
-const documentFormatting_1 = require("./languageFeatures/documentFormatting");
 const executeCommand_1 = require("./languageFeatures/executeCommand");
 const vscode_uri_1 = require("vscode-uri");
 
@@ -97,7 +96,7 @@ exports.connection.onInitialize((params) => {
             definitionProvider: true,
             //hoverProvider: false,
             hoverProvider: true,
-            documentFormattingProvider: true,
+            documentFormattingProvider: false,
             referencesProvider: true,
             foldingRangeProvider: true,
             documentHighlightProvider: true,
@@ -344,7 +343,6 @@ exports.connection.onCompletion(completion_1.handleCompletion);
 exports.connection.onReferences(references_1.handleReferences);
 exports.connection.onPrepareRename(findReferencesHandler_1.prepareRenameHandler);
 exports.connection.onRenameRequest(findReferencesHandler_1.renameHandler);
-exports.connection.onDocumentFormatting(documentFormatting_1.handleDocumentFormatting);
 exports.connection.onFoldingRanges(folding_1.foldingHandler);
 exports.connection.onDocumentHighlight(documentHightlightHandler_1.documentHighlightHandler);
 exports.connection.onCodeLens(codeLens_1.handleCodeLens);
