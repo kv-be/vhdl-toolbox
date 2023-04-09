@@ -236,12 +236,18 @@ class VhdlLinter {
             }
     
         }
+        if (pkg.name && (what ==="" )){
+            if (pkg.name.toLowerCase() === criteria) {
+                return pkg;
+            }
+        }
         return null
     }
 
-    solve_uses(useStatements){
+    solve_uses(useStatements, pcks = []){
         let found_packages = []
-        const packages = this.projectParser.getPackages();
+        let packages = pcks
+        packages = packages.concat(this.projectParser.getPackages());
         let found = false;
         let library 
         let pkg
@@ -276,9 +282,9 @@ class VhdlLinter {
                     const pkgs = packages.filter(m=> m.name.toLowerCase() === pkg.toLowerCase())
                     found = (pkgs.length > 0)
                     if (pkgs) useStatement.definition = pkgs[0]
-                    for (const p of pkgs){
+                    /*for (const p of pkgs){
                         if (p.useStatements) found_packages = found_packages.concat(this.solve_uses(p.useStatements))
-                    }
+                    }*/
                     found_packages = found_packages.concat(pkgs)
                     const ps = found_packages.filter(m=> m.instance)
                     /*for (const foundPkg of packages) {
@@ -317,7 +323,19 @@ class VhdlLinter {
         //     make a list of packages used (and include the standard ones)
         this.packages = this.solve_uses(this.tree.useStatements)
         this.packages = this.packages.concat(this.solve_context(this.tree.contextsUsed))
-
+        if ('architecture' in this.tree){
+            if (('useStatements' in this.tree.architecture) && ('packages' in this.tree.architecture) ){
+                this.packages = this.packages.concat(this.solve_uses(this.tree.architecture.useStatements, this.tree.architecture.packages));
+            }
+        }
+        /*if ('packages' in this.tree){
+            for (let p of this.tree.packages) {
+                if (('useStatements' in p) && ('packages' in p) ){
+                    this.packages = this.packages.concat(this.solve_uses(p.useStatements, p.packages));
+                }
+            }
+        }*/
+        
         const standard = this.projectParser.getPackages().find(pkg => pkg.name.toLowerCase() === 'standard');
         if (standard) {
             this.packages.push(standard);
@@ -327,7 +345,10 @@ class VhdlLinter {
         if (this.tree.packages) {
             this.packages = this.packages.concat(this.tree.packages)
             for (const p of this.tree.packages){
-                if (p.useStatements) this.packages = this.packages.concat(this.solve_uses(p.useStatements))
+                if (p.useStatements){
+                    if(p.packages) this.packages = this.packages.concat(this.solve_uses(p.useStatements, p.packages))
+                    else this.packages = this.packages.concat(this.solve_uses(p.useStatements))
+                }
             }
         }
 
@@ -337,12 +358,14 @@ class VhdlLinter {
             // get all the definitions of the generic package
             for (const q of p.instance){
                 const hits = this.projectParser.getPackages().find(pkg => pkg.name.toLowerCase() === q.componentName.toLowerCase())
-                p.types = hits.types
-                p.constants = hits.constants
-                p.functions = hits.functions
-                p.procedures = hits.procedures
-                p.generics  = hits.generics
-                //generic_pkgs = generic_pkgs.concat(hits)
+                if (hits) {
+                    p.types = hits.types
+                    p.constants = hits.constants
+                    p.functions = hits.functions
+                    p.procedures = hits.procedures
+                    p.generics  = hits.generics
+                    //generic_pkgs = generic_pkgs.concat(hits)    
+                }
             }
 
         }
@@ -1179,23 +1202,29 @@ class VhdlLinter {
         }
         const processes = this.tree.objectList.filter(object => object instanceof objects_1.OProcess);
         const signalsMissingReset = signalLike.filter(signal => {
-            if (signal.isRegister() === false) {
-                return false;
+            if ("isRegister" in signal){
+                if (signal.isRegister() === false) {
+                    return false;
+                }    
             }
             for (const process of processes) {
-                if (process.isRegisterProcess()) {
-                    for (const reset of process.getResets()) {
-                        if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
-                            return false;
+                if ("isRegisterProcess" in process) {
+                    if (process.isRegisterProcess()) {
+                        for (const reset of process.getResets()) {
+                            if (reset.toLowerCase() === signal.name.text.toLowerCase()) {
+                                return false;
+                            }
                         }
-                    }
+                    }   
                 }
             }
-            const registerProcess = signal.getRegisterProcess();
-            if (!registerProcess) {
-                return false;
+            if ("getRegisterProcess" in signal) {
+                const registerProcess = signal.getRegisterProcess();
+                if (!registerProcess) {
+                    return false;
+                }    
+                return this.checkMagicComments(registerProcess.range, LinterRules.Reset, signal.name.text);
             }
-            return this.checkMagicComments(registerProcess.range, LinterRules.Reset, signal.name.text);
         });
         if (signalsMissingReset.length > 0) {
             const registerProcessMap = new Map();
@@ -1455,7 +1484,7 @@ class VhdlLinter {
 
             if (signal.constant) {
                 if (this.options.CheckCodingRules){
-                    if ((signal.name.text.match(/^C_[0-9A-Z_]+/) === null)|| (signal.name.text.match(/[a-z]+/) !== null)) {
+                    if (((signal.name.text.match(/^C_[0-9A-Z_]+/) === null)&& (signal.name.text.match(/^S_[0-9A-Z_]+/) === null))|| (signal.name.text.match(/[a-z]+/) !== null)) {
                         this.addMessage({
                             range: signal.range,
                             severity: vscode_languageserver_1.DiagnosticSeverity.Error,

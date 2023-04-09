@@ -513,12 +513,12 @@ class ParserBase {
     }
 
     checkTextForKeywords(text){
-        const keywords = ["\\bsignal\\b", "\\n\\s*begin","\\btype\\b","^constant\\b","\\bfunction\\b","\\bprocedure\\b","\\brecord\\b", "\\n\\s*for", "\\n\\s*if", "\\n\\s*else", "\\bthen\\b", "\\n\\s*when", "\\n\\s*case", "\\n\\s*function", "\\n\\s*procedure", "\\n\\s*loop", "\\bcomponent\\b", "\\n\\s*entity\\b", "^\\n\\s*package", "\\n\\s*end", "\\n\\s*begin"]//, "<=|:="]
+        const keywords = ["\\bsignal\\b", "\\n\\s*begin","\\btype\\b","^constant\\b","\\brecord\\b", "\\n\\s*for", "\\n\\s*if", "\\n\\s*else", "\\bthen\\b", "\\n\\s*when", "\\n\\s*case", "\\n\\s*function", "\\n\\s*procedure", "\\n\\s*loop", "\\bcomponent\\b", "\\n\\s*entity\\b", "^\\n\\s*package", "\\n\\s*end", "\\n\\s*begin"]//, "<=|:="]
         //console.log(text)
         for (const k of keywords){
             if (text.search(new RegExp(k, "gi"))>-1){
                 //console.log("Found :"+k)
-                if (!(text.search(/<=.*\bwhen\b[\s\S\n]*?else/)>-1)){
+                if (!(text.search(/<=[\s\S\n]*\bwhen\b[\s\S\n]*?else/)>-1)){
                     throw new objects_1.ParserError(`could not find ending ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+text.search(/\n/g)));                                            
                 }
                 break;    
