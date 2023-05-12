@@ -1670,25 +1670,27 @@ class VhdlLinter {
                                 return false;
                             });
                             if (!entityPort) {
-                                const bestMatch = string_similarity_1.findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name.text));
-                                const code = this.addCodeActionCallback((textDocumentUri) => {
-                                    const actions = [];
-                                    actions.push(vscode_languageserver_1.CodeAction.create(`Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`, {
-                                        changes: {
-                                            [textDocumentUri]: [vscode_languageserver_1.TextEdit.replace(vscode_languageserver_1.Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.end), bestMatch.bestMatch.target)]
-                                        }
-                                    }, vscode_languageserver_1.CodeActionKind.QuickFix));
-                                    return actions;
-                                });
-                                const r = entity.range
-                                r.end.i = r.start.i+entity.text.substring(0, entity.text.search('\n')).length
-                                //utils.debuglog("port error in "+r.start.i+", "+r.end.i)
-                                this.addMessage({
-                                    range: new objects_1.OIRange(instantiation, portMapping.range.start.i, portMapping.range.end.i) ,
-                                    severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                                    message: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
-                                    code
-                                });
+                                if (!(typeof portMapping.name[0] === 'undefined') || (typeof entity.ports === 'undefined')){
+                                    const bestMatch = string_similarity_1.findBestMatch(portMapping.name[0].text, entity.ports.map(port => port.name.text));
+                                    const code = this.addCodeActionCallback((textDocumentUri) => {
+                                        const actions = [];
+                                        actions.push(vscode_languageserver_1.CodeAction.create(`Replace with ${bestMatch.bestMatch.target} (score: ${bestMatch.bestMatch.rating})`, {
+                                            changes: {
+                                                [textDocumentUri]: [vscode_languageserver_1.TextEdit.replace(vscode_languageserver_1.Range.create(portMapping.name[0].range.start, portMapping.name[portMapping.name.length - 1].range.end), bestMatch.bestMatch.target)]
+                                            }
+                                        }, vscode_languageserver_1.CodeActionKind.QuickFix));
+                                        return actions;
+                                    });
+                                    const r = entity.range
+                                    r.end.i = r.start.i+entity.text.substring(0, entity.text.search('\n')).length
+                                    //utils.debuglog("port error in "+r.start.i+", "+r.end.i)
+                                    this.addMessage({
+                                        range: new objects_1.OIRange(instantiation, portMapping.range.start.i, portMapping.range.end.i) ,
+                                        severity: vscode_languageserver_1.DiagnosticSeverity.Error,
+                                        message: `no port ${portMapping.name.map(name => name.text).join(', ')} on entity ${instantiation.componentName}`,
+                                        code
+                                    });    
+                                }
                             }
                             else {
                                 foundPorts.push(entityPort);
