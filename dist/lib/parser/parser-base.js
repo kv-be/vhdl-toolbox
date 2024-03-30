@@ -259,6 +259,8 @@ class ParserBase {
                     this.advanceBrace()
                     port.range.end.i = this.pos.i
                     ports.push(port)
+                    this.maybeWord(";")
+                    this.advanceWhitespace()
                 }
                 else if (nextWord === "function" || nextWord === "procedure"){
                     const isFunc = (nextWord === "function")
