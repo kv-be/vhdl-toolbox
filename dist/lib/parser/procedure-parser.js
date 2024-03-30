@@ -50,8 +50,11 @@ class ProcedureParser extends process_like_parse_1.ProcessLikeParser {
         //check if there is a ; on the current line
         let semicolPos = this.text.substr(this.pos.i, lastCharIndex).search(";")
         if (semicolPos < 0) {
-            this.advancePast(/\s/)
             let nextWord = this.getNextWord({ consume: false });
+            if (nextWord.toLowerCase() != 'is') {
+                this.advancePast(/\s/)
+            } 
+            nextWord = this.getNextWord({ consume: false })
             procedure.range.end.i = this.pos.i;
             if (nextWord.toLowerCase() === 'is') {
                 this.expect('is');
@@ -74,15 +77,13 @@ class ProcedureParser extends process_like_parse_1.ProcessLikeParser {
                 procedure.definition = this.parent;
             }    
         }
-        else {
-            //rather than this.expect(";") to support return values like dt.package.type
-            // at this point, we read the first word after return and it is not "is"
-            // if a package referenced type is returned, a series of .string combinations can follow
-            // but in the end we need to find a semicolon.
-            this.advanceSemicolon() 
-            //this.expect(';');
-            //end.line -=1
-        }
+        //rather than this.expect(";") to support return values like dt.package.type
+        // at this point, we read the first word after return and it is not "is"
+        // if a package referenced type is returned, a series of .string combinations can follow
+        // but in the end we need to find a semicolon.
+        this.advanceSemicolon() 
+        //this.expect(';');
+        //end.line -=1
         const end = new objects_1.OI(this.parent, this.pos.i)
         let start = new objects_1.OI(this.parent, procedure.range.start.i)
         procedure.range = new objects_1.OIRange(this.parent, start, end)
