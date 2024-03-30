@@ -10,12 +10,14 @@ const config_parser_1 = require("./config_parser");
 function removeComments(text) {
     text = "\n"+text
     // remove all start of line comments
+    text = text. replace(/--linter_off/g, match => '__linter_off');
+    text = text.replace(/--linter_on/g, match => '__linter_on');
     text = text.replace(/(?<=\n\s*)--.*/g, match => ' '.repeat(match.length));
     text = text.substring(1)
     // the line below removes everything between a -- and a \n IF there is no ; or " in it
     text = text.replace(/--(?<!;)[^"]*?(?=\n)/g, match => ' '.repeat(match.length));
     // in 99% of the cases, all the comments are removed. This is checked by the following line
-    if (!text.includes("--")) {
+    if (!text.includes("--") && !text.includes("__linter")) {
         if (!text.includes("/*")) {
             return text
         }
@@ -31,7 +33,7 @@ function removeComments(text) {
             text = text.substr(0, match.index)+" ".repeat(match[0].length)+ text.substring(match.index+match[0].length)
         }
     }
-    if (tmp_text.includes("/*")) {
+    if (tmp_text.includes("/*") || (tmp_text.includes("__linter"))) {
         let tmp_lines = tmp_text.split("\n")
         let i = 0;
         let l
@@ -39,22 +41,24 @@ function removeComments(text) {
         let in_comment = false
         let lines = text.split("\n")
         for ([i, l] of tmp_lines.entries()){
-            if (l.includes("*/") && (in_comment)){
+            if ((l.includes("*/") ||l.includes("__linter_on") ) && (in_comment)){
                 in_comment = false
                 lines[i] = lines[i].replace(/.*?\*\//g, match => ' '.repeat(match.length))
+                lines[i] = lines[i].replace(/.*?__linter_on/g, match => ' '.repeat(match.length))
             }
 
             if (in_comment){
                 lines[i] = lines[i].replace(/.*/g, match => ' '.repeat(match.length))
             }
 
-            if (l.includes("/*") && !(in_comment)){
+            if ((l.includes("/*") || l.includes("__linter_off"))  && !(in_comment)){
                 if (l.includes("*/")){ // in line block comment
                     lines[i] = lines[i].replace(/(?<=.*?)\/\*.*?\*\//g, match => ' '.repeat(match.length))
                 }
                 else{ // start of a real block commnet
                     in_comment = true
                     lines[i] = lines[i].replace(/(?<=.*?)\/\*.*/g, match => ' '.repeat(match.length))
+                    lines[i] = lines[i].replace(/(?<=.*?)__linter_off.*/g, match => ' '.repeat(match.length))
                 }
             }
         }
