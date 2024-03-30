@@ -122,14 +122,28 @@ class ParserBase {
                 break;
             }
             if (this.getNextWord({ consume: false }).toLowerCase() === 'type') {
-                // generic type in case of generic packages
-                this.getNextWord();
-                port = Object.setPrototypeOf(port, objects_1.OGenericType.prototype);
-                port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
-                port.name.text = this.getNextWord();
-                port.name.range.end.i = port.name.range.start.i + port.name.text.length;
-                ports.push(port);
-                this.expectDirectly(";")
+                if (entity instanceof objects_1.OEntity) {
+                    this.getNextWord(); // consume 'type'
+                    this.expect(":")
+                    port = Object.setPrototypeOf(port, objects_1.OGenericType.prototype);
+                    port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
+                    port.name.text = this.getNextWord();
+                    port.name.range.end.i = port.name.range.start.i + port.name.text.length;
+                    ports.push(port);
+                    this.maybeWord(";")
+                    //this.expectDirectly(";")
+                }
+                if ((entity instanceof objects_1.OPackage) || (entity instanceof objects_1.OPackageBody)){
+                    // generic type in case of generic packages
+                    this.getNextWord(); // consume 'type'
+                    port = Object.setPrototypeOf(port, objects_1.OGenericType.prototype);
+                    port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
+                    port.name.text = this.getNextWord();
+                    port.name.range.end.i = port.name.range.start.i + port.name.text.length;
+                    ports.push(port);
+                    this.expectDirectly(";")
+
+                }
             }
             else {
                 const next = this.getNextWord({ consume: false }).toLowerCase();

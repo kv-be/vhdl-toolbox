@@ -1542,30 +1542,34 @@ class VhdlLinter {
         if (this.options.CheckCodingRules){
             for (const port of tree.entity.generics) {
                 let newName = ""
-                if ((port.name.text.match(/^G_[A-Z]+/) === null) || (port.name.text.match(/[a-z]+/) !== null)) {
-                    const code = this.addCodeActionCallback((textDocumentUri) => {
-                        const actions = [];
-                        //const newName = port.name.text.replace(/^(._|_?)/, 'i_');
-                        if (port.name.text.match(/^g_[0-9A-Z_a-z]+/) === null) {
-                            newName = "G_" + port.name.text.toUpperCase() + " ";
-                        }
-                        else {
-                            newName = port.name.text.toUpperCase();
-                        }
-
-                        actions.push(vscode_languageserver_1.CodeAction.create(`Replace portname with '${newName}`, {
-                            changes: {
-                                [textDocumentUri]: [vscode_languageserver_1.TextEdit.replace(port.name.range, newName)]
+                if (port instanceof objects_1.OPort){
+                    // only check names of normal generic ports, not of generic types or packages.
+                    if ((port.name.text.match(/^G_[A-Z]+/) === null) || (port.name.text.match(/[a-z]+/) !== null)) {
+                        const code = this.addCodeActionCallback((textDocumentUri) => {
+                            const actions = [];
+                            //const newName = port.name.text.replace(/^(._|_?)/, 'i_');
+                            if (port.name.text.match(/^g_[0-9A-Z_a-z]+/) === null) {
+                                newName = "G_" + port.name.text.toUpperCase() + " ";
                             }
-                        }, vscode_languageserver_1.CodeActionKind.QuickFix));
-                        return actions;
-                    });
-                    this.addMessage({
-                        range: port.range,
-                        severity: vscode_languageserver_1.DiagnosticSeverity.Error,
-                        message: `Generic '${port.name}' should be G_<uppercase> ${newName}`,
-                        code
-                    });
+                            else {
+                                newName = port.name.text.toUpperCase();
+                            }
+    
+                            actions.push(vscode_languageserver_1.CodeAction.create(`Replace portname with '${newName}`, {
+                                changes: {
+                                    [textDocumentUri]: [vscode_languageserver_1.TextEdit.replace(port.name.range, newName)]
+                                }
+                            }, vscode_languageserver_1.CodeActionKind.QuickFix));
+                            return actions;
+                        });
+                        this.addMessage({
+                            range: port.range,
+                            severity: vscode_languageserver_1.DiagnosticSeverity.Error,
+                            message: `Generic '${port.name}' should be G_<uppercase> ${newName}`,
+                            code
+                        });
+                    }
+    
                 }
             }
         }
