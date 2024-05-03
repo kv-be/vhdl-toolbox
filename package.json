@@ -2,7 +2,7 @@
 	"name": "vhdl-toolbox",
 	"publisher": "kv-be",
 	"main": "./dist/lib/vscode.js",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"description": "A toolbox for VHDL designers",
 	"keywords": [],
 	"engines": {
@@ -14,7 +14,7 @@
 	},
 	"icon": "vhdltoolbox.png",
 	"contributes": {
-  		"languages": [
+		"languages": [
 			{
 				"id": "vhdl",
 				"aliases": [
@@ -38,14 +38,12 @@
 			}
 		],
 		"views": {
-			"explorer": 
-		     	[
+			"explorer": [
 				{
 					"id": "HierarchyView",
 					"name": "HierarchyView",
 					"when": "vhdl-toolbox:showHierarchy"
 				}
-
 			]
 		},
 		"keybindings": [
@@ -128,6 +126,11 @@
 					"when": "editorHasSelection && editorLangId == vhdl"
 				},
 				{
+					"command": "vhdl-toolbox:connect-axi",
+					"group": "vhdl_toolbox@1",
+					"when": "editorHasSelection && editorLangId == vhdl"
+				},
+				{
 					"command": "vhdl-toolbox:declare-enum-type",
 					"group": "vhdl_toolbox@1",
 					"when": "editorHasSelection && editorLangId == vhdl"
@@ -192,9 +195,13 @@
 					"when": "editorLangId == vhdl"
 				},
 				{
+					"command": "vhdl-toolbox:connect-axi",
+					"when": "editorLangId == vhdl"
+				},
+				{
 					"command": "vhdl-toolbox:declare-enum-type",
 					"when": "editorLangId == vhdl"
-				}			
+				}
 			]
 		},
 		"submenus": [
@@ -251,6 +258,10 @@
 			{
 				"command": "vhdl-toolbox:verilog2vhdl",
 				"title": "Convert verilog module to VHDL instantiation"
+			},
+			{
+				"command": "vhdl-toolbox:connect-axi",
+				"title": "Connect axi interface signals"
 			},
 			{
 				"command": "vhdl-toolbox:add-signal",
@@ -310,9 +321,9 @@
 			}
 		}
 	},
-
 	"activationEvents": [
-		"onLanguage:vhdl", "onView:HierarchyView"
+		"onLanguage:vhdl",
+		"onView:HierarchyView"
 	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
