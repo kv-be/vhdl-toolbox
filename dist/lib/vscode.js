@@ -21,7 +21,7 @@ const { readSync } = require("fs");
 function activate(context) {
     // The server is implemented in node
     let serverModule = require.resolve('./language-server');
-    let HierarchyList = [{"name" : "Initializing", "file":"", "instance":""}]
+    let HierarchyList = [{ "name": "Initializing", "file": "", "instance": "" }]
     // The debug options for the server
     // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
     let debugOptions = { execArgv: ['--nolazy', '--inspect=6011', '--enable-source-maps'] };
@@ -43,7 +43,7 @@ function activate(context) {
     let clientOptions = {
         // Register the server for plain text documents
         documentSelector: [{ scheme: 'file', language: 'vhdl' }],
-        markdown: { isTrusted: true  },
+        markdown: { isTrusted: true },
         synchronize: {
             // Notify the server about file changes to '.clientrc files contained in the workspace
             //fileEvents: vscode_1.workspace.createFileSystemWatcher('**/.clientrc')
@@ -108,7 +108,7 @@ function activate(context) {
 
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:add-attribute', async (args) => {
         const text = basicInput_1.addDebug(args)
-        
+
     }));
 
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:add-keep', async (args) => {
@@ -127,17 +127,34 @@ function activate(context) {
             return;
         }
         let casestat = editor.document.getText(editor.selection);
-        if (!casestat){
+        if (!casestat) {
             vscode_1.window.showInformationMessage("Please first select the complete case statement to extract the type from.")
             return
-        }        
-        
+        }
+
         let text = vhdl_utils_1.to_vhdl(casestat)
         editor.edit(builder => {
             builder.replace(editor.selection, text);
         });
     }))
-        
+
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:connect-axi', async (args) => {
+
+        const editor = vscode_1.window.activeTextEditor;
+        if (!editor) {
+            return;
+        }
+        let casestat = editor.document.getText(editor.selection);
+        if (!casestat) {
+            vscode_1.window.showInformationMessage("Please first select the signals to connect.")
+            return
+        }
+
+        let text = vhdl_utils_1.connect_axi("test_axi_mosi", casestat)
+        editor.edit(builder => {
+            builder.replace(editor.selection, text);
+        });
+    }))
 
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:declare-enum-type', async (args) => {
 
@@ -146,10 +163,10 @@ function activate(context) {
             return;
         }
         let casestat = editor.document.getText(editor.selection);
-        if (!casestat){
+        if (!casestat) {
             vscode_1.window.showInformationMessage("Please first select the complete case statement to extract the type from.")
             return
-        }        
+        }
 
         let [typedeclaration, signalName] = vhdl_utils_1.define_enum_from_case(casestat)
         const edit = new vscode_1.WorkspaceEdit();
@@ -158,7 +175,7 @@ function activate(context) {
 
 
         let new_text = vhdl_utils_1.findStartOfTypes(old_text, typedeclaration)
-        new_text = vhdl_utils_1.getDeclaration(new_text, `t_${signalName}`, `${signalName}`,"","signal")
+        new_text = vhdl_utils_1.getDeclaration(new_text, `t_${signalName}`, `${signalName}`, "", "signal")
 
         let fullRange = new vscode_1.Range(
             document.positionAt(0),
@@ -166,70 +183,70 @@ function activate(context) {
         )
         editor.edit(editBuilder => {
             editBuilder.replace(fullRange, new_text);
-        })        
+        })
     }));
-    
-	let hovering = vscode_1.languages.registerHoverProvider({ pattern: '**' }, {
+
+    let hovering = vscode_1.languages.registerHoverProvider({ pattern: '**' }, {
         /*provideHover(document, position, token) {
 
-			const range = document.getWordRangeAtPosition(position);
+            const range = document.getWordRangeAtPosition(position);
             
-			let word = ""
-			let char = document.getText()[document.offsetAt(position)]
-			let index = 0
-			while (char.search(/[0-9a-f_x"]+/i)>-1){
-				word += char
-				index +=1
-				char = document.getText()[document.offsetAt(position)+index]
-			};
-			char = document.getText()[document.offsetAt(position)-1]
-			index = -1
-			while (char.search(/[0-9a-f_x"]+/i)>-1){
-				word = char + word
-				index -=1
-				char = document.getText()[document.offsetAt(position)+index]
+            let word = ""
+            let char = document.getText()[document.offsetAt(position)]
+            let index = 0
+            while (char.search(/[0-9a-f_x"]+/i)>-1){
+                word += char
+                index +=1
+                char = document.getText()[document.offsetAt(position)+index]
+            };
+            char = document.getText()[document.offsetAt(position)-1]
+            index = -1
+            while (char.search(/[0-9a-f_x"]+/i)>-1){
+                word = char + word
+                index -=1
+                char = document.getText()[document.offsetAt(position)+index]
 
-			};
-			word =word.replace(/_/g, "")
-			let hex = "" 
-			let bin = ""
-			let dec = 0
-			if (word.toLowerCase().startsWith('b"') ||word.toLowerCase().startsWith('"') || word.toLowerCase().startsWith('0b')){
-				// assume binary as "011010"
-				word = word.replace(/"/g, "")
-				word = word.toLowerCase().replace('0b', '')
-				word = word.toLowerCase().replace('b', '')
-				dec = parseInt(word, 2);
-			} 
-			else if (word.toLowerCase().startsWith('x"')|| word.toLowerCase().startsWith('0x')){
-				// assume hex
-				word = word.replace(/"/g, "")
-				word = word.toLowerCase().replace('0x','')
-				word = word.toLowerCase().replace('x', '')
-				dec = parseInt(word, 16);
-			} 
-			else {// assume integer
-				dec = parseInt(word, 10)
-				if (isNaN(dec )) return
-			}
-			hex = dec.toString(16);
-			bin = dec.toString(2);
+            };
+            word =word.replace(/_/g, "")
+            let hex = "" 
+            let bin = ""
+            let dec = 0
+            if (word.toLowerCase().startsWith('b"') ||word.toLowerCase().startsWith('"') || word.toLowerCase().startsWith('0b')){
+                // assume binary as "011010"
+                word = word.replace(/"/g, "")
+                word = word.toLowerCase().replace('0b', '')
+                word = word.toLowerCase().replace('b', '')
+                dec = parseInt(word, 2);
+            } 
+            else if (word.toLowerCase().startsWith('x"')|| word.toLowerCase().startsWith('0x')){
+                // assume hex
+                word = word.replace(/"/g, "")
+                word = word.toLowerCase().replace('0x','')
+                word = word.toLowerCase().replace('x', '')
+                dec = parseInt(word, 16);
+            } 
+            else {// assume integer
+                dec = parseInt(word, 10)
+                if (isNaN(dec )) return
+            }
+            hex = dec.toString(16);
+            bin = dec.toString(2);
             if ((bin === 'NaN') || (hex === 'NaN')) return
-			let hhex = insert_separators(hex, "_", 4)
-			let bbin = insert_separators(bin, "_", 4)
-			let ddec = insert_separators(`${dec}`, " ", 3)
-			let popup = ""
+            let hhex = insert_separators(hex, "_", 4)
+            let bbin = insert_separators(bin, "_", 4)
+            let ddec = insert_separators(`${dec}`, " ", 3)
+            let popup = ""
 
-			hhex = hhex.replace(/^_/g, '')
-			bbin = bbin.replace(/^_/g, '')
-			ddec = ddec.replace(/^ /g, '')
+            hhex = hhex.replace(/^_/g, '')
+            bbin = bbin.replace(/^_/g, '')
+            ddec = ddec.replace(/^ /g, '')
 
-			if ((dec < 128)&&(dec > 39)){
-				popup = `dec  : ${ddec}\nhex  : ${hhex}\nbin  : ${bbin}\nchar : `+String.fromCharCode(dec)
-			}
-			else{
-				popup = `dec : ${ddec}\nhex : ${hhex}\nbin : ${bbin}`
-			}
+            if ((dec < 128)&&(dec > 39)){
+                popup = `dec  : ${ddec}\nhex  : ${hhex}\nbin  : ${bbin}\nchar : `+String.fromCharCode(dec)
+            }
+            else{
+                popup = `dec : ${ddec}\nhex : ${hhex}\nbin : ${bbin}`
+            }
 
                 return new vscode_1.Hover({
                     language: "VHDL",
@@ -237,13 +254,13 @@ function activate(context) {
                 });
             //}
         }*/
-    });	
+    });
 
-    
+
 
     const hierarchyView = new hierarchyTree_1.HierarchyDataProvider(HierarchyList)
     vscode_1.window.registerTreeDataProvider('HierarchyView', hierarchyView);
-	context.subscriptions.push(hovering);
+    context.subscriptions.push(hovering);
 
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-as-instance', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Instance)));
     //context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-as-sysverilog', () => vhdl_entity_converter_1.copy(vhdl_entity_converter_1.CopyTypes.Sysverilog)));
@@ -252,7 +269,7 @@ function activate(context) {
         const editor = vscode_1.window.activeTextEditor;
         let text = editor.document.getText(editor.selection)
 
-        text = parser_1.removeComments(text) 
+        text = parser_1.removeComments(text)
         text = text.replace(/\s*(\r*\n)/gi, "$1")
         editor.edit(editBuilder => {
             editBuilder.replace(editor.selection, text);
@@ -262,16 +279,16 @@ function activate(context) {
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:instantiate', (args) => {
         const editor = vscode_1.window.activeTextEditor;
         let signal = editor.document.getText(editor.document.getWordRangeAtPosition(editor.selection.active));
-        if (signal.split("\n").length > 1){
+        if (signal.split("\n").length > 1) {
             client.sendRequest("custom/getEntities", "").then(data => instantiateFromList(data));
         }
-        else{
+        else {
             let indent = editor.document.lineAt(editor.selection.active.line).text.match(/^\s*/)[0]
-            client.sendRequest("custom/getEntity", JSON.stringify({"signal":signal, "instance":false})).then(data => enterText(data, indent));    
+            client.sendRequest("custom/getEntity", JSON.stringify({ "signal": signal, "instance": false })).then(data => enterText(data, indent));
         }
     }));
 
-    async function instantiateFromList(data){
+    async function instantiateFromList(data) {
         entity = await basicInput_1.showQuickPick(data, client)
     }
 
@@ -279,8 +296,8 @@ function activate(context) {
     function enterText(text, indent) {
         const editor = vscode_1.window.activeTextEditor;
         let new_text = []
-        for (const t of text.split('\n')){
-            new_text += (indent+t+'\n')
+        for (const t of text.split('\n')) {
+            new_text += (indent + t + '\n')
         }
         if (editor) {
             editor.edit(editBuilder => {
@@ -288,7 +305,7 @@ function activate(context) {
             });
         }
     }
-    
+
     context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-tree', () => {
         const editor = vscode_1.window.activeTextEditor;
         if (!editor) {
@@ -300,18 +317,18 @@ function activate(context) {
             vscode_1.window.showInformationMessage(`VHDL file as JSON copied to clipboard`);
         }
     }));
-    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-file-listing', async () => {    
-        
-        
+    context.subscriptions.push(vscode_1.commands.registerCommand('vhdl-toolbox:copy-file-listing', async () => {
+
+
         const editor = vscode_1.window.activeTextEditor;
         if (!editor) {
             return;
         }
         const new_name = await vscode_1.window.showInputBox({
-            prompt: 'Give new name ' ,
+            prompt: 'Give new name ',
         });
         const document = editor.document;
-        
+
         let org_text = document.getText();
         const fullRange = new vscode_1.Range(
             document.positionAt(0),
@@ -319,8 +336,8 @@ function activate(context) {
         )
         const edit = new vscode_1.WorkspaceEdit();
         const old_text = document.getText(editor.selection)
-        org_text = org_text.replace(new RegExp(`\\b${old_text}\\b`,"gi"), new_name)
-        edit.replace( editor.document.uri.path, fullRange, org_text);
+        org_text = org_text.replace(new RegExp(`\\b${old_text}\\b`, "gi"), new_name)
+        edit.replace(editor.document.uri.path, fullRange, org_text);
         let success = await vscode_1.workspace.applyEdit(edit);
 
         /*editor.edit(editBuilder => {
@@ -336,32 +353,34 @@ function activate(context) {
 
     }));
 
-    const setContext = () => {vscode_1.commands.executeCommand('setContext', 'vhdl-toolbox:showHierarchy',
-            vscode_1.window.activeTextEditor.document.languageId == 'vhdl') }
+    const setContext = () => {
+        vscode_1.commands.executeCommand('setContext', 'vhdl-toolbox:showHierarchy',
+            vscode_1.window.activeTextEditor.document.languageId == 'vhdl')
+    }
 
-            
+
     vscode_1.window.onDidChangeActiveTextEditor(setContext, null, context.subscriptions);
     setContext();
 
 
-    function insert_separators(string, separator, size){
+    function insert_separators(string, separator, size) {
         let hhex
         let bbin
-        if (string.length > size){
-            const start = string.length %size
+        if (string.length > size) {
+            const start = string.length % size
             let i = 0
             hhex = string.substring(0, start)
-            while(i <= string.length/size){
-                hhex += (separator + string.substring(i*size+start, (i+1)*size+start))
-                i+=1
+            while (i <= string.length / size) {
+                hhex += (separator + string.substring(i * size + start, (i + 1) * size + start))
+                i += 1
             }
-            hhex = hhex[hhex.length-1]===separator? hhex.substring(0, hhex.length-1) : hhex
+            hhex = hhex[hhex.length - 1] === separator ? hhex.substring(0, hhex.length - 1) : hhex
         }
         else hhex = string
         return hhex
     }
-    
-    
+
+
 }
 
 

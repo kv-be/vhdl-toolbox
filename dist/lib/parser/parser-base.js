@@ -20,36 +20,36 @@ class ParserBase {
     debugObject(_object) {
     }
 
-    parse_signals(nextWord, parent, parsingInterface=false, parsingPort = false, ){
+    parse_signals(nextWord, parent, parsingInterface = false, parsingPort = false,) {
         const startI = this.pos.i
         let isVariable = false
         if (nextWord === 'shared') {
             this.getNextWord();  // consume the shared
             nextWord = this.getNextWord({ consume: false }).toLowerCase()
         }
-        if (nextWord === "variable"){
+        if (nextWord === "variable") {
             isVariable = true
-        } else if ((nextWord === "signal") && (!this.allowSignals)){
+        } else if ((nextWord === "signal") && (!this.allowSignals)) {
             let scope = this.parent.constructor.name.substring(1)
-            throw new objects_1.ParserError(`No signal declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(this.pos.i).search(/\n/)));                                            
+            throw new objects_1.ParserError(`No signal declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i + this.text.substring(this.pos.i).search(/\n/)));
         }
         const signals = [];
         let constant
         let signal
-        if (!parsingInterface)  constant = this.getNextWord() === 'constant'; 
+        if (!parsingInterface) constant = this.getNextWord() === 'constant';
         else constant = false
         do {
             this.maybeWord(',');
-            if (!isVariable){
-                if (parsingInterface){
+            if (!isVariable) {
+                if (parsingInterface) {
                     if (parsingPort) signal = new objects_1.OPort(parent, this.pos.i, this.getEndOfLineI())
                     else signal = new objects_1.OGenericActual(parent, this.pos.i, this.getEndOfLineI())
-                } 
+                }
                 else
-                signal = new objects_1.OSignal(parent, startI, this.getEndOfLineI()); // startI makes that the signal, variable, constant is part of the declaration
+                    signal = new objects_1.OSignal(parent, startI, this.getEndOfLineI()); // startI makes that the signal, variable, constant is part of the declaration
                 signal.constant = constant;
             }
-            else{
+            else {
                 signal = new objects_1.OVariable(parent, startI, this.getEndOfLineI());
             }
             signal.name = new objects_1.OName(signal, this.pos.i, this.pos.i);
@@ -59,7 +59,7 @@ class ParserBase {
         } while (this.text[this.pos.i] === ',');
         this.expect(':');
 
-        if (parsingPort){
+        if (parsingPort) {
             let directionString = this.getNextWord({ consume: false }).toLowerCase();
             if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
                 signal.direction = 'in';
@@ -76,18 +76,18 @@ class ParserBase {
 
         const iBeforeType = this.pos.i;
         for (const s of signals) {
-            if (s){
-                const { typeReads, defaultValueReads, typename} = this.getType(s, false);
+            if (s) {
+                const { typeReads, defaultValueReads, typename } = this.getType(s, false);
                 s.type = typeReads;
                 s.typename = typename;
                 if (defaultValueReads) s.defaultValue = defaultValueReads;
                 else if (typename.includes(":=")) s.defaultValue = "constant"
                 s.range.end.i = this.pos.i;
                 s.declaration = signal.declaration
-                if (parsingPort){
+                if (parsingPort) {
                     s.direction = signal.direction
-                    s.directionRange =  signal.directionRange
-                } 
+                    s.directionRange = signal.directionRange
+                }
             }
         }
         if (!parsingInterface) this.advanceFinalSemicolon();
@@ -124,7 +124,6 @@ class ParserBase {
             if (this.getNextWord({ consume: false }).toLowerCase() === 'type') {
                 if (entity instanceof objects_1.OEntity) {
                     this.getNextWord(); // consume 'type'
-                    this.expect(":")
                     port = Object.setPrototypeOf(port, objects_1.OGenericType.prototype);
                     port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
                     port.name.text = this.getNextWord();
@@ -133,9 +132,10 @@ class ParserBase {
                     this.maybeWord(";")
                     //this.expectDirectly(";")
                 }
-                if ((entity instanceof objects_1.OPackage) || (entity instanceof objects_1.OPackageBody)){
+                if ((entity instanceof objects_1.OPackage) || (entity instanceof objects_1.OPackageBody)) {
                     // generic type in case of generic packages
                     this.getNextWord(); // consume 'type'
+                    this.expect(":")
                     port = Object.setPrototypeOf(port, objects_1.OGenericType.prototype);
                     port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
                     port.name.text = this.getNextWord();
@@ -147,16 +147,16 @@ class ParserBase {
             }
             else {
                 const next = this.getNextWord({ consume: false }).toLowerCase();
-                if (next === "end"){
+                if (next === "end") {
                     throw new objects_1.ParserError("Probably forgot closing ')' in mapping", this.pos.getRangeToEndLine())
                 }
                 if (next === 'signal' || next === 'variable' || next === 'constant' || next === 'file') {
                     this.getNextWord();
                 }
-                let nextWord = this.getNextWord({consume:false});
+                let nextWord = this.getNextWord({ consume: false });
                 let multiports = []
                 const multistart = this.pos.i
-                if ((nextWord !== "package") && (nextWord !== "type") && (nextWord !== "procedure") && (nextWord !== "function")){
+                if ((nextWord !== "package") && (nextWord !== "type") && (nextWord !== "procedure") && (nextWord !== "function")) {
                     do {
                         this.maybeWord(',');
                         port = new objects_1.OPort(entity, this.pos.i, this.getEndOfLineI());
@@ -168,7 +168,7 @@ class ParserBase {
                         multiports.push(port);
                     } while (this.text[this.pos.i] === ',');
                     this.expect(':');
-            
+
                     if (port instanceof objects_1.OPort) {
                         let directionString = this.getNextWord({ consume: false }).toLowerCase();
                         if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
@@ -186,15 +186,15 @@ class ParserBase {
                     else {
                         let end = this.text.substring(this.pos.i).search(/;/i)
                         let end2 = this.text.substring(this.pos.i).search(/\)\s+(return|is)/i)
-                        if (end > end2) end = (end2 > -1 ? end2: end)
-                        port.declaration = this.text.substring(this.pos.i, this.pos.i+end)
-                        port.range.end.i = this.pos.i+end
+                        if (end > end2) end = (end2 > -1 ? end2 : end)
+                        port.declaration = this.text.substring(this.pos.i, this.pos.i + end)
+                        port.range.end.i = this.pos.i + end
                     }
                     const iBeforeType = this.pos.i;
                     for (const s of multiports) {
-                        if (s){
+                        if (s) {
                             //const a = this.getTypeDefintion(port, iBeforeType);
-                            const { type, defaultValue, typename} = this.getTypeDefintion(port, iBeforeType);
+                            const { type, defaultValue, typename } = this.getTypeDefintion(port, iBeforeType);
                             s.type = type;
                             s.typename = typename;
                             s.defaultValue = defaultValue;
@@ -203,39 +203,39 @@ class ParserBase {
                             s.range.end.i = port.range.end.i
                             if (port instanceof objects_1.OPort) {
                                 s.direction = port.direction
-                                s.directionRange =  port.directionRange
+                                s.directionRange = port.directionRange
                             }
                         }
                     }
-            
+
                     ports = ports.concat(multiports)
                     //this.maybeWord(";")
-/*
+                    /*
+                    
+                                        if (port instanceof objects_1.OPort) {
+                                            directionString = this.getNextWord({ consume: false }).toLowerCase();
+                                            if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
+                                                port.direction = 'in';
+                                                port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i);
+                                            }
+                                            else {
+                                                port.direction = directionString;
+                                                port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i + directionString.length);
+                                                this.getNextWord(); // consume direction
+                                            }
+                                        }
+                                        const iBeforeType = this.pos.i;
+                                        port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI())
+                                        port.typename    = this.text.substring(this.pos.i, this.getEndOfLineI())
+                                        const { type, defaultValue, endI } = this.getTypeDefintion(port);
+                                        port.range.end.i = endI;
+                                        // port.type = type;
+                                        port.type = this.extractReads(port, type, iBeforeType);
+                                        //port.declaration = type;
+                                        port.defaultValue = defaultValue;
+                        
+                                        ports.push(port)*/
 
-                    if (port instanceof objects_1.OPort) {
-                        directionString = this.getNextWord({ consume: false }).toLowerCase();
-                        if (directionString !== 'in' && directionString !== 'out' && directionString !== 'inout' && directionString !== 'buffer') {
-                            port.direction = 'in';
-                            port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i);
-                        }
-                        else {
-                            port.direction = directionString;
-                            port.directionRange = new objects_1.OIRange(port, this.pos.i, this.pos.i + directionString.length);
-                            this.getNextWord(); // consume direction
-                        }
-                    }
-                    const iBeforeType = this.pos.i;
-                    port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI())
-                    port.typename    = this.text.substring(this.pos.i, this.getEndOfLineI())
-                    const { type, defaultValue, endI } = this.getTypeDefintion(port);
-                    port.range.end.i = endI;
-                    // port.type = type;
-                    port.type = this.extractReads(port, type, iBeforeType);
-                    //port.declaration = type;
-                    port.defaultValue = defaultValue;
-    
-                    ports.push(port)*/
-    
                 }
                 else if (nextWord === "package") {
                     this.getNextWord(); // consume the package
@@ -245,11 +245,11 @@ class ParserBase {
                     port.name.range.end.i = port.name.range.start.i + port.name.text.length;
                     this.expect("is")
                     this.expect("new")
-                    port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI()+1)
+                    port.declaration = this.text.substring(this.pos.i, this.getEndOfLineI() + 1)
                     nextWord = this.getNextWord() // library
                     this.expect('.')
-                    port.typename    = this.getNextWord()
-                    
+                    port.typename = this.getNextWord()
+
                     // port.type = type;
                     port.type = this.extractReads(port, port.typename, this.pos.i);
                     //port.declaration = type;
@@ -262,22 +262,22 @@ class ParserBase {
                     this.maybeWord(";")
                     this.advanceWhitespace()
                 }
-                else if (nextWord === "function" || nextWord === "procedure"){
+                else if (nextWord === "function" || nextWord === "procedure") {
                     const isFunc = (nextWord === "function")
                     this.getNextWord(); // consume function
                     const start = this.pos.i
                     const name = this.getNextWord()
-                    const f = new objects_1.OFunction(this.parent, this.pos.i,this.getEndOfLineI());
+                    const f = new objects_1.OFunction(this.parent, this.pos.i, this.getEndOfLineI());
                     f.name = new objects_1.OName(f, start, this.pos.i)
                     f.name.text = name
                     this.parsePortsAndGenerics(false, f)
-                    if (isFunc){
+                    if (isFunc) {
                         this.expect("return")
                         const type = this.getNextWord()
                         this.maybeWord(";")
-                                               
-                    }   
-                    else{
+
+                    }
+                    else {
                         this.maybeWord(";")
                     }
                 }
@@ -285,7 +285,7 @@ class ParserBase {
         }
         if (generics) {
             entity.generics = ports;
-            
+
         }
         else {
             entity.ports = ports;
@@ -306,10 +306,10 @@ class ParserBase {
             }
             this.pos.i++;
         }
-        if (type.search(/\s*\w+\s*\n\s*\w+/)>-1){
+        if (type.search(/\s*\w+\s*\n\s*\w+/) > -1) {
             throw new objects_1.ParserError(`Expected ';' at end of this line`, new objects_1.OIRange(this.parent, start, this.getEndOfLineI(start)))
         }
-        if (type.trim().length ===0){
+        if (type.trim().length === 0) {
             throw new objects_1.ParserError(`Expected type definition for this port`, new objects_1.OIRange(this.parent, start, this.getEndOfLineI(start)))
         }
         let defaultValue = '';
@@ -327,7 +327,7 @@ class ParserBase {
                 this.pos.i++;
             }
         }
-        if (defaultValue.indexOf(":")>-1){
+        if (defaultValue.indexOf(":") > -1) {
             this.pos.i = startI
             throw new objects_1.ParserError(`Expected ';' at end of a port declaration`, this.pos.getRangeToEndLine())
         }
@@ -359,7 +359,7 @@ class ParserBase {
         if ((last!==";") && (next !== ')')){
             throw new objects_1.ParserError(`Forgot ';' at end of this port`, this.pos.getRangeToEndLine())            
         }*/
-        
+
         return {
             type,
             defaultValue,
@@ -374,31 +374,31 @@ class ParserBase {
         }
     }
 
-    parse_wait(parent){
-        const assignment = new objects_1.OAssignment(parent, this.pos.i,this.getEndOfLineI())
+    parse_wait(parent) {
+        const assignment = new objects_1.OAssignment(parent, this.pos.i, this.getEndOfLineI())
         this.getNextWord();//consume the wait
         const assertStart = this.pos.i
-        this.getNextWord({re:/on|for|until/})
+        this.getNextWord({ re: /on|for|until/ })
         const condition = this.text.substring(this.pos.i, this.getEndOfLineI())
-        const read = this.extractReads(parent, condition, assertStart) 
+        const read = this.extractReads(parent, condition, assertStart)
         this.advanceSemicolon()
         assignment.reads.push(read)
-        assignment.writes=[]
+        assignment.writes = []
         this.reverseWhitespace()
         assignment.range.end.i = this.pos.i
         this.advanceWhitespace()
         return assignment
     }
 
-    parse_assert(parent){
-        const assignment = new objects_1.OAssignment(parent, this.pos.i,this.getEndOfLineI())
+    parse_assert(parent) {
+        const assignment = new objects_1.OAssignment(parent, this.pos.i, this.getEndOfLineI())
         this.getNextWord();//consume the assert
         const assertStart = this.pos.i
         const condition = this.text.substring(this.pos.i).match(/^[\s\S\n]+?report|severity|;/)
-        const read = this.extractReads(parent, condition[0], assertStart) 
+        const read = this.extractReads(parent, condition[0], assertStart)
         this.advanceSemicolon()
         assignment.reads.push(read)
-        assignment.writes=[]
+        assignment.writes = []
         this.reverseWhitespace()
         assignment.range.end.i = this.pos.i
         this.advanceWhitespace()
@@ -419,16 +419,15 @@ class ParserBase {
         }
     }
 
-    searchpatToString(search)
-    {
+    searchpatToString(search) {
         if (typeof search === 'string') {
             return search
-        } else{
+        } else {
             search = `${search}`
             search = search.replace(/\/[gi]*$/g, "")
             search = search.replace(/^\//g, "")
             search = search.replace(/\\[a-z]{1}/g, "")
-            return search    
+            return search
         }
     }
     advancePast(search, options = {}) {
@@ -468,7 +467,7 @@ class ParserBase {
             if (match !== null && typeof match.index !== 'undefined') {
                 if (!options.allowSemicolon && this.text.substr(this.pos.i, match.index).indexOf(';') > -1) {
                     search = this.searchpatToString(search)
-                    throw new objects_1.ParserError(`Expecting "${search}" on this line`,new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substr(this.pos.i).search(/;/g)));
+                    throw new objects_1.ParserError(`Expecting "${search}" on this line`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i + this.text.substr(this.pos.i).search(/;/g)));
                 }
                 // text = match[0];
                 if (options.returnMatch) {
@@ -481,11 +480,11 @@ class ParserBase {
             }
             else {
                 search = this.searchpatToString(search)
-                throw new objects_1.ParserError(`Expecting "${search}" on this line`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substr(this.pos.i).search(/;/g)));
+                throw new objects_1.ParserError(`Expecting "${search}" on this line`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i + this.text.substr(this.pos.i).search(/;/g)));
             }
         }
         this.advanceWhitespace();
-        if (!options.allowKeywords){
+        if (!options.allowKeywords) {
             let pos = this.pos.i
             this.pos.i = start
             this.checkTextForKeywords(text)
@@ -502,16 +501,16 @@ class ParserBase {
                 quote = !quote;
             }
             else if (this.text[this.pos.i] === '(' && !quote) {
-                if ((this.text[this.pos.i-1]==="'")&&(this.text[this.pos.i+1]==="'")){
+                if ((this.text[this.pos.i - 1] === "'") && (this.text[this.pos.i + 1] === "'")) {
                     let debig = 1
                 }
                 else braceLevel++;
             }
             else if (this.text[this.pos.i] === ')' && !quote) {
-                if ((this.text[this.pos.i-1]==="'")&&(this.text[this.pos.i+1]==="'")){
+                if ((this.text[this.pos.i - 1] === "'") && (this.text[this.pos.i + 1] === "'")) {
                     let debig = 1
                 }
-                else{
+                else {
                     if (braceLevel > 0) {
                         braceLevel--;
                     }
@@ -528,21 +527,21 @@ class ParserBase {
         throw new objects_1.ParserError(`could not find closing brace`, new objects_1.OI(this.pos.parent, this.pos.i - text.length).getRangeToEndLine());
     }
 
-    checkTextForKeywords(text){
-        const keywords = ["\\bsignal\\b", "\\n\\s*begin","\\btype\\b","^constant\\b","\\brecord\\b", "\\n\\s*for", "\\n\\s*if", "\\n\\s*else", "\\bthen\\b", "\\n\\s*when", "\\n\\s*case", "\\n\\s*function", "\\n\\s*procedure", "\\n\\s*loop", "\\bcomponent\\b", "\\n\\s*entity\\b", "^\\n\\s*package", "\\n\\s*end", "\\n\\s*begin"]//, "<=|:="]
+    checkTextForKeywords(text) {
+        const keywords = ["\\bsignal\\b", "\\n\\s*begin", "\\btype\\b", "^constant\\b", "\\brecord\\b", "\\n\\s*for", "\\n\\s*if", "\\n\\s*else", "\\bthen\\b", "\\n\\s*when", "\\n\\s*case", "\\n\\s*function", "\\n\\s*procedure", "\\n\\s*loop", "\\bcomponent\\b", "\\n\\s*entity\\b", "^\\n\\s*package", "\\n\\s*end", "\\n\\s*begin"]//, "<=|:="]
         //console.log(text)
-        for (const k of keywords){
-            if (text.search(new RegExp(k, "gi"))>-1){
+        for (const k of keywords) {
+            if (text.search(new RegExp(k, "gi")) > -1) {
                 //console.log("Found :"+k)
-                if (!(text.search(/<=[\s\S\n]*\bwhen\b[\s\S\n]*?else/)>-1)){
-                    throw new objects_1.ParserError(`could not find ending ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+text.search(/\n/g)));                                            
+                if (!(text.search(/<=[\s\S\n]*\bwhen\b[\s\S\n]*?else/) > -1)) {
+                    throw new objects_1.ParserError(`could not find ending ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i + text.search(/\n/g)));
                 }
-                break;    
+                break;
             }
-        }        
+        }
     }
 
-    advanceFinalSemicolon() {        
+    advanceFinalSemicolon() {
         const match = /;/.exec(this.text.substring(this.pos.i));
         if (!match) {
             throw new objects_1.ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());
@@ -566,7 +565,7 @@ class ParserBase {
             let lastClosingBrace = start
             let lastOpeningBrace = start
             let lastQuote = start
-            let lastsingleQuote =  start
+            let lastsingleQuote = start
             while (this.text[this.pos.i + offset]) {
                 const match = /[\\();]|(?<!")(?:"")*"(?!")/.exec(this.text.substring(this.pos.i + offset));
                 //const match = /[\\();]|(?<!")(?:"")*"(?!")/.exec(this.text.substring(this.pos.i + offset));
@@ -575,27 +574,27 @@ class ParserBase {
                 }
                 if (match[0][0] === '"' && this.text[this.pos.i + offset + match.index - 1] !== '\\') {
                     quote = !quote;
-                    lastQuote =this.pos.i+offset+match.index
+                    lastQuote = this.pos.i + offset + match.index
                 }
                 else if (match[0] === '(' && !quote) {
-                    if ((this.text[this.pos.i+offset+match.index-1] == "'")&&( this.text[this.pos.i+offset+match.index+1] === "'")){
+                    if ((this.text[this.pos.i + offset + match.index - 1] == "'") && (this.text[this.pos.i + offset + match.index + 1] === "'")) {
                         // this is s '(' case which doesn't count
                         let debug = 1
                     }
-                    else{
+                    else {
                         braceLevel++;
-                        lastOpeningBrace = this.pos.i+offset+match.index                            
+                        lastOpeningBrace = this.pos.i + offset + match.index
                     }
                 }
                 else if (match[0] === ')' && !quote) {
-                    if ((this.text[this.pos.i+offset+match.index-1] == "'")&&( this.text[this.pos.i+offset+match.index+1] === "'")){
+                    if ((this.text[this.pos.i + offset + match.index - 1] == "'") && (this.text[this.pos.i + offset + match.index + 1] === "'")) {
                         // this is s '(' case which doesn't count
                         let debug = 3
                     }
-                    else{
+                    else {
                         if (braceLevel > 0) {
                             braceLevel--;
-                            lastClosingBrace = this.pos.i+offset+match.index
+                            lastClosingBrace = this.pos.i + offset + match.index
                         }
                         else {
                             //throw new objects_1.ParserError(`unexpected ')'`, new objects_1.OI(this.pos.parent, this.pos.i - text.length).getRangeToEndLine());
@@ -604,28 +603,28 @@ class ParserBase {
                     }
                 }
                 else {
-                    if ((match[0] === ';') && (!quote)){
-                        if (!quote  && braceLevel === 0) {
+                    if ((match[0] === ';') && (!quote)) {
+                        if (!quote && braceLevel === 0) {
                             text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index);
-        
+
                             offset += match.index + 1;
                             if (consume) {
                                 this.pos.i += offset;
                                 this.advanceWhitespace();
                             }
-                            return text.trim();    
+                            return text.trim();
                         }
-                        else{
-                            if (quote){
-                                throw new objects_1.ParserError(`non matching '"'`, new objects_1.OIRange(this.pos.parent, lastQuote, this.pos.i + this.text.substring(this.pos.i).search(/\n/)));                        
+                        else {
+                            if (quote) {
+                                throw new objects_1.ParserError(`non matching '"'`, new objects_1.OIRange(this.pos.parent, lastQuote, this.pos.i + this.text.substring(this.pos.i).search(/\n/)));
                             }
-                            if (braceLevel !== 0){
-                                throw new objects_1.ParserError(`non matching braces`, new objects_1.OIRange(this.pos.parent, lastOpeningBrace, this.pos.i + this.text.substring(this.pos.i).search(/\n/)));                        
+                            if (braceLevel !== 0) {
+                                throw new objects_1.ParserError(`non matching braces`, new objects_1.OIRange(this.pos.parent, lastOpeningBrace, this.pos.i + this.text.substring(this.pos.i).search(/\n/)));
                             }
                         }
                     }
                 }
-                text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index + match[0].length );
+                text += this.text.substring(this.pos.i + offset, this.pos.i + offset + match.index + match[0].length);
                 offset += match.index + match[0].length;
             }
             throw new objects_1.ParserError(`could not find ';'`, new objects_1.OI(this.pos.parent, start).getRangeToEndLine());
@@ -664,8 +663,8 @@ class ParserBase {
                 return word;
             }
             re = this.searchpatToString(re)
-            throw new objects_1.ParserError(`did not find a word but ${this.text.substr(this.pos.i,1)}`, this.pos.getRangeToEndLine());
-            
+            throw new objects_1.ParserError(`did not find a word but ${this.text.substr(this.pos.i, 1)}`, this.pos.getRangeToEndLine());
+
         }
         let word = '';
         let j = 0;
@@ -692,7 +691,7 @@ class ParserBase {
             position = this.pos.i;
         }
         while (this.text[position] !== '\n') {
-            if (position < this.text.length){
+            if (position < this.text.length) {
                 position++;
             }
             else break
@@ -748,11 +747,11 @@ class ParserBase {
         }
         let savedI;
         let startI = this.pos.i
-        let endI = this.getEndOfLineI(this.pos.i-1)
+        let endI = this.getEndOfLineI(this.pos.i - 1)
         const re = new RegExp('^' + expected.map(e => escapeStringRegexp(e)).join('|'), 'i');
         // console.log(re);
         //const match = re.exec(this.text.substr(this.pos.i));
-        const match = re.exec(this.text.substring(startI, endI+1));
+        const match = re.exec(this.text.substring(startI, endI + 1));
         if (match !== null) {
             this.pos.i += match[0].length;
             savedI = this.pos.i;
@@ -760,17 +759,17 @@ class ParserBase {
         }
         else {
             //const lines = [...this.text.substring(startI, savedI).matchAll(/\n/g)]
-            let startline =this.getLine()
+            let startline = this.getLine()
             this.reverseWhitespace()
             startI = this.pos.i;
             this.advanceWhitespace()
             let nextword = ""
-            try{
-                nextword = this.getNextWord({ re: /^\S+/ }, {comsume : false})
+            try {
+                nextword = this.getNextWord({ re: /^\S+/ }, { comsume: false })
             }
-            catch (e){
+            catch (e) {
                 nextword = ""
-            }            
+            }
             throw new objects_1.ParserError(`expected '${expected.join(' or ')}' found '${nextword}' line: ${this.getLine()}`, new objects_1.OIRange(this.parent, startI, endI));
         }
         return savedI;
@@ -803,28 +802,28 @@ class ParserBase {
         let typeReads;
         //this commented piece of code is needed for explicitly instantiated functions/procedures
         //but interferes with default values like (others => '0')
-        if (type.includes("(others\s*=>\s*.*?)")===-1){
-            if (type.includes("=>")){
+        if (type.includes("(others\s*=>\s*.*?)") === -1) {
+            if (type.includes("=>")) {
                 type = type.replace(/^.*?=>/g, "")
-            }    
+            }
         }
         if (type.indexOf(':=') > -1) {
             const split = type.split(':=');
-            if (split[1].includes("=>") && split[1].includes("(others\s*=>\s*.*?)")===-1){
+            if (split[1].includes("=>") && split[1].includes("(others\s*=>\s*.*?)") === -1) {
                 // instantiation using =>, so delete the arguments with the assignment
                 const ssplit = split[1].split("(")
-                ssplit[1]=ssplit[1].replace(/\w+\s*=>/g, "")
+                ssplit[1] = ssplit[1].replace(/\w+\s*=>/g, "")
                 defaultValueReads = this.extractReads(parent, ssplit[1], startI + type.indexOf(':=') + 2);
-                for (const r of defaultValueReads){
+                for (const r of defaultValueReads) {
                     const index = type.indexOf(r.text)
-                    r.range.start.i = startI+index
-                    r.range.end.i = r.range.start.i+ r.text.length
+                    r.range.start.i = startI + index
+                    r.range.end.i = r.range.start.i + r.text.length
                 }
                 defaultValueReads.push(this.extractReads(parent, ssplit[0], startI + type.indexOf(':=') + 2))
             }
-            else{
+            else {
                 defaultValueReads = this.extractReads(parent, split[1].trim(), startI + type.indexOf(':=') + 2);
-                
+
             }
             typeReads = this.extractReads(parent, split[0].trim(), startI);
         }
@@ -852,7 +851,7 @@ class ParserBase {
                 if (asMappingName && !(parent instanceof objects_1.OMapping)) {
                     throw new Error();
                 }
-                    read = asMappingName ? new objects_1.OMappingName(parent, i + token.offset, i + token.offset + token.value.length, token.value) : new objects_1.ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
+                read = asMappingName ? new objects_1.OMappingName(parent, i + token.offset, i + token.offset + token.value.length, token.value) : new objects_1.ORead(parent, i + token.offset, i + token.offset + token.value.length, token.value);
             }
             return read;
         });
