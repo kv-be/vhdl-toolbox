@@ -220,7 +220,10 @@ class StatementParser extends parser_base_1.ParserBase {
             //let text = this.advanceSemicolon(true, false);
             text =  text.replace(/\([^\)]*?\)/g, "\(stuff\)")
             text =  text.replace(/".+?"/g, match => "S".repeat(match.length))
-            
+            if (text.match(/\s*<<\s*signal\b.+:.+>>/)){ // detect hierarchical signals
+                text =  text.replace(/\s*<<\s*signal/g, match => " ".repeat(match.length))    
+                text =  text.replace(/:.*>>/g, match => " ".repeat(match.length)).trim()  
+            }
             if (text.match(/^[\w\d\('\)\.]+\s*[<:]*=\s*[\w\d\('\)]+/)){ // made the : and < optional to detect common mistake a = 6 iso a <= 6
             // assignment foun>
                 const assignmentParser = new assignment_parser_1.AssignmentParser(this.text, this.pos, this.file, this.parent);

@@ -1076,7 +1076,9 @@ class VhdlLinter {
 
             if (obj instanceof objects_1.ORead) {
                 //console.log("launching rerror for " + obj.text)
-                this.pushReadError(obj);
+                if (!(obj.text.trim().toLowerCase()==="force") && !(obj.text.trim().toLowerCase()==="release")){
+                    this.pushReadError(obj);
+                }
             }
             else if (obj instanceof objects_1.OWrite ) {
                 //console.log("launching werror for " + obj.text)
