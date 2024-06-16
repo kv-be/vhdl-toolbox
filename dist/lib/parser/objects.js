@@ -921,7 +921,7 @@ class OProcess extends ObjectBase {
     }
     getReadStrings(){
         if (this.readstrings !== "")
-            return this.readstrings
+            return this.readstrings.replace(/(.*), /,"$1") // remove the trailing ", "
         else{
             let sigs = []
             for (const p of this.getFlatReads().filter(b=> !((b.definition instanceof OVariable)||(b.definition instanceof OState)) )) {
@@ -942,7 +942,7 @@ class OProcess extends ObjectBase {
                 }
             }
 
-            return this.readstrings
+            return this.readstrings.replace(/(.*), /,"$1") // remove the trailing ", "
         }
     }
 
@@ -951,8 +951,16 @@ class OProcess extends ObjectBase {
     }
 
     getSensitivityList(){
-        if (this.sensitivity_list !== ""){
-            return this.sensitivity_list.replace("(", "")
+        if (this.sensitivityList) {
+            this.sensitivityList = this.sensitivityList.replaceAll(/\(.*?\)/g, "")
+            this.sensitivityList = this.sensitivityList.replaceAll(" ", "")
+            this.sensitivityList = this.sensitivityList.replaceAll(/\r*\n/g, "")
+            return this.sensitivityList
+        } else {
+            return ""
+        }
+        /*if (this.sensitivity_list !== ""){
+            return this.sensitivityList.replace(/\(.*?\)/, "")
         }
         else{
             this.sensitivity_list = " "
@@ -965,12 +973,13 @@ class OProcess extends ObjectBase {
             }
             else this.sensitivity_list = null
             return this.sensitivity_list    
-        }
+        }*/
     }
 
     getMissingSensitivityList(){
         if (this.hasSensitivityList()){
             let sensi = this.getSensitivityList()
+            sensi = sensi.toLocaleLowerCase().split(",")
             let missing = []
             if (this.isRegisterProcess()){
                 //console.log("missing of sync proc "+sensi)
@@ -989,10 +998,16 @@ class OProcess extends ObjectBase {
             else{
                 //console.log("missing of async proc")
                 let unique = this.getReadStrings()
+                if (sensi.length ===1) {
+                    if (sensi[0] === "all") {
+                        missing = []
+                    }
+                }
                 //console.log("sigdeb "+ unique)
-                if (sensi.trim().toLowerCase()==="all") {
+                /*if (sensi.trim().toLowerCase()==="all") {
                     missing = []
-                } else {
+                }*/ 
+                else {
                     for (let s of unique.split(',')) {
                         s = s.trim()
                         //console.log("sigdeb checking "+s)
@@ -1018,7 +1033,7 @@ class OProcess extends ObjectBase {
             if (sensitivity.length ===1 && sensitivity[0].toLowerCase()==='all') return ""
             for (let s of sensitivity) {
                 s = s.trim()
-                if (!unique.includes(s)) {
+                if (!unique.includes(s.toLowerCase())) {
                     too_much.push(s)
                 }
             }

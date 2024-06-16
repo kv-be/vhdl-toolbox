@@ -954,7 +954,7 @@ class VhdlLinter {
                 if (process.reset_signal){
                     if (process.reset_type === "async") {
                         if (process.hasSensitivityList()){
-                            let exp_sensi = [process.clock.trim().toLowerCase().replace("(","")]
+                            let exp_sensi = [process.clock.trim().toLowerCase().replace(/\(.*?\)/,"")]
                             exp_sensi = exp_sensi.concat(process.reset_signal)
                             const missing = []
                             for (const e of exp_sensi){
@@ -981,7 +981,7 @@ class VhdlLinter {
                     }
                     if (process.reset_type == "sync") {
                         if (process.hasSensitivityList()){
-                            let exp_sensi = [process.clock.trim().toLowerCase().replace("(","")]
+                            let exp_sensi = [process.clock.trim().toLowerCase().replace(/\(.*?\)/,"")]
                             const missing = []
                             for (const e of exp_sensi){
                                 let ee = e.replace("(", "")
