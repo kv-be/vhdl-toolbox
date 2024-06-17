@@ -166,7 +166,7 @@ class OFile {
         this.useStatements = [];
         this.objectList = [];
         this.magicComments = [];
-        this.options = { "coding_rules": null, "missing_resets_detected": null, "std_logic_arith_forbidden": null };
+        this.options = {"coding_rules" : null, "missing_resets_detected" : null, "std_logic_arith_forbidden" : null};
     }
     getJSON() {
         const obj = {};
@@ -211,8 +211,8 @@ class OPackage extends ObjectBase {
         this.constants = [];
         this.types = [];
         this.generics = [];
-        this.name = null;
-        this.instance = null;
+        this.name=null;
+        this.instance=null;
     }
 }
 exports.OPackage = OPackage;
@@ -223,7 +223,7 @@ class OPackageBody extends ObjectBase {
         this.procedures = [];
         this.constants = [];
         this.types = [];
-    }
+   }
 }
 exports.OPackageBody = OPackageBody;
 class OUseStatement extends ODefitionable {
@@ -254,10 +254,10 @@ class OFunction extends OMentionable {
         this.procedures = [];
         this.functions = [];
     }
-    getFlatReads() {
+    getFlatReads(){
         return getFlatSignalReads(this)
     }
-    getFlatWrites() {
+    getFlatWrites(){
         return getFlatSignalWrites(this)
     }
 }
@@ -306,7 +306,7 @@ exports.OBlock = OBlock;
 class OType extends OMentionable {
     finddef(read, isRead = true) {
         let kind = OElementRead
-        if (!isRead) {
+        if (!isRead){
             kind = OWrite
         }
         if (this.name.text.toLowerCase() === read.text.toLowerCase()) {
@@ -345,7 +345,7 @@ class OType extends OMentionable {
                 }
             }
         }
-
+        
         return false;
     }
 }
@@ -371,7 +371,7 @@ class OProtected extends OType {
 exports.OProtected = OProtected;
 
 class OProtectedChild extends OType {
-    constructor() {
+    constructor(){
         super(...arguments);
         this.functions = [];
         this.procedures = [];
@@ -420,7 +420,7 @@ class OVariableBase extends OMentionable {
         super(parent, startI, endI);
         this.parent = parent;
         this.register = null;
-        this.typename = ""
+        this.typename=""
     }
 }
 exports.OVariableBase = OVariableBase;
@@ -429,30 +429,30 @@ class OSignalBase extends OVariableBase {
         super(parent, startI, endI);
         this.parent = parent;
         this.register = null;
-        this.typename = ""
+        this.typename=""
     }
-    getSignalRange() {
+    getSignalRange(){
         //console.log("getting range of signal"+this.name.text)
-        if (this.typename) {
+        if (this.typename){
             //console.log("getting range of signal"+this.name.text+", "+this.typename)
             const matches = [...this.typename.matchAll(/([0-9]+)\s*(downto|to)\s*([0-9]+)/gi)]
             const ok = this.typename.search(/.*?\(\s*[0-9]+\s*(downto|to)\s*[0-9]+\s*\)/gi)
-            if ((matches.length > 0) && (ok > -1)) {
+            if ((matches.length>0) && (ok > -1) ){
                 let l = matches[0][1]
                 let r = matches[0][3]
                 l = parseInt(l, 10)
-                r = parseInt(r, 10)
+                r = parseInt(r, 10)             
                 //console.log(`get signal range ${l}, ${r}`)
-                if (l > r) return [r, l]
-                else return [l, r]
+                if (l>r) return [r, l]
+                else return [l,r]
             }
-            else {
+            else{
                 //console.log("get signal range, not type found")
                 return [-1, -1]
             }
         }
         //console.log("get signal range, not type found")
-        return [-1, -1]
+        return [-1,-1]
     }
     isRegister() {
         if (this.register !== null) {
@@ -486,17 +486,17 @@ class OVariable extends OVariableBase {
 }
 exports.OVariable = OVariable;
 class OSignal extends OSignalBase {
-    getSignalRange() {
-        if (this.typename) {
+    getSignalRange(){
+        if (this.typename){
             const matches = [...this.typename.matchAll(/([0-9]+)\s*(downto|to)\s*([0-9]+)/gi)]
             const ok = this.typename.search(/.*?\(\s*[0-9]+\s*(downto|to)\s*[0-9]+\s*\)/gi)
-            if ((matches.length > 0) && (ok > -1)) {
+            if ((matches.length>0) && (ok > -1) ){
                 let l = matches[0][1]
                 let r = matches[0][3]
                 l = parseInt(l, 10)
-                r = parseInt(r, 10)
-                if (l > r) return [r, l]
-                else return [l, r]
+                r = parseInt(r, 10)             
+                if (l>r) return [r, l]
+                else return [l,r]
             }
             else return [-1, -1]
         }
@@ -527,7 +527,7 @@ class OPortMap extends OMap {
 exports.OPortMap = OPortMap;
 
 function getFlatPortReads(obj, entity) {
-    if ((obj instanceof OInstantiation) || (obj instanceof OProcedure) || (obj instanceof OFunction)) {
+    if ((obj instanceof OInstantiation) || (obj instanceof OProcedure) || (obj instanceof OFunction)){
         if (obj.flatReads !== null) {
             return obj.flatReads;
         }
@@ -563,13 +563,13 @@ function getFlatPortReads(obj, entity) {
         }
         return obj.flatReads;
     }
-    else {
+    else{
         return []
     }
 }
 
 function getFlatPortWrites(obj, entity) {
-    if ((obj instanceof OInstantiation) || (obj instanceof OProcedure) || (obj instanceof OFunction)) {
+    if ((obj instanceof OInstantiation) || (obj instanceof OProcedure) || (obj instanceof OFunction)){
         if (obj.flatWrites !== null) {
             return obj.flatWrites;
         }
@@ -596,14 +596,14 @@ function getFlatPortWrites(obj, entity) {
         }
         return obj.flatWrites;
     }
-    else {
+    else{
         return []
     }
 }
 
 
 function getFlatSignalWrites(obj) {
-    if ((obj instanceof OProcess) || (obj instanceof OFunction) || (obj instanceof OProcedure)) {
+    if ((obj instanceof OProcess) || (obj instanceof OFunction) || (obj instanceof OProcedure)){
         if (obj.flatWrites !== null) {
             return obj.flatWrites;
         }
@@ -639,7 +639,7 @@ function getFlatSignalWrites(obj) {
             return flatWrites;
         };
         const flatWrites = flatten(obj.statements);
-        let unique = []
+        let unique =[]
         obj.flatWrites = []
         for (let s of flatWrites) {
             const ss = s.text.trim()
@@ -653,13 +653,13 @@ function getFlatSignalWrites(obj) {
         return obj.flatWrites;
 
     }
-    else {
+    else{
         return []
     }
 }
 
 function getFlatSignalReads(obj) {
-    if ((obj instanceof OProcess) || (obj instanceof OProcedure) || (obj instanceof OFunction)) {
+    if ((obj instanceof OProcess) || (obj instanceof OProcedure) || (obj instanceof OFunction)){
         if (obj.flatReads !== null) {
             return obj.flatReads;
         }
@@ -703,27 +703,22 @@ function getFlatSignalReads(obj) {
             return flatReads;
         };
         const flatReads = flatten(obj.statements);
-        let unique = []
+        let unique =[]
         obj.flatReads = []
         for (let s of flatReads) {
-            if (s) {
-                if (s.text) {
-                    const ss = s.text.trim()
-                    //console.log("sigdeb checking "+ss)
-                    if (!unique.includes(ss.toLocaleLowerCase())) {
-                        //console.log("adding "+ss)
-                        unique.push(ss)
-                        obj.flatReads.push(s)
-                    }
-                }
+            const ss = s.text.trim()
+            //console.log("sigdeb checking "+ss)
+            if (!unique.includes(ss.toLocaleLowerCase())) {
+                //console.log("adding "+ss)
+                unique.push(ss)
+                obj.flatReads.push(s)
             }
-
         }
         return obj.flatReads;
     }
-    else {
-        return []
-    }
+    else{
+        return []      
+    } 
 }
 
 class OInstantiation extends ODefitionable {
@@ -735,7 +730,7 @@ class OInstantiation extends ODefitionable {
     getFlatReads(entity) {
         //     console.log(entity, 'asd2');
         return getFlatPortReads(this, entity)
-
+        
         if (this.flatReads !== null) {
             return this.flatReads;
         }
@@ -840,11 +835,11 @@ class OEntity extends ObjectBase {
 exports.OEntity = OEntity;
 
 class OConfig extends ObjectBase {
-    constructor() {
-        super(...arguments);
-        this.config = [];
-        this.entity = [];
-    }
+        constructor() {
+            super(...arguments);
+            this.config = [];
+            this.entity = [];
+            }
 }
 exports.OConfig = OConfig;
 class OPort extends OSignalBase {
@@ -888,7 +883,7 @@ class OCase extends ObjectBase {
     constructor() {
         super(...arguments);
         this.whenClauses = [];
-        this.signal = ""
+        this.signal=""
     }
 }
 exports.OCase = OCase;
@@ -919,43 +914,43 @@ class OProcess extends ObjectBase {
         this.clock_range = "";
         this.procedures = [];
         this.functions = [];
-        this.reset_type = ""
-        this.sensitivity_list = ""
+        this.reset_type=""
+        this.sensitivity_list=""
         this.readstrings = ""
         this.reset_condition = new RegExp(/\brst\b|\breset\b|\breset_n\b|\brst_n\b|\b[\S]+_rst\b|\b[\S]+_reset\b|\b[\S]+_reset_n\b|\b[\S]+_rst_n\b|\brst_[\S]+\b|\breset_[\S]+\b/i)
     }
-    getReadStrings() {
+    getReadStrings(){
         if (this.readstrings !== "")
-            return this.readstrings.replace(/(.*), /, "$1") // remove the trailing ", "
-        else {
+            return this.readstrings.replace(/(.*), /,"$1") // remove the trailing ", "
+        else{
             let sigs = []
-            for (const p of this.getFlatReads().filter(b => !((b.definition instanceof OVariable) || (b.definition instanceof OState)))) {
-                if ((p.definition) && (p.scope)) {
-                    if (!(p.definition.constant) && !(p.scope instanceof OForGenerate)) { // filter out hte generics 
-                        if (p.definition.isGeneric) {
+            for (const p of this.getFlatReads().filter(b=> !((b.definition instanceof OVariable)||(b.definition instanceof OState)) )) {
+                if ((p.definition) && (p.scope)){
+                    if (!(p.definition.constant) &&  !(p.scope instanceof OForGenerate)){ // filter out hte generics 
+                        if (p.definition.isGeneric){
                             if (!p.definition.isGeneric) sigs.push(p.text.trim())
                         }
                         else sigs.push(p.text.trim())
-                    }
+                    }    
                 }
             }
             for (let s of sigs) {
                 if (!this.readstrings.includes(s)) {
                     if ((s != "") && (this.readstrings != null) && s != "'" && s != '"') {
-                        this.readstrings += (s + ", ")
+                        this.readstrings += (s+", ")
                     }
                 }
             }
 
-            return this.readstrings.replace(/(.*), /, "$1") // remove the trailing ", "
+            return this.readstrings.replace(/(.*), /,"$1") // remove the trailing ", "
         }
     }
 
-    hasSensitivityList() {
+    hasSensitivityList(){
         return (this.getSensitivityList() !== null)
     }
 
-    getSensitivityList() {
+    getSensitivityList(){
         if (this.sensitivityList) {
             this.sensitivityList = this.sensitivityList.replaceAll(/\(.*?\)/g, "")
             this.sensitivityList = this.sensitivityList.replaceAll(" ", "")
@@ -981,29 +976,29 @@ class OProcess extends ObjectBase {
         }*/
     }
 
-    getMissingSensitivityList() {
-        if (this.hasSensitivityList()) {
+    getMissingSensitivityList(){
+        if (this.hasSensitivityList()){
             let sensi = this.getSensitivityList()
             sensi = sensi.toLocaleLowerCase().split(",")
             let missing = []
-            if (this.isRegisterProcess()) {
+            if (this.isRegisterProcess()){
                 //console.log("missing of sync proc "+sensi)
-                if (!sensi.includes(this.clock.toLowerCase())) {
+                if (!sensi.includes(this.clock.toLowerCase())){
                     missing.push(this.clock)
                     //console.log("missing of clock "+this.clock.toLowerCase())
                 }
                 if (this.reset_type === "async") {
-                    for (const r of this.reset_signal) {
+                    for (const r of this.reset_signal){
                         if (!sensi.includes(r.toLowerCase())) missing.push(r)
                     }
                     //console.log("missing async reset")
                 }
                 return missing
             }
-            else {
+            else{
                 //console.log("missing of async proc")
                 let unique = this.getReadStrings()
-                if (sensi.length === 1) {
+                if (sensi.length ===1) {
                     if (sensi[0] === "all") {
                         missing = []
                     }
@@ -1011,7 +1006,7 @@ class OProcess extends ObjectBase {
                 //console.log("sigdeb "+ unique)
                 /*if (sensi.trim().toLowerCase()==="all") {
                     missing = []
-                }*/
+                }*/ 
                 else {
                     for (let s of unique.split(',')) {
                         s = s.trim()
@@ -1021,21 +1016,21 @@ class OProcess extends ObjectBase {
                             missing.push(s)
                         }
                     }
-
+    
                 }
-                return missing
+                return missing     
             }
         }
         else return []
     }
 
-    getNotNeededSensitivityList() {
-        if (this.hasSensitivityList()) {
+    getNotNeededSensitivityList(){
+        if (this.hasSensitivityList()){
             let sensitivity = this.getSensitivityList().split(',')
             let unique = this.getReadStrings().toLowerCase()
             let too_much = []
             //console.log("sigdeb "+sensitivity)
-            if (sensitivity.length === 1 && sensitivity[0].toLowerCase() === 'all') return ""
+            if (sensitivity.length ===1 && sensitivity[0].toLowerCase()==='all') return ""
             for (let s of sensitivity) {
                 s = s.trim()
                 if (!unique.includes(s.toLowerCase())) {
@@ -1047,21 +1042,21 @@ class OProcess extends ObjectBase {
         else return ""
     }
 
-    detect_clk_event(clause) {
+    detect_clk_event(clause){
         if (clause.condition.match(/(rising|falling)_edge/i)) {
             this.clock = clause.condition.match(/(?<=(rising|falling)_edge\s*\(\s*).+?(?=\s*\))/g)[0];
             this.clock_range = clause.range;
             this.registerProcess = true
             this.reset_type = "sync"
             return true
-        }
+        } 
         else if (clause.condition.match(/'event\s*and\s*/i)) {
             this.clock = clause.condition.match(/\b(.+?)'event\s+and\s+.+?\s*=\s*'[01]+'/i)[1];
             this.clock_range = clause.range;
             this.registerProcess = true;
             this.reset_type = "sync"
             return true
-        }
+        } 
         return false
     }
 
@@ -1073,55 +1068,55 @@ class OProcess extends ObjectBase {
         let reset_start
         // a process contains typically one statement (the if rising_edge or if reset)
         // exception is if there is a construction like if reset ... elsif rising edge. In this case,there are 2 if statements!
-        const ifs = this.statements.filter(s => s instanceof OIf)
-        if (ifs.length !== 1) {//if more than one if next to each other in a process => async process
+        const ifs = this.statements.filter(s=> s instanceof OIf)
+        if (ifs.length !== 1){//if more than one if next to each other in a process => async process
             return this.registerProcess // async process
-        }
+        } 
         // the first if statement of hte process can be if rising edge or if reset
-        if (!this.detect_clk_event(ifs[0].clauses[0])) {
+        if (!this.detect_clk_event(ifs[0].clauses[0])){ 
             // first if did not contain any clock events => should contain reset condition
             // now check if the next if in the else condition contains a clock
             // two options : 
             // - construct if (rst) else if (rising edge) => here we have a if.else
             // - construct if (rst) elsif (rising edge) => here we have 2 if.clauses
             reset_start = ifs[0].clauses[0].range.start.i
-            this.reset_signal = ifs[0].clauses[0].condition.replace(/[0-9]+|'|"|or|and|=|>|<|\(|\)|\//g, "").split(" ").filter(s => s !== "")
-
-            if (ifs[0].else) {
+            this.reset_signal = ifs[0].clauses[0].condition.replace(/[0-9]+|'|"|or|and|=|>|<|\(|\)|\//g, "").split(" ").filter(s=> s!== "")
+    
+            if (ifs[0].else){
                 // construct if (rst) else if (rising edge)
                 // first if after the else is supposed to be the edge detector
-                const eifs = ifs[0].else.statements.filter(s => s instanceof OIf)
-                if (eifs.length > 0) {
-                    if (!this.detect_clk_event(eifs[0].clauses[0])) {
+                const eifs = ifs[0].else.statements.filter(s=> s instanceof OIf)
+                if (eifs.length > 0){
+                    if (!this.detect_clk_event(eifs[0].clauses[0])){
                         // no clock edge detection detected => async process
                         this.reset_signal = null
                         this.reset_start = null
                         this.reset_type = null
                     }
-                    else this.reset_type = "async"
+                    else this.reset_type = "async"    
                 }
-                else this.reset_type = "async"
-            } else if (ifs[0].clauses.length === 2) {
+                else this.reset_type = "async"    
+            } else if (ifs[0].clauses.length === 2){
                 // in this case the second clause should contain the rising edge
-                if (!this.detect_clk_event(ifs[0].clauses[1])) {
+                if (!this.detect_clk_event(ifs[0].clauses[1])){
                     // not clk event detected in the second if => async process
                     this.reset_signal = null
                     this.reset_start = null
                     this.reset_type = null
                 }
                 else this.reset_type = "async"
-            } else { // we conclude that it is an async process
+            } else{ // we conclude that it is an async process
                 this.reset_signal = null
                 this.reset_start = null
                 this.reset_type = null
             }
-        } else {
+        }  else {
             // sync proc, detect the reset
-            const eifs = ifs[0].clauses[0].statements.filter(s => s instanceof OIf)
-            if (eifs.length > 0) { // no reset condition found!
-                this.reset_signal = eifs[0].clauses[0].condition.replace(/\(|\)|[0-9]+|'|"|or|and|=|>|</g, "").split(" ").filter(s => s !== "")
+            const eifs = ifs[0].clauses[0].statements.filter(s=>s instanceof OIf)
+            if (eifs.length > 0){ // no reset condition found!
+                this.reset_signal = eifs[0].clauses[0].condition.replace(/\(|\)|[0-9]+|'|"|or|and|=|>|</g, "").split(" ").filter(s=> s!== "")
             }
-        }
+        }      
         return this.registerProcess;
     }
     getFlatWrites() {
@@ -1223,18 +1218,18 @@ class OProcess extends ObjectBase {
         for (const statement of this.statements) {
             if (statement instanceof OIf) {
                 for (const clause of statement.clauses) {
-                    if (clause.condition.indexOf(this.clock) === -1) {
+                    if (clause.condition.indexOf(this.clock)===-1) {
                         //this.reset_signal = clause.condition.match(reset_condition)[0]
                         //console.log("reset = "+this.reset_signal)
                         this.reset_range = statement.range;
-                        this.reset_range.start.character += 3
+                        this.reset_range.start.character +=3
                         for (const subStatement of clause.statements) {
-                            if (subStatement instanceof OForLoop) {
-                                for (const ss of subStatement.statements) {
+                            if (subStatement instanceof OForLoop){
+                                for (const ss of subStatement.statements){
                                     if (ss instanceof OAssignment) {
                                         this.resets = this.resets.concat(ss.writes.map(write => write.text));
                                         this.reset_range = ss.range;
-                                    }
+                                    }        
                                 }
                             }
                             if (subStatement instanceof OAssignment) {
@@ -1245,7 +1240,7 @@ class OProcess extends ObjectBase {
                         }
                         //console.log("reset range defined as " + this.reset_range)
                     }
-                    else {
+                    else{
                         for (const s of clause.statements) {
                             if (s instanceof OIf) {
                                 for (const c of s.clauses) {
@@ -1255,30 +1250,30 @@ class OProcess extends ObjectBase {
                                         //console.log("reset = "+this.reset_signal)
                                         for (const ss of c.statements) {
 
-                                            if (ss instanceof OForLoop) {
-                                                for (const s of ss.statements) {
+                                            if (ss instanceof OForLoop){
+                                                for (const s of ss.statements){
                                                     if (s instanceof OAssignment) {
                                                         this.resets = this.resets.concat(s.writes.map(write => write.text));
-                                                    }
+                                                    }        
                                                 }
                                             }
                                             if (ss instanceof OAssignment) {
                                                 this.resets = this.resets.concat(ss.writes.map(write => write.text));
-
+                                                
                                             }
 
                                         }
-                                        if (c.statements[c.statements.length - 1]) {
-                                            this.reset_range = c.statements[c.statements.length - 1].range;
+                                        if (c.statements[c.statements.length-1]){
+                                            this.reset_range = c.statements[c.statements.length-1].range;
                                         }
-                                        else {
+                                        else{
                                             const a = c.range
-                                            a.start.character = a.start.character + 3
+                                            a.start.character = a.start.character+3
                                             this.reset_range = a
                                         }
-                                    }
+                                    }            
                                 }
-                            }
+                            }   
                         }
                         //console.log("reset range defined as " + this.reset_range.start.line)
                     }
@@ -1507,7 +1502,7 @@ class OToken extends ODefitionable {
                         break yank;
                     }
                 }
-
+                
                 for (const variable of object.types) {
                     if (variable.name.text.toLowerCase() === text.toLowerCase()) {
                         this.definition = variable;
