@@ -94,6 +94,9 @@ class VhdlLinter {
     getWordAtPosition(pos) {
         let left = pos
         let right = pos
+        if (this.text.length === 0) return this.text
+        if (this.text.length <= left) return ""
+        if (this.text.length <= right) return ""
         while (this.text[left].search(/\w/) > -1) {
             if (left > 0) left -= 1
             else break
@@ -429,7 +432,7 @@ class VhdlLinter {
                             }
                         }
                         else {
-                            console.log("gotch you")
+                            //console.log("gotch you")
                         }
                         obj.mappingIfOutput = [[], []];
                     }
@@ -448,7 +451,7 @@ class VhdlLinter {
                             }
                         }
                         else {
-                            console.log("gotch you")
+                            //console.log("gotch you")
                         }
                         obj.mappingIfInput = [];
                     }
