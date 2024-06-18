@@ -135,7 +135,7 @@ class ParserBase {
                 if ((entity instanceof objects_1.OPackage) || (entity instanceof objects_1.OPackageBody)) {
                     // generic type in case of generic packages
                     this.getNextWord(); // consume 'type'
-                    this.expect(":")
+                    // this.expect(":")  // don't understand why this colon is expected here... 
                     port = Object.setPrototypeOf(port, objects_1.OGenericType.prototype);
                     port.name = new objects_1.OName(port, this.pos.i, this.pos.i);
                     port.name.text = this.getNextWord();
