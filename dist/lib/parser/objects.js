@@ -1571,7 +1571,7 @@ class OMappingName extends ODefitionable {
 exports.OMappingName = OMappingName;
 class ParserError extends Error {
     constructor(message, range, solution) {
-        super(message);
+        super("(vhdl_t) " + message);
         this.range = range;
         this.solution = solution;
     }

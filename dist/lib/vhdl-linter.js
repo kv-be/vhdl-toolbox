@@ -10,6 +10,7 @@ const { thenable } = require("vscode-languageserver/lib/utils/is");
 const { isThisTypeNode, textChangeRangeIsUnchanged } = require("typescript");
 const { throws } = require("assert");
 const path_1 = require("path");
+const vhdlLinterId = "(vhdl_t) "
 var LinterRules;
 (function (LinterRules) {
     LinterRules[LinterRules["Reset"] = 0] = "Reset";
@@ -139,12 +140,13 @@ class VhdlLinter {
                 this.messages.push({
                     range: magicComment.range,
                     severity: vscode_languageserver_1.DiagnosticSeverity.Information,
-                    message: magicComment.message
+                    message: vhdlLinterId + magicComment.message
                 });
             }
         });
     }
     addMessage(diagnostic, rule, parameter) {
+        diagnostic.message = vhdlLinterId + diagnostic.message
         if (this.checkMagicComments(diagnostic, rule, parameter)) {
             this.messages.push(diagnostic);
         }
@@ -302,7 +304,7 @@ class VhdlLinter {
                 this.addMessage({
                     range: useStatement.range,
                     severity: vscode_languageserver_1.DiagnosticSeverity.Warning,
-                    message: `could not find package for ${useStatement.text}`
+                    message: "(vhdl_t)" + ` could not find package for ${useStatement.text}`
                 });
             }
         }
