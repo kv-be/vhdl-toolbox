@@ -168,9 +168,9 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             else if (nextWord === 'alias') {                    //ALIAS std_bit IS STD.STANDARD.BIT ;
                 this.check_semicolon(check)
                 const alias = new objects_1.OSignal(this.parent, this.pos.i, this.getEndOfLineI());
-                this.getNextWord()
+                this.getNextWord() // consume alias "<="
                 const startI = this.pos.i;
-                const name = this.getNextWord();
+                const name = this.getNextWord({ re: /\S+/, consume: true });
                 alias.name = new objects_1.OName(alias, startI, startI + name.length);
                 alias.name.text = name;
                 alias.isAlias = true
