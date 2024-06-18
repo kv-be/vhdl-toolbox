@@ -53,7 +53,7 @@ class ParserBase {
                 signal = new objects_1.OVariable(parent, startI, this.getEndOfLineI());
             }
             signal.name = new objects_1.OName(signal, this.pos.i, this.pos.i);
-            signal.name.text = this.getNextWord();
+            signal.name.text = this.getNextWord({ re: /[a-zA-Z0-9_]+|'\W{1}'|"\W+"/, consume: true });
             signal.name.range.end.i = signal.name.range.start.i + signal.name.text.length;
             signals.push(signal);
         } while (this.text[this.pos.i] === ',');
@@ -785,7 +785,8 @@ class ParserBase {
         // getType returns arrays of OReads
         let type = '';
         const startI = this.pos.i;
-        const tmp_text = this.text.substr(this.pos.i).replace(/(?<=\").*(?=\")/, match => ' '.repeat(match.length))
+        let tmp_text = this.text.substr(this.pos.i).replace(/(?<=\").*(?=\")/, match => ' '.repeat(match.length))
+        tmp_text = tmp_text.replace(/';'/, match => ' '.repeat(match.length))
         const match = /;/.exec(tmp_text);
         if (!match) {
             throw new objects_1.ParserError(`could not find semicolon`, this.pos.getRangeToEndLine());

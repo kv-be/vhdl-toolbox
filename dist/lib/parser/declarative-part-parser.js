@@ -170,7 +170,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 const alias = new objects_1.OSignal(this.parent, this.pos.i, this.getEndOfLineI());
                 this.getNextWord() // consume alias "<="
                 const startI = this.pos.i;
-                const name = this.getNextWord({ re: /\S+/, consume: true });
+                const name = this.getNextWord({ re: /[a-zA-Z0-9_]+|'\W{1}'|"\W+"/, consume: true });
                 alias.name = new objects_1.OName(alias, startI, startI + name.length);
                 alias.name.text = name;
                 alias.isAlias = true
