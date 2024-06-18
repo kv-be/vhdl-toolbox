@@ -15,21 +15,21 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         this.allowFile = true
         this.allowGeneric = false
         this.allowPackage = false
-        if ((this.parent instanceof objects_1.OArchitecture)||(this.parent instanceof objects_1.OPackage)){
+        if ((this.parent instanceof objects_1.OArchitecture) || (this.parent instanceof objects_1.OPackage)) {
             this.allowComponents = true
             this.allowSignals = true
             this.allowPackage = true // support for generic package instantiations
-        } 
-        if (this.parent instanceof objects_1.OEntity){
+        }
+        if (this.parent instanceof objects_1.OEntity) {
             this.allowComponents = false
-            this.allowSignals = true            
-        } 
+            this.allowSignals = true
+        }
         if ((this.parent instanceof objects_1.OEntity) || (this.parent instanceof objects_1.OPackage)) this.allowGeneric = true
         if (this.parent instanceof objects_1.OPackage) this.allowPackage = true
         if (this.parent instanceof objects_1.OPackageBody) this.allowPackage = true
         //if (this.parent instanceof objects_1.OProcess) this.allowPackage = true
-        
-        
+
+
     }
 
     getRoot() {
@@ -57,30 +57,30 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         return useStatement;
     }
 
-    checkDeclarativeKeywords(text){
-        const keywords = ["\\n\\s*signal\\b","\\n\\s*process\\b", "\\n\\s*type\\b","\\n\\s*constant\\b","\\n\\s*function\\b","\\n\\s*procedure\\b","\\n\\s*record\\b",  "\\n\\s*component\\b", "\\n\\s*entity\\b", "^\\n\\s*package"]
+    checkDeclarativeKeywords(text) {
+        const keywords = ["\\n\\s*signal\\b", "\\n\\s*process\\b", "\\n\\s*type\\b", "\\n\\s*constant\\b", "\\n\\s*function\\b", "\\n\\s*procedure\\b", "\\n\\s*record\\b", "\\n\\s*component\\b", "\\n\\s*entity\\b", "^\\n\\s*package"]
         //console.log("checking keywords in "+text)
-        for (const k of keywords){
-            if (text.search(new RegExp(k, "gi"))>-1){
+        for (const k of keywords) {
+            if (text.search(new RegExp(k, "gi")) > -1) {
                 //console.log("-- problem found")
                 return true
                 break;
             }
-        }        
+        }
         return false
     }
 
-    check_semicolon(check){
+    check_semicolon(check) {
         const keywords = ['end', 'signal', 'constant', 'shared', 'variable', 'impure', 'pure', 'function', 'procedure', 'file', 'type', 'begin', 'attribute', 'subtype', 'alias', 'component', 'package']
         let hits = 0
-        for (const k of keywords){
-            if (check.match(new RegExp(`\\n\\s*${k}\\b`, "g")) ){
-                hits +=[...check.matchAll(new RegExp(`\\n\\s*${k}\\b`, "g"))].length;
+        for (const k of keywords) {
+            if (check.match(new RegExp(`\\n\\s*${k}\\b`, "g"))) {
+                hits += [...check.matchAll(new RegExp(`\\n\\s*${k}\\b`, "g"))].length;
             }
         }
-        if (hits > 0){
+        if (hits > 0) {
             throw new objects_1.ParserError("probably forgot ending ';' at the end of the line", this.pos.getRangeToEndLine())
-        }                   
+        }
 
     }
 
@@ -88,52 +88,52 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         //console.log('** starting declarative parser')
         let nextWord = this.getNextWord({ consume: false }).toLowerCase();
 
-        
-        while (true){ 
-            if (this.pos.i >= this.pos.parent.text.length){
-//                throw new objects_1.ParserError("Something strange happened !")
+
+        while (true) {
+            if (this.pos.i >= this.pos.parent.text.length) {
+                //                throw new objects_1.ParserError("Something strange happened !")
                 break;
             }
-            let check = this.text.substr(this.pos.i, this.text.substr(this.pos.i).search(/;|return\b.*?\bis\b|\bis\s+protected\b/i)+1)
+            let check = this.text.substr(this.pos.i, this.text.substr(this.pos.i).search(/;|return\b.*?\bis\b|\bis\s+protected\b/i) + 1)
             // stop conditions: or a word, or a single letter (e.g. ')' for generic parts)
-            if (lastWord.length >1) {
+            if (lastWord.length > 1) {
                 nextWord = this.getNextWord({ consume: false }).toLowerCase();
                 if (nextWord === lastWord) {
                     break;
                 }
-            } 
-            else if ((this.text[this.pos.i]===lastWord[0])&& (lastWord.length === 1)) break;
+            }
+            else if ((this.text[this.pos.i] === lastWord[0]) && (lastWord.length === 1)) break;
 
             let hits = 0
             if (nextWord === 'signal' || nextWord === 'constant' || nextWord === 'shared' || nextWord === 'variable') {
-                this.check_semicolon(check) 
+                this.check_semicolon(check)
                 const signals = this.parse_signals(nextWord, this.parent)
                 if (this.parent instanceof objects_1.OPackage || this.parent instanceof objects_1.OPackageBody) {
                     this.parent.constants.push(...signals);
                 }
-                else if (this.parent instanceof objects_1.OProcedure || this.parent instanceof objects_1.OFunction|| this.parent instanceof objects_1.OProcess){
+                else if (this.parent instanceof objects_1.OProcedure || this.parent instanceof objects_1.OFunction || this.parent instanceof objects_1.OProcess) {
                     this.parent.variables.push(...signals);
-                }else {
+                } else {
                     this.parent.signals.push(...signals);
                 }
-        
+
             }
             else if (nextWord === 'attribute') { // also in entities!!
                 // add an attribute object and store the different types
-                this.check_semicolon(check) 
+                this.check_semicolon(check)
                 const start = this.pos.i
                 this.getNextWord(); // consume attribute
                 let startName = this.pos.i
                 const type = this.getNextWord() // consume the attribute name
-                if (this.text[this.pos.i] === ":"){
+                if (this.text[this.pos.i] === ":") {
                     const att = new objects_1.OAttributeDef(this.parent, start, this.getEndOfLineI())
                     att.name = new objects_1.OName(this.parent, startName, this.pos.i)
                     att.name.text = type;
-                    att.definition =  this.parent
+                    att.definition = this.parent
                     this.advanceSemicolon()
-                    if (!this.parent.attribute_defs) this.parent.attribute_defs=[]
+                    if (!this.parent.attribute_defs) this.parent.attribute_defs = []
                     this.parent.attribute_defs.push(att)
-                }else{
+                } else {
                     this.expect("of")
                     const att = new objects_1.OAttribute(this.parent, startName, this.pos.i)
                     att.name = new objects_1.OName(this.parent, startName, this.pos.i)
@@ -141,17 +141,17 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                     att.text = this.text.substring(start, this.getEndOfLineI())
                     startName = this.pos.i
                     att.type = this.getNextWord()
-                    if (att.text.search(/\bsignal\b|\bvariable\b/i)>-1){
+                    if (att.text.search(/\bsignal\b|\bvariable\b/i) > -1) {
                         //only in case of attributes on signals or variable, push the signals
                         const reads = this.extractReads(this.parent, att.type, startName)
                         // there exists attributes on labels and architectures, so not always signals
-                        if (reads){
+                        if (reads) {
                             att.type = reads[0]
-                        }    
+                        }
                     }
                     this.advanceSemicolon()
                     if (!this.parent.attributes) this.parent.attributes = []
-                    this.parent.attributes.push(att)   
+                    this.parent.attributes.push(att)
                 }
             }
             else if (nextWord === 'type') {
@@ -160,13 +160,13 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
 
             }
             else if (nextWord === 'subtype') {
-                this.check_semicolon(check) 
+                this.check_semicolon(check)
                 const subtypeParser = new subtype_parser_1.SubtypeParser(this.text, this.pos, this.file, this.parent);
                 const type = subtypeParser.parse();
                 this.parent.types.push(type);
             }
             else if (nextWord === 'alias') {                    //ALIAS std_bit IS STD.STANDARD.BIT ;
-                this.check_semicolon(check) 
+                this.check_semicolon(check)
                 const alias = new objects_1.OSignal(this.parent, this.pos.i, this.getEndOfLineI());
                 this.getNextWord()
                 const startI = this.pos.i;
@@ -176,30 +176,30 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 alias.isAlias = true
                 alias.definition = this.parent;
                 alias.range.end.i = this.getEndOfLineI()
-                if (this.parent.signals){
-                    this.parent.signals.push(alias)                
-                } 
+                if (this.parent.signals) {
+                    this.parent.signals.push(alias)
+                }
                 if (this.parent.variables) {
-                    this.parent.variables.push(alias)                
-                }   
+                    this.parent.variables.push(alias)
+                }
                 if (this.parent.constants) {
-                    this.parent.constants.push(alias)                
-                }   
+                    this.parent.constants.push(alias)
+                }
                 this.advanceSemicolon(true);
             }
             else if (nextWord === 'component') {
                 let start = this.pos.i
                 this.getNextWord();
                 const componentName = this.getNextWord();
-                if (!this.allowComponents){
+                if (!this.allowComponents) {
                     let scope = this.parent.constructor.name.substring(1)
-                    throw new objects_1.ParserError(`No component declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, start, start+this.text.substring(start).search(/\n/)));                                            
+                    throw new objects_1.ParserError(`No component declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, start, start + this.text.substring(start).search(/\n/)));
                 }
 
                 let bodystart = this.pos.i
                 this.advancePast(/\bend\b/i, { allowSemicolon: true });
-                if (this.checkDeclarativeKeywords(this.text.substring(bodystart, this.pos.i))){
-                    throw new objects_1.ParserError(`component declaration not fully correct.`, new objects_1.OIRange(this.parent, bodystart, bodystart + this.text.substring(bodystart).search(/\n/)));                    
+                if (this.checkDeclarativeKeywords(this.text.substring(bodystart, this.pos.i))) {
+                    throw new objects_1.ParserError(`component declaration not fully correct.`, new objects_1.OIRange(this.parent, bodystart, bodystart + this.text.substring(bodystart).search(/\n/)));
                 }
                 this.maybeWord('component');
                 this.maybeWord(componentName);
@@ -211,8 +211,8 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 const procedureParser = new procedure_parser_1.ProcedureParser(this.text, this.pos, this.file, this.parent);
                 this.parent.procedures.push(procedureParser.parse(startI));
             }
-            else if (nextWord === 'impure' ||nextWord === 'pure' || nextWord === 'function') {
-                if ((nextWord === 'impure')||(nextWord === 'pure')) {
+            else if (nextWord === 'impure' || nextWord === 'pure' || nextWord === 'function') {
+                if ((nextWord === 'impure') || (nextWord === 'pure')) {
                     this.getNextWord();
                 }
                 const startI = this.pos.i
@@ -223,16 +223,16 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
 
             }
             else if (optional) return
-            else if (nextWord === 'package' ) {
+            else if (nextWord === 'package') {
                 if ((!this.allowPackage) && (nextWord === 'package')) {
                     let scope = this.parent.constructor.name.substring(1)
-                    throw new objects_1.ParserError(`Word package is not expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(this.pos.i).search(/\n/)));
+                    throw new objects_1.ParserError(`Word package is not expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i + this.text.substring(this.pos.i).search(/\n/)));
                 }
                 this.getNextWord()
                 const packageParser = new package_parser_1.PackageParser(this.text, this.pos, this.file, this.onlyDeclarations);
                 const pack = packageParser.parse(this.getRoot())
-                if (pack){
-                    if (!this.parent.packages){
+                if (pack) {
+                    if (!this.parent.packages) {
                         this.parent.packages = []
                     }
                     this.parent.packages.push(pack)
@@ -240,10 +240,10 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 //this.advanceSemicolon();
             }
             else if (nextWord === 'file') {
-                this.check_semicolon(check) 
-                if (!this.allowFile){
+                this.check_semicolon(check)
+                if (!this.allowFile) {
                     let scope = this.parent.constructor.name.substring(1)
-                    throw new objects_1.ParserError(`No file declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(start).search(/\n/)));                                            
+                    throw new objects_1.ParserError(`No file declaration expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i + this.text.substring(start).search(/\n/)));
                 }
                 const startI = this.pos.i
                 this.getNextWord() // consume the file
@@ -256,32 +256,32 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 if (this.parent.variables) this.parent.variables.push(signal)
                 else if (this.parent.signals) this.parent.signals.push(signal)
                 else if (this.parent.constants) this.parent.constants.push(signal)
-                else throw new objects_1.ParserError(`No place found for file `, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(start).search(/\n/)));                                            
+                else throw new objects_1.ParserError(`No place found for file `, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i + this.text.substring(start).search(/\n/)));
                 //this.parent.constants.push(signal);
                 this.advanceSemicolon();
             }
             else if (nextWord === 'generic') {
                 if ((!this.allowGeneric) && (nextWord === 'generic')) {
                     let scope = this.parent.constructor.name.substring(1)
-                    throw new objects_1.ParserError(`Word generic is not expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i+this.text.substring(this.pos.i).search(/\n/)));                                            
+                    throw new objects_1.ParserError(`Word generic is not expected in current scope ${scope} ";"`, new objects_1.OIRange(this.parent, this.pos.i, this.pos.i + this.text.substring(this.pos.i).search(/\n/)));
                 }
                 const savedI = this.pos.i
                 this.getNextWord()
-                if (!this.generics) this.generics=[]
-                this.parsePortsAndGenerics( true, this.parent);
+                if (!this.generics) this.generics = []
+                this.parsePortsAndGenerics(true, this.parent);
                 this.parent.genericRange = new objects_1.OIRange(this.parent, savedI, this.pos.i);
                 this.expectDirectly(';');
             }
             else if (nextWord === 'use') {
                 this.getNextWord()
                 const usestat = this.getUseStatement(this.parent);
-                if (!this.parent.useStatements){
+                if (!this.parent.useStatements) {
                     this.parent.useStatements = []
                 }
                 this.parent.useStatements.push(usestat)
                 this.expect(';');
             }
-            else if (nextWord === 'disconnect'){
+            else if (nextWord === 'disconnect') {
                 this.getNextWord()
                 const signal_name = this.getNextWord()
                 this.expect(":")
@@ -291,7 +291,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 let def = this.advanceSemicolon()
                 def = this.extractReads(this.parent, def, st)
             }
-           else {
+            else {
                 throw new objects_1.ParserError(`Unknown Ding: '${nextWord}' on line ${this.getLine()}`, this.pos.getRangeToEndLine());
                 this.getNextWord();
             }
@@ -299,7 +299,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         }
         //console.log('** Ending declarative parser')
     }
-    parse_type(){
+    parse_type() {
         const type = new objects_1.OType(this.parent, this.pos.i, this.getEndOfLineI());
         this.getNextWord();
         const startTypeName = this.pos.i;
@@ -307,6 +307,11 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
         let isBody = false
         type.name = new objects_1.OName(type, startTypeName, startTypeName + typeName.length + 1);
         type.name.text = typeName;
+        this.advanceWhitespace();
+        if (this.text[this.pos.i] === ';') {
+            this.expect(";")
+            return
+        }
         this.expect('is');
         if (this.text[this.pos.i] === '(') {
             this.expect('(');
@@ -344,7 +349,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             this.expect('units');
             type.range.end.i = this.pos.i;
             this.expect(';');
-            return type 
+            return type
             //this.parent.types.push(type);
         }
         else {
@@ -352,7 +357,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
             if (nextWord === 'record') {
                 Object.setPrototypeOf(type, objects_1.ORecord.prototype);
                 type.children = [];
-                    let position = this.pos.i;
+                let position = this.pos.i;
                 let recordWord = this.getNextWord();
                 while (recordWord.toLowerCase() !== 'end') {
                     const child = new objects_1.ORecordChild(type, position, position);
@@ -372,7 +377,7 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 this.advanceSemicolon(true);
                 return type
 
-            }else if (nextWord === 'protected') {
+            } else if (nextWord === 'protected') {
                 Object.setPrototypeOf(type, objects_1.OProtected.prototype);
                 type.functions = []
                 type.procedures = []
@@ -393,11 +398,11 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                     else if (protectedWord === 'body') {
                         isBody = true
                         let end = this.text.substring(this.pos.i).search(/\s*end\s+protected\s+body/gi)
-                        if (end === -1){
+                        if (end === -1) {
 
                         }
-                        else{
-                            this.pos.i = this.pos.i + end+1
+                        else {
+                            this.pos.i = this.pos.i + end + 1
                             this.advanceWhitespace()
                         }
                     }
@@ -407,18 +412,18 @@ class DeclarativePartParser extends parser_base_1.ParserBase {
                 this.maybeWord('protected');
                 if (isBody) this.maybeWord('body');
             }
-            
+
             const st = this.pos.i
-            let def = this.advancePast(';', {"allowKeywords": false});
+            let def = this.advancePast(';', { "allowKeywords": false });
             def = this.extractReads(this.parent, def, st) // just to be sure the definitions are pushed to the object stack
-            
-            type.range.end.i = this.pos.i-1;
+
+            type.range.end.i = this.pos.i - 1;
 
             if (!isBody) return type //this.parent.types.push(type);
-            else return 
+            else return
             isBody = false
         }
-        
+
     }
 
 
